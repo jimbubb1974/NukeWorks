@@ -4,14 +4,14 @@
 
 {% block content %}
 <div class="container-fluid">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
         <h2 class="mb-0"><i class="bi bi-building"></i> Companies</h2>
         <form method="get" class="d-flex gap-2" role="search">
             <select name="role" class="form-select form-select-sm" onchange="this.form.submit()">
                 <option value="">All Roles</option>
                 {% for role in roles %}
                 <option value="{{ role.role_code }}" {% if role.role_code == active_role %}selected{% endif %}>
-                    {{ role.role_label }}
+                    {{ role.role_label }} ({{ role_counts.get(role.role_code, 0) }})
                 </option>
                 {% endfor %}
             </select>
@@ -19,6 +19,70 @@
             <a href="{{ url_for('companies.list_companies') }}" class="btn btn-outline-secondary btn-sm">Clear</a>
             {% endif %}
         </form>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card border-primary">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="text-muted small">Total Companies</div>
+                            <div class="h3 mb-0">{{ total_companies }}</div>
+                        </div>
+                        <div class="text-primary">
+                            <i class="bi bi-building" style="font-size: 2rem;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="text-muted small">Technology Vendors</div>
+                            <div class="h3 mb-0">{{ role_counts.get('vendor', 0) }}</div>
+                        </div>
+                        <div class="text-secondary">
+                            <i class="bi bi-box-seam" style="font-size: 2rem;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="text-muted small">Owners / Developers</div>
+                            <div class="h3 mb-0">{{ role_counts.get('developer', 0) }}</div>
+                        </div>
+                        <div class="text-secondary">
+                            <i class="bi bi-building-gear" style="font-size: 2rem;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="text-muted small">Showing</div>
+                            <div class="h3 mb-0">{{ companies|length }}</div>
+                        </div>
+                        <div class="text-secondary">
+                            <i class="bi bi-filter" style="font-size: 2rem;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <div class="card">

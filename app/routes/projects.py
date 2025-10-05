@@ -27,6 +27,14 @@ from app.forms.relationships import (
 from app.forms.projects import ProjectForm
 from app import db_session
 from app.utils.permissions import filter_relationships
+from app.services.company_sync import (
+    sync_personnel_affiliation,
+    sync_project_vendor_relationship,
+    sync_project_constructor_relationship,
+    sync_project_operator_relationship,
+    sync_project_owner_relationship,
+    sync_project_offtaker_relationship,
+)
 from app.routes.relationship_utils import (
     get_vendor_choices,
     get_constructor_choices,
@@ -279,6 +287,11 @@ def add_project_vendor_relationship(project_id):
 
         try:
             db_session.add(relationship)
+            db_session.flush()
+
+            # Sync to unified company schema
+            sync_project_vendor_relationship(relationship, current_user.user_id)
+
             db_session.commit()
             flash('Vendor relationship added.', 'success')
         except Exception as exc:  # pragma: no cover
@@ -358,6 +371,11 @@ def add_project_constructor_relationship(project_id):
 
         try:
             db_session.add(relationship)
+            db_session.flush()
+
+            # Sync to unified company schema
+            sync_project_constructor_relationship(relationship, current_user.user_id)
+
             db_session.commit()
             flash('Constructor relationship added.', 'success')
         except Exception as exc:  # pragma: no cover
@@ -437,6 +455,11 @@ def add_project_operator_relationship(project_id):
 
         try:
             db_session.add(relationship)
+            db_session.flush()
+
+            # Sync to unified company schema
+            sync_project_operator_relationship(relationship, current_user.user_id)
+
             db_session.commit()
             flash('Operator relationship added.', 'success')
         except Exception as exc:  # pragma: no cover
@@ -518,6 +541,11 @@ def add_project_offtaker_relationship(project_id):
 
         try:
             db_session.add(relationship)
+            db_session.flush()
+
+            # Sync to unified company schema
+            sync_project_offtaker_relationship(relationship, current_user.user_id)
+
             db_session.commit()
             flash('Off-taker relationship added.', 'success')
         except Exception as exc:  # pragma: no cover
@@ -596,6 +624,11 @@ def add_project_owner_relationship(project_id):
 
         try:
             db_session.add(relationship)
+            db_session.flush()
+
+            # Sync to unified company schema
+            sync_project_owner_relationship(relationship, current_user.user_id)
+
             db_session.commit()
             flash('Owner relationship added.', 'success')
         except Exception as exc:  # pragma: no cover
@@ -678,6 +711,11 @@ def add_project_personnel_relationship(project_id):
 
         try:
             db_session.add(relationship)
+            db_session.flush()
+
+            # Sync to unified company schema
+            sync_personnel_affiliation(relationship, current_user.user_id)
+
             db_session.commit()
             flash('Personnel relationship added.', 'success')
         except Exception as exc:  # pragma: no cover

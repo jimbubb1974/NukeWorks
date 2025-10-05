@@ -37,6 +37,8 @@ def _assignment_link(assignment: CompanyRoleAssignment) -> str | None:
 @bp.route('/')
 @login_required
 def list_companies():
+    from sqlalchemy import func
+
     role_filter = request.args.get('role', '').strip()
 
     query = db_session.query(Company)
@@ -72,10 +74,24 @@ def list_companies():
 
     roles = db_session.query(CompanyRole).filter(CompanyRole.is_active == True).order_by(CompanyRole.role_label).all()
 
+    # Get company counts by role for statistics
+    role_counts = {}
+    for role in roles:
+        count = (
+            db_session.query(func.count(func.distinct(CompanyRoleAssignment.company_id)))
+            .filter(CompanyRoleAssignment.role_id == role.role_id)
+            .scalar() or 0
+        )
+        role_counts[role.role_code] = count
+
+    total_companies = db_session.query(Company).count()
+
     return render_template(
         'companies/list.html',
         companies=companies,
         assignments_map=assignments_map,
         roles=roles,
         active_role=role_filter,
+        role_counts=role_counts,
+        total_companies=total_companies,
     )

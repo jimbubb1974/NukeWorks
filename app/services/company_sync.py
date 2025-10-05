@@ -13,12 +13,19 @@ from app.models import (
     CompanyRole,
     CompanyRoleAssignment,
     ClientProfile,
+    PersonCompanyAffiliation,
+    PersonnelEntityRelationship,
     TechnologyVendor,
     OwnerDeveloper,
     Client,
     Operator,
     Constructor,
     Offtaker,
+    ProjectVendorRelationship,
+    ProjectConstructorRelationship,
+    ProjectOperatorRelationship,
+    ProjectOwnerRelationship,
+    ProjectOfftakerRelationship,
 )
 
 _VENDOR_ROLE_CODE = 'vendor'
@@ -443,6 +450,435 @@ def sync_company_from_offtaker(offtaker: Offtaker, user_id: int | None = None) -
     return company
 
 
+def _get_company_for_entity(entity_type: str, entity_id: int) -> Company | None:
+    """
+    Find the unified Company record linked to a legacy entity.
+
+    Args:
+        entity_type: Entity type from PersonnelEntityRelationship (Vendor, Owner, Operator, etc.)
+        entity_id: The legacy entity's primary key
+
+    Returns:
+        Company record if found, None otherwise
+    """
+    session = _session()
+
+    # Map entity types to context types and role codes
+    entity_map = {
+        'Vendor': (_VENDOR_CONTEXT, _VENDOR_ROLE_CODE),
+        'Owner': (_OWNER_CONTEXT, _OWNER_ROLE_CODE),
+        'Developer': (_OWNER_CONTEXT, _OWNER_ROLE_CODE),
+        'Operator': (_OPERATOR_CONTEXT, _OPERATOR_ROLE_CODE),
+        'Constructor': (_CONSTRUCTOR_CONTEXT, _CONSTRUCTOR_ROLE_CODE),
+        'Offtaker': (_OFFTAKER_CONTEXT, _OFFTAKER_ROLE_CODE),
+        'Client': (_CLIENT_CONTEXT, _CLIENT_ROLE_CODE),
+    }
+
+    if entity_type not in entity_map:
+        return None
+
+    context_type, role_code = entity_map[entity_type]
+
+    # Get the role
+    role = session.query(CompanyRole).filter(CompanyRole.role_code == role_code).one_or_none()
+    if not role:
+        return None
+
+    # Find the assignment linking to this entity
+    assignment = _get_assignment_by_context(role.role_id, context_type, entity_id)
+    if assignment:
+        return assignment.company
+
+    return None
+
+
+def sync_personnel_affiliation(
+    personnel_rel: PersonnelEntityRelationship,
+    user_id: int | None = None
+) -> PersonCompanyAffiliation | None:
+    """
+    Create or update a PersonCompanyAffiliation from a PersonnelEntityRelationship.
+
+    Args:
+        personnel_rel: Legacy personnel-entity relationship
+        user_id: User performing the sync
+
+    Returns:
+        PersonCompanyAffiliation if company found, None otherwise
+    """
+    session = _session()
+
+    # Find the unified company for this entity
+    company = _get_company_for_entity(personnel_rel.entity_type, personnel_rel.entity_id)
+    if not company:
+        return None
+
+    # Check if affiliation already exists
+    affiliation = (
+        session.query(PersonCompanyAffiliation)
+        .filter(
+            and_(
+                PersonCompanyAffiliation.person_id == personnel_rel.personnel_id,
+                PersonCompanyAffiliation.company_id == company.company_id,
+                PersonCompanyAffiliation.title == personnel_rel.role_at_entity,
+            )
+        )
+        .first()
+    )
+
+    if affiliation:
+        # Update existing
+        if personnel_rel.notes and personnel_rel.notes != affiliation.notes:
+            affiliation.notes = personnel_rel.notes
+            affiliation.modified_by = user_id
+            affiliation.modified_date = datetime.utcnow()
+    else:
+        # Create new affiliation
+        affiliation = PersonCompanyAffiliation(
+            person_id=personnel_rel.personnel_id,
+            company_id=company.company_id,
+            title=personnel_rel.role_at_entity,
+            notes=personnel_rel.notes,
+            is_primary=False,
+            created_by=user_id,
+            modified_by=user_id,
+        )
+        session.add(affiliation)
+
+    session.flush()
+    return affiliation
+
+
+def sync_project_vendor_relationship(
+    project_rel: ProjectVendorRelationship,
+    user_id: int | None = None
+) -> CompanyRoleAssignment | None:
+    """
+    Create or update a CompanyRoleAssignment for a project-vendor relationship.
+
+    Args:
+        project_rel: Legacy project-vendor relationship
+        user_id: User performing the sync
+
+    Returns:
+        CompanyRoleAssignment if created/updated, None if vendor has no company
+    """
+    session = _session()
+
+    # Find the unified company for this vendor
+    vendor_role = session.query(CompanyRole).filter(CompanyRole.role_code == _VENDOR_ROLE_CODE).one_or_none()
+    if not vendor_role:
+        return None
+
+    vendor_assignment = _get_assignment_by_context(vendor_role.role_id, _VENDOR_CONTEXT, project_rel.vendor_id)
+    if not vendor_assignment:
+        return None
+
+    company = vendor_assignment.company
+
+    # Check if project assignment already exists
+    assignment = (
+        session.query(CompanyRoleAssignment)
+        .filter(
+            and_(
+                CompanyRoleAssignment.company_id == company.company_id,
+                CompanyRoleAssignment.role_id == vendor_role.role_id,
+                CompanyRoleAssignment.context_type == 'Project',
+                CompanyRoleAssignment.context_id == project_rel.project_id,
+            )
+        )
+        .first()
+    )
+
+    if assignment:
+        # Update existing
+        if project_rel.notes and project_rel.notes != assignment.notes:
+            assignment.notes = project_rel.notes
+            assignment.is_confidential = project_rel.is_confidential
+            assignment.modified_by = user_id
+            assignment.modified_date = datetime.utcnow()
+    else:
+        # Create new assignment
+        assignment = CompanyRoleAssignment(
+            company_id=company.company_id,
+            role_id=vendor_role.role_id,
+            context_type='Project',
+            context_id=project_rel.project_id,
+            is_confidential=project_rel.is_confidential,
+            notes=project_rel.notes,
+            created_by=user_id,
+            modified_by=user_id,
+        )
+        session.add(assignment)
+
+    session.flush()
+    return assignment
+
+
+def sync_project_constructor_relationship(
+    project_rel: ProjectConstructorRelationship,
+    user_id: int | None = None
+) -> CompanyRoleAssignment | None:
+    """
+    Create or update a CompanyRoleAssignment for a project-constructor relationship.
+
+    Args:
+        project_rel: Legacy project-constructor relationship
+        user_id: User performing the sync
+
+    Returns:
+        CompanyRoleAssignment if created/updated, None if constructor has no company
+    """
+    session = _session()
+
+    # Find the unified company for this constructor
+    constructor_role = session.query(CompanyRole).filter(CompanyRole.role_code == _CONSTRUCTOR_ROLE_CODE).one_or_none()
+    if not constructor_role:
+        return None
+
+    constructor_assignment = _get_assignment_by_context(constructor_role.role_id, _CONSTRUCTOR_CONTEXT, project_rel.constructor_id)
+    if not constructor_assignment:
+        return None
+
+    company = constructor_assignment.company
+
+    # Check if project assignment already exists
+    assignment = (
+        session.query(CompanyRoleAssignment)
+        .filter(
+            and_(
+                CompanyRoleAssignment.company_id == company.company_id,
+                CompanyRoleAssignment.role_id == constructor_role.role_id,
+                CompanyRoleAssignment.context_type == 'Project',
+                CompanyRoleAssignment.context_id == project_rel.project_id,
+            )
+        )
+        .first()
+    )
+
+    if assignment:
+        # Update existing
+        if project_rel.notes and project_rel.notes != assignment.notes:
+            assignment.notes = project_rel.notes
+            assignment.is_confidential = project_rel.is_confidential
+            assignment.modified_by = user_id
+            assignment.modified_date = datetime.utcnow()
+    else:
+        # Create new assignment
+        assignment = CompanyRoleAssignment(
+            company_id=company.company_id,
+            role_id=constructor_role.role_id,
+            context_type='Project',
+            context_id=project_rel.project_id,
+            is_confidential=project_rel.is_confidential,
+            notes=project_rel.notes,
+            created_by=user_id,
+            modified_by=user_id,
+        )
+        session.add(assignment)
+
+    session.flush()
+    return assignment
+
+
+def sync_project_operator_relationship(
+    project_rel: ProjectOperatorRelationship,
+    user_id: int | None = None
+) -> CompanyRoleAssignment | None:
+    """
+    Create or update a CompanyRoleAssignment for a project-operator relationship.
+
+    Args:
+        project_rel: Legacy project-operator relationship
+        user_id: User performing the sync
+
+    Returns:
+        CompanyRoleAssignment if created/updated, None if operator has no company
+    """
+    session = _session()
+
+    # Find the unified company for this operator
+    operator_role = session.query(CompanyRole).filter(CompanyRole.role_code == _OPERATOR_ROLE_CODE).one_or_none()
+    if not operator_role:
+        return None
+
+    operator_assignment = _get_assignment_by_context(operator_role.role_id, _OPERATOR_CONTEXT, project_rel.operator_id)
+    if not operator_assignment:
+        return None
+
+    company = operator_assignment.company
+
+    # Check if project assignment already exists
+    assignment = (
+        session.query(CompanyRoleAssignment)
+        .filter(
+            and_(
+                CompanyRoleAssignment.company_id == company.company_id,
+                CompanyRoleAssignment.role_id == operator_role.role_id,
+                CompanyRoleAssignment.context_type == 'Project',
+                CompanyRoleAssignment.context_id == project_rel.project_id,
+            )
+        )
+        .first()
+    )
+
+    if assignment:
+        # Update existing
+        if project_rel.notes and project_rel.notes != assignment.notes:
+            assignment.notes = project_rel.notes
+            assignment.is_confidential = project_rel.is_confidential
+            assignment.modified_by = user_id
+            assignment.modified_date = datetime.utcnow()
+    else:
+        # Create new assignment
+        assignment = CompanyRoleAssignment(
+            company_id=company.company_id,
+            role_id=operator_role.role_id,
+            context_type='Project',
+            context_id=project_rel.project_id,
+            is_confidential=project_rel.is_confidential,
+            notes=project_rel.notes,
+            created_by=user_id,
+            modified_by=user_id,
+        )
+        session.add(assignment)
+
+    session.flush()
+    return assignment
+
+
+def sync_project_owner_relationship(
+    project_rel: ProjectOwnerRelationship,
+    user_id: int | None = None
+) -> CompanyRoleAssignment | None:
+    """
+    Create or update a CompanyRoleAssignment for a project-owner relationship.
+
+    Args:
+        project_rel: Legacy project-owner relationship
+        user_id: User performing the sync
+
+    Returns:
+        CompanyRoleAssignment if created/updated, None if owner has no company
+    """
+    session = _session()
+
+    # Find the unified company for this owner
+    owner_role = session.query(CompanyRole).filter(CompanyRole.role_code == _OWNER_ROLE_CODE).one_or_none()
+    if not owner_role:
+        return None
+
+    owner_assignment = _get_assignment_by_context(owner_role.role_id, _OWNER_CONTEXT, project_rel.owner_id)
+    if not owner_assignment:
+        return None
+
+    company = owner_assignment.company
+
+    # Check if project assignment already exists
+    assignment = (
+        session.query(CompanyRoleAssignment)
+        .filter(
+            and_(
+                CompanyRoleAssignment.company_id == company.company_id,
+                CompanyRoleAssignment.role_id == owner_role.role_id,
+                CompanyRoleAssignment.context_type == 'Project',
+                CompanyRoleAssignment.context_id == project_rel.project_id,
+            )
+        )
+        .first()
+    )
+
+    if assignment:
+        # Update existing
+        if project_rel.notes and project_rel.notes != assignment.notes:
+            assignment.notes = project_rel.notes
+            assignment.is_confidential = project_rel.is_confidential
+            assignment.modified_by = user_id
+            assignment.modified_date = datetime.utcnow()
+    else:
+        # Create new assignment
+        assignment = CompanyRoleAssignment(
+            company_id=company.company_id,
+            role_id=owner_role.role_id,
+            context_type='Project',
+            context_id=project_rel.project_id,
+            is_confidential=project_rel.is_confidential,
+            notes=project_rel.notes,
+            created_by=user_id,
+            modified_by=user_id,
+        )
+        session.add(assignment)
+
+    session.flush()
+    return assignment
+
+
+def sync_project_offtaker_relationship(
+    project_rel: ProjectOfftakerRelationship,
+    user_id: int | None = None
+) -> CompanyRoleAssignment | None:
+    """
+    Create or update a CompanyRoleAssignment for a project-offtaker relationship.
+
+    Args:
+        project_rel: Legacy project-offtaker relationship
+        user_id: User performing the sync
+
+    Returns:
+        CompanyRoleAssignment if created/updated, None if offtaker has no company
+    """
+    session = _session()
+
+    # Find the unified company for this offtaker
+    offtaker_role = session.query(CompanyRole).filter(CompanyRole.role_code == _OFFTAKER_ROLE_CODE).one_or_none()
+    if not offtaker_role:
+        return None
+
+    offtaker_assignment = _get_assignment_by_context(offtaker_role.role_id, _OFFTAKER_CONTEXT, project_rel.offtaker_id)
+    if not offtaker_assignment:
+        return None
+
+    company = offtaker_assignment.company
+
+    # Check if project assignment already exists
+    assignment = (
+        session.query(CompanyRoleAssignment)
+        .filter(
+            and_(
+                CompanyRoleAssignment.company_id == company.company_id,
+                CompanyRoleAssignment.role_id == offtaker_role.role_id,
+                CompanyRoleAssignment.context_type == 'Project',
+                CompanyRoleAssignment.context_id == project_rel.project_id,
+            )
+        )
+        .first()
+    )
+
+    if assignment:
+        # Update existing
+        if project_rel.notes and project_rel.notes != assignment.notes:
+            assignment.notes = project_rel.notes
+            assignment.is_confidential = project_rel.is_confidential
+            assignment.modified_by = user_id
+            assignment.modified_date = datetime.utcnow()
+    else:
+        # Create new assignment
+        assignment = CompanyRoleAssignment(
+            company_id=company.company_id,
+            role_id=offtaker_role.role_id,
+            context_type='Project',
+            context_id=project_rel.project_id,
+            is_confidential=project_rel.is_confidential,
+            notes=project_rel.notes,
+            created_by=user_id,
+            modified_by=user_id,
+        )
+        session.add(assignment)
+
+    session.flush()
+    return assignment
+
+
 __all__ = [
     'sync_company_from_vendor',
     'sync_company_from_owner',
@@ -450,4 +886,10 @@ __all__ = [
     'sync_company_from_operator',
     'sync_company_from_constructor',
     'sync_company_from_offtaker',
+    'sync_personnel_affiliation',
+    'sync_project_vendor_relationship',
+    'sync_project_constructor_relationship',
+    'sync_project_operator_relationship',
+    'sync_project_owner_relationship',
+    'sync_project_offtaker_relationship',
 ]

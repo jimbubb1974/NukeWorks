@@ -34,7 +34,7 @@ from app.routes.relationship_utils import (
     get_constructor_choices,
     get_personnel_choices
 )
-from app.services.company_sync import sync_company_from_vendor
+from app.services.company_sync import sync_company_from_vendor, sync_personnel_affiliation
 from app.services.company_query import get_company_for_vendor
 
 bp = Blueprint('vendors', __name__, url_prefix='/vendors')
@@ -550,6 +550,11 @@ def add_vendor_personnel_relationship(vendor_id):
 
         try:
             db_session.add(relationship)
+            db_session.flush()
+
+            # Sync to unified company schema
+            sync_personnel_affiliation(relationship, current_user.user_id)
+
             db_session.commit()
             flash('Personnel relationship added.', 'success')
         except Exception as exc:  # pragma: no cover

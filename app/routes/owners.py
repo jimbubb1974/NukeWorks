@@ -26,6 +26,7 @@ from app.forms.owners import OwnerDeveloperForm
 from app import db_session
 from app.utils.permissions import filter_relationships, can_view_relationship, ned_team_required
 from app.utils.system_settings import get_roundtable_history_limit, enforce_roundtable_history_limit
+from app.services.company_sync import sync_personnel_affiliation
 from app.routes.relationship_utils import (
     get_vendor_choices,
     get_project_choices,
@@ -428,6 +429,11 @@ def add_owner_personnel_relationship(owner_id):
 
         try:
             db_session.add(relationship)
+            db_session.flush()
+
+            # Sync to unified company schema
+            sync_personnel_affiliation(relationship, current_user.user_id)
+
             db_session.commit()
             flash('Personnel relationship added.', 'success')
         except Exception as exc:  # pragma: no cover

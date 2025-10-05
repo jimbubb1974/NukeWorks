@@ -32,8 +32,21 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('dashboard.index') }}">Dashboard</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('vendors.list_vendors') }}">Vendors</a>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="companiesDropdown" role="button" data-bs-toggle="dropdown">
+                            Companies
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{{ url_for('companies.list_companies') }}"><i class="bi bi-building"></i> All Companies</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><h6 class="dropdown-header">Filter by Role</h6></li>
+                            <li><a class="dropdown-item" href="{{ url_for('companies.list_companies', role='vendor') }}"><i class="bi bi-box-seam"></i> Technology Vendors</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('companies.list_companies', role='developer') }}"><i class="bi bi-building-gear"></i> Owners / Developers</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('companies.list_companies', role='operator') }}"><i class="bi bi-gear"></i> Operators</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('companies.list_companies', role='constructor') }}"><i class="bi bi-hammer"></i> Constructors</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('companies.list_companies', role='offtaker') }}"><i class="bi bi-lightning"></i> Off-takers</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('companies.list_companies', role='client') }}"><i class="bi bi-briefcase"></i> Clients</a></li>
+                        </ul>
                     </li>
                     {% if has_endpoint('technologies.list_technologies') %}
                     <li class="nav-item">
@@ -46,25 +59,6 @@
                     {% if has_endpoint('projects.map_view') %}
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('projects.map_view') }}">Project Map</a>
-                    </li>
-                    {% endif %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('owners.list_owners') }}">Owners</a>
-                    </li>
-                    {% if has_endpoint('operators.list_operators') %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('operators.list_operators') }}">Operators</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('constructors.list_constructors') }}">Constructors</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('companies.list_companies') }}">Companies</a>
-                    </li>
-                    {% endif %}
-                    {% if has_endpoint('offtakers.list_offtakers') %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('offtakers.list_offtakers') }}">Off-takers</a>
                     </li>
                     {% endif %}
                     {% if current_user.is_ned_team or current_user.is_admin %}
