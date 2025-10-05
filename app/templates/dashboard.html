@@ -10,73 +10,14 @@
     </div>
 </div>
 
-<!-- Summary Statistics -->
-<div class="row mt-4">
-    <div class="col-md-4">
-        <div class="card bg-primary text-white">
-            <div class="card-body">
-                <h5 class="card-title">Technology Vendors</h5>
-                <h2 class="card-text">{{ vendor_count }}</h2>
-                <a href="{{ url_for('vendors.list_vendors') }}" class="btn btn-light btn-sm">View All</a>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card bg-success text-white">
-            <div class="card-body">
-                <h5 class="card-title">Projects</h5>
-                <h2 class="card-text">{{ project_count }}</h2>
-                <a href="{{ url_for('projects.list_projects') }}" class="btn btn-light btn-sm">View All</a>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card bg-info text-white">
-            <div class="card-body">
-                <h5 class="card-title">Owners/Developers</h5>
-                <h2 class="card-text">{{ owner_count }}</h2>
-                <a href="{{ url_for('owners.list_owners') }}" class="btn btn-light btn-sm">View All</a>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Recent Projects -->
+<!-- Placeholder Content -->
 <div class="row mt-4">
     <div class="col-12">
         <div class="card">
-            <div class="card-header">
-                <h5>Recently Modified Projects</h5>
-            </div>
-            <div class="card-body">
-                {% if recent_projects %}
-                <table class="table table-hover">
-                    <thead>
-                        <tr>
-                            <th>Project Name</th>
-                            <th>Location</th>
-                            <th>Status</th>
-                            <th>Last Modified</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for project in recent_projects %}
-                        <tr>
-                            <td>{{ project.project_name }}</td>
-                            <td>{{ project.location or 'N/A' }}</td>
-                            <td>{{ project.project_status or 'N/A' }}</td>
-                            <td>{{ project.modified_date.strftime('%Y-%m-%d') if project.modified_date else 'N/A' }}</td>
-                            <td>
-                                <a href="{{ url_for('projects.view_project', project_id=project.project_id) }}" class="btn btn-sm btn-primary">View</a>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-                {% else %}
-                <p class="text-muted">No projects found. Create your first project to get started!</p>
-                {% endif %}
+            <div class="card-body text-center">
+                <h5 class="card-title">Dashboard</h5>
+                <p class="card-text text-muted">This is a placeholder dashboard page.</p>
+                <p class="card-text">Use the navigation menu to access the various features of the NukeWorks system.</p>
             </div>
         </div>
     </div>
