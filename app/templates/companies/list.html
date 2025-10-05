@@ -39,7 +39,7 @@
                     </thead>
                     <tbody>
                         {% for company in companies %}
-                        <tr>
+                        <tr id="company-{{ company.company_id }}">
                             <td>
                                 <div class="fw-semibold">{{ company.company_name }}</div>
                                 <div class="small text-muted">ID: {{ company.company_id }}</div>
