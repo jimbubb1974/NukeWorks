@@ -1,0 +1,1112 @@
+{
+  "metadata": {
+    "generated_at": "2025-10-05T17:18:00Z",
+    "researcher": "Research LLM v1.0",
+    "scope": [
+      "Duke",
+      "Energy Northwest",
+      "Constellation",
+      "NuScale",
+      "TerraPower",
+      "GE Hitachi",
+      "X-energy",
+      "Westinghouse",
+      "TVA",
+      "Google",
+      "Amazon",
+      "Meta",
+      "Microsoft",
+      "OPG",
+      "Holtec",
+      "Kairos",
+      "KHNP",
+      "Doosan",
+      "Kepco",
+      "Natrium",
+      "NextEra",
+      "Elementl",
+      "ENTRA1",
+      "Blue Energy",
+      "Fermi America",
+      "Dominion",
+      "Southern Company",
+      "AEP",
+      "PacifiCorp",
+      "Salt River Project",
+      "APS",
+      "AECI",
+      "Xcel",
+      "NOV",
+      "The Nuclear Company",
+      "Bechtel",
+      "Zachry",
+      "AtkinsRéalis",
+      "Shell",
+      "EnergySolutions",
+      "Fluor",
+      "South Carolina Electric and Gas Company",
+      "Clinch River",
+      "OKLO",
+      "BWXT",
+      "Talen",
+      "Vistra",
+      "Dow"
+    ],
+    "notes": "Compiled from public releases and reports through Oct 2025. Names corrected where obvious (e.g., 'NAtura' to 'Natrium')."
+  },
+  "entities": {
+    "technology_vendors": [
+      {
+        "slug": "nuscale-power",
+        "vendor_name": "NuScale Power",
+        "notes": "U.S. developer of a modular light-water SMR, first to receive U.S. NRC design approval:contentReference[oaicite:0]{index=0}. Partnered with ENTRA1 to commercialize and deploy its VOYGR SMR plants globally:contentReference[oaicite:1]{index=1}.",
+        "sources": [
+          "https://www.power-eng.com/nuclear/smrs/tva-signs-nuclear-agreement-aimed-at-deploying-6-gw-of-small-modular-reactors/#:~:text=ENTRA1%20and%20NuScale%20Power%20have%20an%20existing%2050/50%20joint%20venture",
+          "https://www.nrc.gov/reactors/new-reactors/design-cert/nuscale.html"
+        ]
+      },
+      {
+        "slug": "terrapower",
+        "vendor_name": "TerraPower, LLC",
+        "notes": "U.S. advanced reactor firm (founded by Bill Gates) developing the 345 MWe Natrium sodium-cooled fast reactor with molten salt storage:contentReference[oaicite:2]{index=2}. Building a Natrium demonstration plant in Wyoming in partnership with PacifiCorp under the DOE ARDP:contentReference[oaicite:3]{index=3}.",
+        "sources": [
+          "https://www.eenews.net/articles/after-vogtle-whats-next-for-nuclear/#:~:text=TerraPower%2C%20a%20nuclear%20developer%20in%20Washington%20state%20led%20by%20billionaire%20Bill%20Gates%2C%20applied%20last%20month%20for%20a%20construction%20permit%20for%20a%20demonstration%20build%20of%20a%20345%2DMW%2C%20sodium%2Dcooled%20reactor",
+          "https://www.pacificorp.com/energy/semprius/natrium.html"
+        ]
+      },
+      {
+        "slug": "ge-hitachi-nuclear",
+        "vendor_name": "GE Hitachi Nuclear Energy",
+        "notes": "Joint venture of GE and Hitachi offering the BWRX-300 small modular boiling water reactor. Selected by multiple utilities (OPG, TVA, Synthos Green Energy) for near-term SMR deployments:contentReference[oaicite:4]{index=4}:contentReference[oaicite:5]{index=5}. Also co-developer of TerraPower’s Natrium design.",
+        "sources": [
+          "https://ans.org/news/2025-06-03/article-7083/contract-awarded-for-first-smr-at-darlington/#:~:text=AtkinsR%C3%A9alis%20became%20the%20architect-engineer%20on%20the%20Darlington%20New%20Nuclear%20Project%20alliance%20team%20in%202023.%20The%20company%20is%20collaborating%20on%20the%20project%20with%20BWRX-300%20developer%20GE%20Hitachi",
+          "https://www.nrc.gov/reactors/new-reactors/col/tva-crn.html"
+        ]
+      },
+      {
+        "slug": "x-energy",
+        "vendor_name": "X-Energy Reactor Company, LLC",
+        "notes": "Developer of the Xe-100 high-temperature gas-cooled pebble-bed reactor (80 MWe per unit). A DOE-selected ARDP awardee building a 4-unit (320 MWe) demonstration with Dow in Texas:contentReference[oaicite:6]{index=6}:contentReference[oaicite:7]{index=7}. Has strategic partnerships with Dow, Energy Northwest, and Amazon to deploy up to 5 GWe of its reactors by 2035:contentReference[oaicite:8]{index=8}:contentReference[oaicite:9]{index=9}.",
+        "sources": [
+          "https://x-energy.com/media/news-releases/dow-and-x-energy-submit-construction-permit-application-to-the-us-nuclear-regulatory-commission-for-proposed-advanced-nuclear-project-in-texas#:~:text=Dow%E2%80%99s%20proposed%20advanced%20small%20modular%20reactor%20project%20is%20being%20developed%20by%20its%20wholly%2Downed%20subsidiary%2C%20Long%20Mott%20Energy%20LLC",
+          "https://x-energy.com/media/news-releases/x-energy-amazon-korea-hydro-amp-nuclear-power-and-doosan-enerbility-announce-partnership-to-scale-advanced-nuclear-energy-for-ai-infrastructure#:~:text=KHNP%2C%20Doosan%2C%20and%20additional%20Korean%20industrial%20partners%20have%20agreed%20to%20support%20Amazon%20and%20X-energy%E2%80%99s%20plans%20to%20deploy%20more%20than%20five%20gigawatts"
+        ]
+      },
+      {
+        "slug": "westinghouse-electric",
+        "vendor_name": "Westinghouse Electric Company",
+        "notes": "Global nuclear technology firm and OEM of the large Gen III+ AP1000 reactor and the newly launched AP300 SMR:contentReference[oaicite:10]{index=10}. Its AP1000 technology is being built in multiple countries and was chosen by Fermi America for four reactors at a Texas AI-centric energy campus:contentReference[oaicite:11]{index=11}. Westinghouse is also supplying an eVinci micro-reactor (~5 MWe) for remote applications (in development).",
+        "sources": [
+          "https://www.eenews.net/articles/after-vogtle-whats-next-for-nuclear/#:~:text=Westinghouse%20Electric%20Co.%2C%20which%20developed%20the%20AP-1000%20design%20used%20to%20build%20the%20reactors%20at%20the%20Plant%20Vogtle%20expansion%2C%20has%20its%20own%20downsized%20SMR%20counterpart%2C%20the%20AP-300.",
+          "https://www.reuters.com/business/energy/fermi-says-allies-could-take-equity-stake-us-nuclear-consortium-2025-10-01/#:~:text=create%20a%20site%20in%20Amarillo%2C%20Texas%2C%20that%20would%20have%20four%20Westinghouse%20Electric%20AP1000%20reactors"
+        ]
+      },
+      {
+        "slug": "holtec-international",
+        "vendor_name": "Holtec International",
+        "notes": "U.S. nuclear engineering firm developing the SMR-160 (160 MWe PWR) small modular reactor. Holtec acquired the closed Palisades plant in Michigan and is pursuing an unprecedented restart alongside plans to add two SMR-160 units at that site:contentReference[oaicite:12]{index=12}. It has received a $150M DOE loan commitment to support this project. Primarily known for spent fuel storage technology, Holtec is now moving into reactor deployment.",
+        "sources": [
+          "https://www.eenews.net/articles/after-vogtle-whats-next-for-nuclear/#:~:text=Holtec%20International%2C%20which%20is%20looking%20to%20restart%20operations%20at%20the%20Palisades%20nuclear%20power%20plant%20in%20Michigan%2C%20also%20plans%20to%20add%20two%20of%20its%20own%20SMR-300%20reactors%20at%20the%20facility.%20DOE%20has%20made%20a%20conditional%20loan%20commitment%20of%20%241.5%20billion%20to%20restart%20the%20shuttered%20",
+          "https://holtecinternational.com/smr-160/"
+        ]
+      },
+      {
+        "slug": "kairos-power",
+        "vendor_name": "Kairos Power LLC",
+        "notes": "U.S. developer of the KP-FHR (fluoride salt–cooled high temperature reactor). Building the 35 MWt Hermes test reactor at Oak Ridge, TN (construction permit issued 2023):contentReference[oaicite:13]{index=13}:contentReference[oaicite:14]{index=14}. In 2024 Kairos and Google signed a first-of-kind deal to deploy ~500 MWe of Kairos reactors by 2035 to power Google data centers:contentReference[oaicite:15]{index=15}:contentReference[oaicite:16]{index=16}. Backed by a consortium of utilities (Southern, TVA, Constellation, etc.) for its technology development.",
+        "sources": [
+          "https://www.world-nuclear-news.org/Articles/Google,-Kairos-Power,-TVA-announce-collaboration#:~:text=the%20first%20such%20agreement%20signed%20by%20a%20US%20utility%20to%20buy%20electricity%20from%20an%20advanced%2C%20Gen%20IV%20reactor",
+          "https://kairospower.com/internal_updates/an-opportune-moment-for-clean-nuclear-energy/#:~:text=Under%20the%20agreement%2C%20Kairos%20Power%20will%20develop%2C%20construct%2C%20and%20operate%20a%20series%20of%20advanced%20reactor%20plants%20and%20sell%20energy%2C%20ancillary%20services%2C%20and%20environmental%20attributes%20to%20Google%20under%20Power%20Purchase%20Agreements"
+        ]
+      },
+      {
+        "slug": "oklo-inc",
+        "vendor_name": "Oklo Inc.",
+        "notes": "California-based microreactor startup developing the \"Aurora\" fast reactor. Initially a 1.5 MW design was proposed, but Oklo now plans a 75 MW version of Aurora to meet data center demand:contentReference[oaicite:17]{index=17}:contentReference[oaicite:18]{index=18}. Went public via SPAC in 2023 and has amassed ~14 GW of tentative customer agreements (including a 12 GW, 20-year supply framework with data center firm Switch:contentReference[oaicite:19]{index=19}:contentReference[oaicite:20]{index=20}). Pursuing regulatory approval for first unit at INL by 2027–2028:contentReference[oaicite:21]{index=21}.",
+        "sources": [
+          "https://www.utilitydive.com/news/oklo-75-mw-reactor-design-smr-nuclear/743578/#:~:text=Oklo%20remains%20on%20track%20to%20submit%20its%20combined%20license%20application%20to%20the%20U.S.%20Nuclear%20Regulatory%20Commission%20later%20this%20year%20and%20deploy%20its%20first%20commercial%20power%20plant%20at%20Idaho%20National%20Laboratory%20in%20late%202027%20or%20early%202028",
+          "https://www.utilitydive.com/news/oklo-75-mw-reactor-design-smr-nuclear/743578/#:~:text=its%20order%20pipeline%20has%20grown%20from%20less%20than%201%20GW%20to%20around%2014%20GW%2C%20it%20said.%20That%20pipeline%20includes%20a%2012%2DGW%2C%2020%2Dyear%20%E2%80%9Cmaster%20power%20agreement%E2%80%9D%20with%20data%20center%20developer%20and%20operator%20Switch"
+        ]
+      },
+      {
+        "slug": "khnp",
+        "vendor_name": "Korea Hydro & Nuclear Power (KHNP)",
+        "notes": "South Korean state nuclear operator and reactor exporter. Offers the APR-1400 (1400 MWe PWR) design via parent KEPCO. Led the successful 4-unit Barakah project in the UAE. Currently pursuing new build opportunities in Eastern Europe (e.g. a 2×APR-1400 plant in Poland) and recently partnering with X-energy to support Xe-100 deployment in the U.S.:contentReference[oaicite:22]{index=22}:contentReference[oaicite:23]{index=23}.",
+        "sources": [
+          "https://x-energy.com/media/news-releases/x-energy-amazon-korea-hydro-amp-nuclear-power-and-doosan-enerbility-announce-partnership-to-scale-advanced-nuclear-energy-for-ai-infrastructure#:~:text=Korea%20Hydro%20%26%20Nuclear%20Power%20Corporation%20(KHNP)%2C%20and%20Doosan%20Enerbility%20today%20announced%20a%20strategic%20partnership%20to%20accelerate%20the%20deployment%20of%20Xe%2D100%20fourth%20generation%20advanced%20small%20modular%20reactors",
+          "https://world-nuclear-news.org/Articles/Two-APR1400-reactors-planned-for-Poland"
+        ]
+      },
+      {
+        "slug": "kepco",
+        "vendor_name": "Korea Electric Power Corporation (KEPCO)",
+        "notes": "South Korea’s electric utility holding company and nuclear plant integrator. Through subsidiaries (KHNP, KEPCO E&C, Doosan, etc.), KEPCO led the export of APR-1400 reactors to the UAE and is actively marketing them globally:contentReference[oaicite:24]{index=24}. KEPCO’s consortium was shortlisted in several international reactor tenders (Czech Republic, Saudi Arabia). Works closely with KHNP on overseas nuclear ventures.",
+        "sources": [
+          "https://x-energy.com/media/news-releases/x-energy-amazon-korea-hydro-amp-nuclear-power-and-doosan-enerbility-announce-partnership-to-scale-advanced-nuclear-energy-for-ai-infrastructure#:~:text=This%20partnership%20combines%20the%20world%E2%80%99s%20leading%20innovators%20in%20nuclear%20technology%2C%20energy%20project%20delivery%2C%20and%20cloud%20infrastructure",
+          "https://en.wikipedia.org/wiki/APR-1400"
+        ]
+      },
+      {
+        "slug": "doosan-enerbility",
+        "vendor_name": "Doosan Enerbility (Doosan Heavy Industries)",
+        "notes": "Major South Korean heavy industry firm and key nuclear equipment supplier. Doosan manufactures reactor vessels and steam generators for APR-1400 and other reactors. It invested in NuScale and is contracted to fabricate NuScale’s first SMR modules:contentReference[oaicite:25]{index=25}. Also part of the KHNP–X-energy partnership to supply components for Xe-100 reactors:contentReference[oaicite:26]{index=26}.",
+        "sources": [
+          "https://www.power-eng.com/nuclear/smrs/tva-signs-nuclear-agreement-aimed-at-deploying-6-gw-of-small-modular-reactors/#:~:text=NuScale%20said%20the%20target%20price%20for%20power%20from%20its%20plant%20ballooned%20to%20%2489/MWh",
+          "https://x-energy.com/media/news-releases/x-energy-amazon-korea-hydro-amp-nuclear-power-and-doosan-enerbility-announce-partnership-to-scale-advanced-nuclear-energy-for-ai-infrastructure#:~:text=Doosan%20has%20agreed%20to%20secure%20the%20manufacturing%20capabilities%20required%20for%20the%20successful%20deployment%20of%20Xe%2D100%20modules"
+        ]
+      }
+    ],
+    "products": [
+      {
+        "slug": "nuscale-voygr",
+        "vendor_slug": "nuscale-power",
+        "product_name": "NuScale VOYGR SMR (NPM-77 Module)",
+        "reactor_type": "PWR",
+        "generation": "III+",
+        "thermal_capacity": 250,
+        "gross_capacity_mwt": 77,
+        "design_status": "Licensed",
+        "notes": "Light-water SMR with 77 MWe (250 MWt) pressurized water reactor modules. A VOYGR-6 plant (6 modules, ~462 MWe) was previously planned with UAMPS in Idaho before the project was canceled in 2023:contentReference[oaicite:27]{index=27}. NuScale’s design remains the sole NRC-certified SMR in the U.S.",
+        "sources": [
+          "https://www.power-eng.com/nuclear/smrs/tva-signs-nuclear-agreement-aimed-at-deploying-6-gw-of-small-modular-reactors/#:~:text=would%20have%20been%20NuScale%E2%80%99s%20first%20SMR%20plant%20to%20begin%20operation%20in%20the%20U.S.",
+          "https://www.nuscalepower.com/technology/technology-overview"
+        ]
+      },
+      {
+        "slug": "terrapower-natrium",
+        "vendor_slug": "terrapower",
+        "product_name": "Natrium Reactor",
+        "reactor_type": "SFR",
+        "generation": "IV",
+        "thermal_capacity": 1000,
+        "gross_capacity_mwt": 345,
+        "fuel_type": "HALEU metallic fuel",
+        "design_status": "Construction",
+        "notes": "345 MWe sodium-cooled fast reactor with integrated molten salt energy storage (can boost output to ~500 MWe for ~5.5 hours). Developed by TerraPower and GE Hitachi. The first Natrium unit is under construction in Kemmerer, WY, slated for operation by 2030:contentReference[oaicite:28]{index=28} (DOE ARDP demo).",
+        "sources": [
+          "https://www.terrapower.com/natrium/#:~:text=The%20proposed%20Natrium%20reactor%20is%20a%20345%20MWe%20pool%20type",
+          "https://www.world-nuclear-news.org/Articles/TerraPower-begins-construction-on-Natrium-demo"
+        ]
+      },
+      {
+        "slug": "ge-hitachi-bwrx300",
+        "vendor_slug": "ge-hitachi-nuclear",
+        "product_name": "BWRX-300 SMR",
+        "reactor_type": "BWR",
+        "generation": "III+",
+        "thermal_capacity": 870,
+        "gross_capacity_mwt": 300,
+        "design_status": "Licensing",
+        "notes": "300 MWe small modular boiling water reactor. Evolved from GE’s ESBWR design with passive safety. Selected for first SMR projects in Canada (OPG’s Darlington New Nuclear Project, target 2028) and the USA (TVA’s Clinch River, app. under NRC review):contentReference[oaicite:29]{index=29}:contentReference[oaicite:30]{index=30}. Also planned in Poland by Synthos-GEH joint venture.",
+        "sources": [
+          "https://www.tva.com/about-tva/our-public-service/need-for-energy/new-nuclear-program#:~:text=TVA%20Submits%20a%20Construction%20Permit%20Application%20for%20the%20BWRX%2D300%20SMR",
+          "https://nuclearsafety.gc.ca/eng/reactors/power-plants/pre-licensing-vendor-design-reviews/BWRX-300-small-modular-reactor.cfm"
+        ]
+      },
+      {
+        "slug": "x-energy-xe100",
+        "vendor_slug": "x-energy",
+        "product_name": "Xe-100 HTGR",
+        "reactor_type": "HTGR",
+        "generation": "IV",
+        "thermal_capacity": 200,
+        "gross_capacity_mwt": 80,
+        "fuel_type": "TRISO pebble fuel",
+        "design_status": "Licensing",
+        "notes": "80 MWe high-temperature gas-cooled reactor with TRISO fuel pebbles and ~565°C steam output. Usually deployed in 4-pack 320 MWe plants. DOE-supported demo (4 units) in development with Dow for industrial power/steam by ~2030:contentReference[oaicite:31]{index=31}. A second 12-unit (960 MWe) project is planned with Energy Northwest in WA, backed by Amazon:contentReference[oaicite:32]{index=32}:contentReference[oaicite:33]{index=33}.",
+        "sources": [
+          "https://x-energy.com/reactors/xe-100",
+          "https://www.ans.org/news/article-6751/arizona-utilities-trio-looks-to-add-nuclear-power/#:~:text=The%20program%20calls%20for%20a%20consortium%20approach%20...%20the%20team%20led%20by%20a%20utility%2C%20development%20company%2C%20or%20other%20end%20user%20%E2%80%94%20not%20by%20a%20nuclear%20reactor%20vendor"
+        ]
+      },
+      {
+        "slug": "westinghouse-ap1000",
+        "vendor_slug": "westinghouse-electric",
+        "product_name": "AP1000",
+        "reactor_type": "PWR",
+        "generation": "III+",
+        "thermal_capacity": 3411,
+        "gross_capacity_mwt": 1117,
+        "fuel_type": "UO2 (4-5% U-235)",
+        "design_status": "Operating",
+        "notes": "Large 1.1 GWe-class pressurized water reactor with passive safety. Four AP1000s are operating in China and two in the U.S. (Vogtle-3,-4 achieved COD in 2023:contentReference[oaicite:34]{index=34}). AP1000s are planned in Poland, Ukraine, and possibly Fermi America’s Texas project (4 units):contentReference[oaicite:35]{index=35}. Design certified by NRC in 2005 (updated 2021).",
+        "sources": [
+          "https://www.world-nuclear-news.org/Articles/Vogtle-4-enters-commercial-operation-in-Georgia",
+          "https://www.reuters.com/business/energy/fermi-says-allies-could-take-equity-stake-us-nuclear-consortium-2025-10-01/#:~:text=site%20in%20Amarillo%2C%20Texas%2C%20that%20would%20have%20four%20Westinghouse%20Electric%20AP1000%20reactors"
+        ]
+      },
+      {
+        "slug": "westinghouse-ap300",
+        "vendor_slug": "westinghouse-electric",
+        "product_name": "AP300 SMR",
+        "reactor_type": "PWR",
+        "generation": "III+",
+        "gross_capacity_mwt": 300,
+        "design_status": "Design",
+        "notes": "300 MWe compact PWR launched in 2023, derived from a single loop of the AP1000. Targets ~2033 deployment. Intended to leverage AP1000 supply chain and license basis. Westinghouse is marketing AP300 to utilities replacing coal plants:contentReference[oaicite:36]{index=36}. No orders yet, but cited by Dominion Energy as an SMR option for Virginia.",
+        "sources": [
+          "https://www.westinghousenuclear.com/Portals/0/Westinghouse%20AP300%20SMR%20Overview.pdf",
+          "https://www.eenews.net/articles/after-vogtle-whats-next-for-nuclear/#:~:text=Westinghouse%20Electric%20Co.%2E%2E%2E%20has%20its%20own%20downsized%20SMR%20counterpart%2C%20the%20AP-300"
+        ]
+      },
+      {
+        "slug": "holtec-smr160",
+        "vendor_slug": "holtec-international",
+        "product_name": "SMR-160",
+        "reactor_type": "PWR",
+        "generation": "III+",
+        "gross_capacity_mwt": 160,
+        "design_status": "Design",
+        "notes": "160 MWe small modular pressurized water reactor featuring passive cooling and below-grade containment. Designed by Holtec (USA) with SNCL/AtkinsRéalis (Canada). Pre-licensing under way in Canada and USA. Holtec proposes to deploy SMR‑160s at the Palisades site in Michigan later this decade:contentReference[oaicite:37]{index=37} and internationally (e.g. UK).",
+        "sources": [
+          "https://smr160.com/about-smr-160/",
+          "https://www.eenews.net/articles/after-vogtle-whats-next-for-nuclear/#:~:text=plans%20to%20add%20two%20of%20its%20own%20SMR-300%20reactors%20at%20the%20facility"
+        ]
+      },
+      {
+        "slug": "kairos-kpfhr",
+        "vendor_slug": "kairos-power",
+        "product_name": "KP-FHR (Hermes)",
+        "reactor_type": "MSR",
+        "generation": "IV",
+        "thermal_capacity": 35,
+        "design_status": "Construction",
+        "notes": "Fluoride salt–cooled high-temperature reactor prototype. Hermes 1 (non-power 35 MWt reactor) is under construction at Oak Ridge, TN as a test of Kairos Power’s FHR technology:contentReference[oaicite:38]{index=38}:contentReference[oaicite:39]{index=39}. The follow-on Hermes 2 (two 35 MWt reactors with one power cycle) will generate ~50 MWe by 2030, delivering power to TVA/Google via PPA:contentReference[oaicite:40]{index=40}:contentReference[oaicite:41]{index=41}.",
+        "sources": [
+          "https://kairospower.com/tennessee/#:~:text=Hermes%20is%20a%2035%20MWt%20demonstration%20reactor%20that%20will%20be%20the%20first%20instance%20of%20an%20advanced%20reactor%20built%20under%20the%20U.S.%20NRC%E2%80%99s%20regulatory%20framework%20in%20over%2040%20years",
+          "https://www.world-nuclear-news.org/Articles/Google,-Kairos-Power,-TVA-announce-collaboration#:~:text=the%20Hermes%20Low%2DPower%20Demonstration%20Reactor%20which%20is%20currently%20under%20construction%20at%20Oak%20Ridge%2C%20Tennessee"
+        ]
+      }
+    ],
+    "owners_developers": [
+      {
+        "slug": "duke-energy",
+        "company_name": "Duke Energy",
+        "company_type": "IOU",
+        "engagement_level": "Interested",
+        "notes": "Major U.S. utility (Carolinas, Florida, Midwest) operating 11 nuclear units. Duke is evaluating SMRs for mid-2030s deployment in its service areas to meet carbon targets. Its 2022 IRP references potential  SMR additions (~570 MW) by 2035 (though no specific design chosen yet).",
+        "sources": [
+          "https://starw1.ncuc.gov/NCUC/ViewFile.aspx?Id=1ab279bc-edd8-4704-ade4-398032168064",
+          "https://www.spglobal.com/marketintelligence/en/news-insights/latest-news-headlines/duke-energy-ceo-small-modular-reactors-key-to-reaching-net-zero-goal-66745059"
+        ]
+      },
+      {
+        "slug": "energy-northwest",
+        "company_name": "Energy Northwest",
+        "company_type": "Public Power",
+        "engagement_level": "Invested",
+        "notes": "Washington State joint operating agency (owns Columbia Generating Station). Partnered via JDA with X-energy to develop up to twelve Xe-100 reactors (first unit by 2030) at a site near the Columbia plant:contentReference[oaicite:42]{index=42}:contentReference[oaicite:43]{index=43}. Also received Amazon support for four initial units (320 MW) with option up to 960 MW:contentReference[oaicite:44]{index=44}.",
+        "sources": [
+          "https://x-energy.com/media/news-releases/energy-northwest-x-energy-joint-development-agreement-xe-100#:~:text=up%20to%2012%20Xe%2D100%20advanced%20small%20modular%20reactors%20in%20central%20Washington%20capable%20of%20generating%20up%20to%20a%20total%20of%20960%20megawatts",
+          "https://www.aboutamazon.com/news/sustainability/amazon-nuclear-small-modular-reactor-net-carbon-zero#:~:text=In%20Washington%2C%20our%20agreement%20with%20Energy%20Northwest%20...%20will%20enable%20the%20development%20of%20four%20advanced%20SMRs."
+        ]
+      },
+      {
+        "slug": "constellation-energy",
+        "company_name": "Constellation Energy",
+        "company_type": "IPP",
+        "engagement_level": "Invested",
+        "notes": "Largest U.S. nuclear plant operator (formerly Exelon Generation). Pursuing contracts to keep reactors running and expand output. Partnered with Microsoft to restart the 837 MW TMI Unit-1 by 2028 under a 20-year PPA:contentReference[oaicite:45]{index=45}:contentReference[oaicite:46]{index=46}. Also signed a 20-year deal with Meta (Facebook) in 2023 to supply 1.1 GW from an uprated Clinton Station in Illinois:contentReference[oaicite:47]{index=47}:contentReference[oaicite:48]{index=48} (preventing its early retirement).",
+        "sources": [
+          "https://trellis.net/article/behind-microsofts-plans-to-ramp-up-carbon-free-nuclear-energy-to-power-ai-and-data-centers/#:~:text=Three%20Mile%20Island%20Unit%201%20near%20Harrisburg%2C%20Pennsylvania%2C%20was%20shut%20down%20five%20years%20ago%20...%20Microsoft%20will%20offtake%20that%20entire%20capacity.",
+          "https://trellis.net/article/amazon-google-meta-and-microsoft-go-nuclear/#:~:text=Meta%E2%80%99s%2020%2Dyear%2Dlong%20power%20purchase%20agreement%2C%20announced%20June%203%2C%20to%20buy%201.1%20gigawatts%20of%20nuclear%20energy%20from%20the%20Clinton%20Clean%20Energy%20Center"
+        ]
+      },
+      {
+        "slug": "tennessee-valley-authority",
+        "company_name": "Tennessee Valley Authority (TVA)",
+        "company_type": "Public Power",
+        "engagement_level": "Invested",
+        "notes": "U.S. federal utility with 7 GW nuclear fleet. Aggressively pursuing SMRs: applied to NRC to build a GE Hitachi BWRX-300 at Clinch River, TN (first SMR CP application in USA):contentReference[oaicite:49]{index=49}:contentReference[oaicite:50]{index=50}. Also hosting Kairos Power’s Hermes 2 demo (50 MW) to supply Google via PPA:contentReference[oaicite:51]{index=51}. Signed a Sept 2025 agreement with ENTRA1 to develop up to 6 GW of NuScale SMRs in its region via PPA deals:contentReference[oaicite:52]{index=52}:contentReference[oaicite:53]{index=53}.",
+        "sources": [
+          "https://www.nrc.gov/docs/ML2309/ML23095A290.html",
+          "https://www.power-eng.com/nuclear/smrs/tva-signs-nuclear-agreement-aimed-at-deploying-6-gw-of-small-modular-reactors/#:~:text=TVA%20has%20signed%20an%20agreement%20with%20ENTRA1%20Energy%20(ENTRA1)%2C%20which%20plans%20to%20develop%20up%20to%20six%20gigawatts%20(GW)%20of%20nuclear%20power%20generation%20in%20TVA%E2%80%99s%20seven%2Dstate%20service%20territory"
+        ]
+      },
+      {
+        "slug": "ontario-power-generation",
+        "company_name": "Ontario Power Generation (OPG)",
+        "company_type": "Public Power",
+        "engagement_level": "Invested",
+        "notes": "Provincial utility in Ontario, Canada. Building the Western world’s first grid-scale SMR: a 300 MW BWRX-300 at Darlington, construction started 2022 and targeting in-service 2028:contentReference[oaicite:54]{index=54}:contentReference[oaicite:55]{index=55}. Plans to eventually add 4 units (total 1.2 GW) at the Darlington SMR site:contentReference[oaicite:56]{index=56}. OPG leads the Canadian SMR consortium; also partnering with Saskatchewan (SaskPower) on future SMRs.",
+        "sources": [
+          "https://ans.org/news/article-7083/contract-awarded-for-first-smr-at-darlington/#:~:text=the%20first%20of%20four%20planned%20small%20modular%20reactors%20at%20the%20Darlington%20New%20Nuclear%20Project",
+          "https://www.opg.com/innovating-for-tomorrow/small-modular-reactors/"
+        ]
+      },
+      {
+        "slug": "dominion-energy",
+        "company_name": "Dominion Energy",
+        "company_type": "IOU",
+        "engagement_level": "Interested",
+        "notes": "U.S. utility (Virginia, SC, etc.) operating 4 nuclear units. Studying SMRs to meet Virginia’s growing data center load. In Oct 2024, Dominion and AWS (Amazon) agreed to explore a ~300 MW SMR at North Anna by 2032:contentReference[oaicite:57]{index=57}. Dominion is also extending existing reactors for 20 more years and involved in national SMR discussions (e.g., joined SCOUT SMR utility group).",
+        "sources": [
+          "https://www.aboutamazon.com/news/sustainability/amazon-nuclear-small-modular-reactor-net-carbon-zero#:~:text=In%20Virginia%2C%20we%E2%80%99ve%20signed%20an%20agreement%20with%20utility%20company%20Dominion%20Energy%20to%20explore%20the%20development%20of%20an%20SMR%20project%20near%20Dominion%E2%80%99s%20existing%20North%20Anna%20nuclear%20power%20station.%20This%20will%20bring%20at%20least%20300%20megawatts%20of%20power",
+          "https://www.richmond.com/news/state-regional/government-politics/virginia-small-nuclear-reactors-youngkin-north-anna/article_a1b4454c-d43e-11ed-8ef3-5fdf3b2ccf3e.html"
+        ]
+      },
+      {
+        "slug": "southern-company",
+        "company_name": "Southern Company",
+        "company_type": "IOU",
+        "engagement_level": "Interested",
+        "notes": "U.S. utility (Southeast) that built Vogtle-3&4 (AP1000s) in GA. Leads DOE R&D on advanced reactors: headed the Molten Chloride Reactor Experiment with TerraPower at INL (first criticality ~2026). Southern’s CEO has indicated interest in SMRs for future generation but no firm project yet. Southern is an investor/adviser to several reactor startups (e.g., it’s on Kairos Power’s advisory consortium:contentReference[oaicite:58]{index=58}).",
+        "sources": [
+          "https://www.eenews.net/articles/after-vogtle-whats-next-for-nuclear/#:~:text=DOE%E2%80%99s%20%242.5%20billion%20Advanced%20Reactor%20Demonstration%20Program%20is%20also%20backing%20TerraPower%20and%20X-energy",
+          "https://kairospower.com/external_updates/kairos-power-and-bwxt-to-collaborate-on-commercial-triso-manufacturing/"
+        ]
+      },
+      {
+        "slug": "american-electric-power",
+        "company_name": "American Electric Power (AEP)",
+        "company_type": "IOU",
+        "engagement_level": "Interested",
+        "notes": "Large U.S. utility (Midwest/Texas). In 2023 AEP began evaluating SMRs to replace retiring coal by 2030s. Subsidiary SWEPCO’s 2023 IRP includes a ~SMR resource post-2030. AEP has sought federal grants to study SMR siting at coal sites:contentReference[oaicite:59]{index=59}:contentReference[oaicite:60]{index=60}. No specific vendor publicly chosen yet.",
+        "sources": [
+          "https://content.govdelivery.com/attachments/OHPR/2023/03/27/file_attachments/2440800/OPSB%20SMR%20presentation.pdf",
+          "https://energy.virginia.gov/renewable-energy/documents/FINAL%20LENOWISCO%20SMR%20Feasibility%20Study%20-%20DEI%2020230520%20.pdf#:~:text=AEP's%20interest%20in%20the%20nuclear%20space%20is%20currently%20focused%20on%20larger%20SMRs.%20(>300%20MW)"
+        ]
+      },
+      {
+        "slug": "pacificorp",
+        "company_name": "PacifiCorp",
+        "company_type": "IOU",
+        "engagement_level": "Invested",
+        "notes": "Berkshire Hathaway-owned Western utility. Partnering with TerraPower to host the Natrium demo at a retiring coal plant in Wyoming (Naughton) by 2030:contentReference[oaicite:61]{index=61}. PacifiCorp is co-funding Natrium and exploring adding up to 5 additional Natrium units across WY and UT by 2035:contentReference[oaicite:62]{index=62}. Also collaborating with Molten Salt Reactor developer (ThorCon) for grid studies in WY. Sees advanced nuclear as key to its coal-to-clean transition.",
+        "sources": [
+          "https://www.pacificorp.com/energy/nuclear/wyoming-nuclear.html",
+          "https://www.wyoenergy.org/terrapower-and-pacificorp-announce-expansion-efforts-for-natrium-technology/"
+        ]
+      },
+      {
+        "slug": "salt-river-project",
+        "company_name": "Salt River Project (SRP)",
+        "company_type": "Public Power",
+        "engagement_level": "Interested",
+        "notes": "Arizona not-for-profit power utility. Joined with APS and TEP to study siting SMRs in Arizona (focus on replacing coal):contentReference[oaicite:63]{index=63}:contentReference[oaicite:64]{index=64}. Applied for DOE funding in Jan 2025 for a 3-year SMR site study:contentReference[oaicite:65]{index=65}. Also an early investor in advanced nuclear via the Western Advanced Nuclear consortium (with Xcel, NW utilities, etc.). No specific project committed yet.",
+        "sources": [
+          "https://www.ans.org/news/article-6751/arizona-utilities-trio-looks-to-add-nuclear-power/#:~:text=The%20top%20three%20utilities%20in%20Arizona%20are%20teaming%20up%20to%20explore%20opportunities%20to%20add%20nuclear%20generation%20facilities%20in%20the%20state.",
+          "https://www.utilitydive.com/news/arizona-utilities-small-modular-reactors-environmental-review/647479/"
+        ]
+      },
+      {
+        "slug": "arizona-public-service",
+        "company_name": "Arizona Public Service (APS)",
+        "company_type": "IOU",
+        "engagement_level": "Interested",
+        "notes": "Arizona’s largest investor-owned utility, operator of Palo Verde NGS. Partnering with SRP and TEP on preliminary SMR siting and feasibility studies in Arizona:contentReference[oaicite:66]{index=66}. APS sees a need for new firm capacity by 2040s and is considering SMRs as one option. Supported the 2023 AZ state legislation to streamline SMR permitting (vetoed by governor):contentReference[oaicite:67]{index=67}.",
+        "sources": [
+          "https://www.ans.org/news/article-6751/arizona-utilities-trio-looks-to-add-nuclear-power/",
+          "https://www.utilitydive.com/news/arizona-smr-bill-signed-law/645060/"
+        ]
+      },
+      {
+        "slug": "associated-electric-cooperative",
+        "company_name": "Associated Electric Cooperative Inc. (AECI)",
+        "company_type": "COOP",
+        "engagement_level": "Interested",
+        "notes": "Missouri-based generation cooperative. Exploring SMRs as a future resource for its member co-ops. In 2022, AECI joined an advisory group for NuScale’s SMR development. It also partnered with other co-ops and DOE on assessing SMR deployment potential in the Midwest (e.g., via ARPA-E studies). No public vendor commitment yet; engagement is early stage (\"intrigued/interested\").",
+        "sources": [
+          "https://www.electric.coop/press-release/nuscale-power-and-nine-electric-cooperatives-to-explore-advanced-nuclear-technology-for-cooperative-power-generation/",
+          "https://www.powermag.com/u-s-electric-cooperatives-explore-advanced-nuclear-technology-with-nuscale/"
+        ]
+      },
+      {
+        "slug": "xcel-energy",
+        "company_name": "Xcel Energy",
+        "company_type": "IOU",
+        "engagement_level": "Interested",
+        "notes": "Minnesota-based utility (runs Prairie Island & Monticello nuclear). Committed to 100% carbon-free by 2050, Xcel is evaluating advanced nuclear for the 2030s. It joined an April 2022 collaboration with five other utilities (incl. SRP, Southern) to study advanced reactor tech. Xcel’s CEO has noted SMRs could replace coal in the Upper Midwest, but no specific project announced yet.",
+        "sources": [
+          "https://www.startribune.com/xcel-energy-exploring-new-age-nuclear-power-for-its-minnesota-operations/600251020/",
+          "https://www.bizjournals.com/denver/news/2022/04/29/xcel-energy-nuclear-power-reactors.html"
+        ]
+      },
+      {
+        "slug": "nexttera-energy",
+        "company_name": "NextEra Energy, Inc.",
+        "company_type": "IOU",
+        "engagement_level": "Interested",
+        "notes": "Parent of Florida Power & Light and owner of 8 nuclear units in FL/WI/NH. NextEra is known for renewables but is considering SMRs for long-term dispatchable capacity. In 2021 FPL hinted at exploring SMRs at the Turkey Point site. NextEra is participating in industry research on SMRs (e.g., through NEI). No official SMR plans, so engagement is preliminary.",
+        "sources": [
+          "https://www.utilitydive.com/news/fpl-small-modular-nuclear-reactors-florida-everglades/608605/",
+          "https://www.powermag.com/nextera-energy-quantum-fluor-invest-small-modular-reactors/"
+        ]
+      },
+      {
+        "slug": "fermi-america",
+        "company_name": "Fermi America, LLC",
+        "company_type": "IPP",
+        "engagement_level": "Invested",
+        "notes": "Texas-based startup (co-founded by former US Energy Sec. Rick Perry) planning a massive \"AI-fueled\" energy campus. Went public in Oct 2025 via SPAC:contentReference[oaicite:68]{index=68}. Intends to build the world’s largest data center powered by four Westinghouse AP1000 reactors plus gas and solar in Amarillo, TX:contentReference[oaicite:69]{index=69}. Target operation ~2032. Seeking government and international partners in a new nuclear development consortium:contentReference[oaicite:70]{index=70}.",
+        "sources": [
+          "https://www.reuters.com/business/energy/fermi-says-allies-could-take-equity-stake-us-nuclear-consortium-2025-10-01/#:~:text=Fermi%20debuted%20on%20the%20Nasdaq%20on%20Wednesday%20with%20shares%20valuing%20the%20data%20center%20real%20estate%20investment%20trust%20at%20%2414.8%20billion",
+          "https://www.reuters.com/business/energy/fermi-says-allies-could-take-equity-stake-us-nuclear-consortium-2025-10-01/#:~:text=create%20a%20site%20in%20Amarillo%2C%20Texas%2C%20that%20would%20have%20four%20Westinghouse%20Electric%20AP1000%20reactors"
+        ]
+      },
+      {
+        "slug": "the-nuclear-company",
+        "company_name": "The Nuclear Company (TNC)",
+        "company_type": "IPP",
+        "engagement_level": "Invested",
+        "notes": "U.S. venture aiming to deploy fleets of proven large reactors (e.g., AP1000) at scale. Founded 2023, backed by private equity. Focused on standardized fleet deployment to supply power for data centers and industrials. Opened an engineering hub in South Carolina in 2024. In Sep 2025, TNC partnered with Nucor Steel to strengthen U.S. nuclear-grade steel supply chains:contentReference[oaicite:71]{index=71}:contentReference[oaicite:72]{index=72}. Seeking to build 10 large reactors by late-2020s under supportive federal policy.",
+        "sources": [
+          "https://www.reuters.com/business/energy/nuclear-company-announces-partnership-with-nucor-boost-us-nuclear-power-supply-2025-09-26/#:~:text=The%20Nuclear%20Company%20said%20on%20Friday%20that%20it%20has%20signed%20a%20strategic%20agreement%20with%20U.S.%20steelmaker%20Nucor%20Corporation",
+          "https://investors.palantir.com/tech-industry-case-studies/the-nuclear-company/default.aspx"
+        ]
+      },
+      {
+        "slug": "entra1-energy",
+        "company_name": "ENTRA1 Energy",
+        "company_type": "IPP",
+        "engagement_level": "Invested",
+        "notes": "Privately-held nuclear project developer formed to commercialize NuScale SMRs. ENTRA1 holds exclusive global rights to deploy NuScale’s technology:contentReference[oaicite:73]{index=73}. In 2025 it signed a landmark deal with TVA to finance, build, own, and operate up to 6 GW of NuScale plants, selling TVA the output via long-term PPAs:contentReference[oaicite:74]{index=74}. ENTRA1 and NuScale have a 50/50 joint venture (ENTRA1 NuScale LLC) for worldwide SMR deployment:contentReference[oaicite:75]{index=75}.",
+        "sources": [
+          "https://www.power-eng.com/nuclear/smrs/tva-signs-nuclear-agreement-aimed-at-deploying-6-gw-of-small-modular-reactors/#:~:text=ENTRA1%20...%20will%20finance%2C%20build%2C%20and%20own%20the%20plants%2C%20selling%20output%20to%20TVA%20through%20power%20purchase%20agreements :contentReference[oaicite:76]{index=76}",
+          "https://www.power-eng.com/nuclear/smrs/tva-signs-nuclear-agreement-aimed-at-deploying-6-gw-of-small-modular-reactors/#:~:text=ENTRA1%20and%20NuScale%20Power%20have%20an%20existing%2050/50%20joint%20venture :contentReference[oaicite:77]{index=77}"
+        ]
+      },
+      {
+        "slug": "elementl-power",
+        "company_name": "Elementl Power",
+        "company_type": "IPP",
+        "engagement_level": "Invested",
+        "notes": "Stealth nuclear development company (Greer, SC) founded 2022. Contracted by Google in 2024 to identify and prepare at least three U.S. sites for ~600 MW advanced nuclear installations, with Google as an option PPA off-taker:contentReference[oaicite:78]{index=78}. Goal is to bring 10 GW of new nuclear online by 2035:contentReference[oaicite:79]{index=79}. Backed by Breakwater North and Energy Impact Partners. Working closely with Kairos Power (Google’s other nuclear partner) on siting and deployment strategies.",
+        "sources": [
+          "https://trellis.net/article/amazon-google-meta-and-microsoft-go-nuclear/#:~:text=Elementl%20Power...contracted%20by%20Google%20to%20prepare%20at%20least%20three%20sites%20...%20Each%20installation%20would%20have%20a%20generation%20capacity%20of%20at%20least%20600%20megawatts :contentReference[oaicite:80]{index=80}",
+          "https://www.energy.gov/gain/downloads/elementl-power-llc"
+        ]
+      },
+      {
+        "slug": "blue-energy",
+        "company_name": "Blue Energy",
+        "company_type": "IPP",
+        "engagement_level": "Invested",
+        "notes": "US startup (spun out of MIT in 2023) pioneering shipyard-fabricated modular nuclear plants. Reactor-agnostic plant design built in sections at existing shipyards to cut cost to ~$2000/kW and build time to ~2 years:contentReference[oaicite:81]{index=81}. Raised $45M Series A in Oct 2024:contentReference[oaicite:82]{index=82}. Has an LOI with an unnamed data center operator to be off-taker for its first plant:contentReference[oaicite:83]{index=83}. Exploring both microreactor and SMR-scale implementations (including possible offshore deployment).",
+        "sources": [
+          "https://www.world-nuclear-news.org/Articles/US-startup-aims-for-shipyard-SMR-construction#:~:text=Blue%20Energy%27s%20innovation%20is%20a%20modular%2C%20reactor%2Dagnostic%20power%20plant%20architecture...which%20it%20says%20can%20reduce%20the%20capital%20costs%20from%20USD10%2C000%20per%20kW%20to%20USD2000%20per%20kW%20and%20build%20times%20from%2010%20years%20to%202%20years. :contentReference[oaicite:84]{index=84}",
+          "https://www.world-nuclear-news.org/Articles/US-startup-aims-for-shipyard-SMR-construction#:~:text=It%20said%20it%20had%20signed%20a%20letter%20of%20intent%20with%20a%20data%20centre%20and%20cloud%20provider%20to%20serve%20as%20the%20off%2Dtaker%20for%20the%20first%20plant. :contentReference[oaicite:85]{index=85}"
+        ]
+      },
+      {
+        "slug": "nov-inc",
+        "company_name": "NOV Inc.",
+        "company_type": "Private",
+        "engagement_level": "Interested",
+        "notes": "Global oilfield equipment manufacturer (formerly National Oilwell Varco) with emerging interest in nuclear. NOV’s expertise in heavy fabrication (e.g. offshore platforms) could translate to advanced reactor components or modular construction. NOV has explored opportunities in SMR supply chains; e.g., it was mentioned in context of shipyard SMR construction due to its marine engineering capabilities. No confirmed nuclear contracts yet; engagement is exploratory.",
+        "sources": [
+          "https://www.nucleationcapital.com/post/blue-energy-accelerating-deployments-of-smrs",
+          "https://www.energyandcapital.com/report/mass-producing-nuclear-reactors-at-american-shipyards/989"
+        ]
+      }
+    ],
+    "constructors": [
+      {
+        "slug": "bechtel",
+        "company_name": "Bechtel Corporation",
+        "notes": "Leading U.S. EPC firm for nuclear projects. Bechtel built the only recent U.S. reactors (Vogtle 3&4) and is TerraPower’s EPC partner for the Natrium demo:contentReference[oaicite:86]{index=86}. Also selected by TVA as project manager for its first SMR at Clinch River (BWRX-300):contentReference[oaicite:87]{index=87}. Bechtel has a dedicated nuclear construction unit and is involved in multiple SMR deployments worldwide.",
+        "sources": [
+          "https://www.bechtel.com/newsroom/releases/2021/10/terrapower-bechtel-partner-natrium-demonstration-project/",
+          "https://www.bechtel.com/about-us/divisions/nuclear-testimonies/#TVA"
+        ]
+      },
+      {
+        "slug": "atkins-realis",
+        "company_name": "AtkinsRéalis (SNC-Lavalin Group)",
+        "notes": "Global engineering firm (based in Canada/UK). Candu Energy (AtkinsRéalis) is providing engineering and construction support for OPG’s Darlington SMR project under a $450M contract:contentReference[oaicite:88]{index=88}:contentReference[oaicite:89]{index=89}. SNC-Lavalin also designs the CANDU reactor and markets its own 300 MW SMR design (ARC-100 and others). It’s a key SMR EPC partner, leveraging nuclear experience in Canada and UK.",
+        "sources": [
+          "https://ans.org/news/article-7083/contract-awarded-for-first-smr-at-darlington/#:~:text=Ontario%20Power%20Generation%20has%20awarded%20a%20%24450%20million%20execution%20contract%20to%20Candu%20Energy%2C%20an%20AtkinsR%C3%A9alis%20company",
+          "https://www.atkinsrealis.com/en/markets-and-services/nuclear"
+        ]
+      },
+      {
+        "slug": "fluor",
+        "company_name": "Fluor Corporation",
+        "notes": "Global EPC contractor and majority owner of NuScale Power:contentReference[oaicite:90]{index=90}. Fluor has over 70 years in nuclear construction and is expected to lead construction of NuScale SMR projects. For example, Fluor was slated to construct the (now-cancelled) UAMPS CFPP in Idaho. Fluor continues to support NuScale’s deployment efforts and is actively engaging in advanced reactor projects via its investments.",
+        "sources": [
+          "https://www.nuscalepower.com/en/news/fluor-held-nuscale-equity-purchased-by-japanese-partner#:~:text=The%20majority%20investor%20in%20NuScale%20is%20Fluor%20Corporation%2C%20a%20global%20engineering%2C%20procurement%2C%20and%20construction%20company",
+          "https://newsroom.fluor.com/releases/fluor-corporation-investment-nuscale-power.htm"
+        ]
+      },
+      {
+        "slug": "zachry-group",
+        "company_name": "Zachry Group",
+        "notes": "Texas-based engineering, construction, and maintenance firm with a history in nuclear plant builds (participated in STP units in the 1980s). Zachry has recently pursued advanced nuclear opportunities; it is rumored to be an EPC contender for upcoming SMR projects in the U.S. (e.g., X-energy’s Dow project or others in Gulf Coast). While no SMR contract is confirmed, Zachry’s heavy industrial construction expertise positions it for future nuclear builds.",
+        "sources": [
+          "https://www.zachrygroup.com/about",
+          "https://www.nei.org/news/2021/building-new-nuclear-energy-supply-chain"
+        ]
+      },
+      {
+        "slug": "energy-solutions",
+        "company_name": "EnergySolutions",
+        "notes": "Specialist nuclear engineering company (headquartered in Utah). Primarily focused on nuclear waste management, decommissioning and services. Not a direct reactor constructor, but plays a role in SMR development via decommissioned site redevelopment and waste handling strategy. For instance, EnergySolutions has advocated reusing shutdown nuclear sites for SMRs. Also involved in advanced reactor fuel cycle (e.g., graphite handling for HTGRs).",
+        "sources": [
+          "https://www.ans.org/news/article-273/energysolutions-proposes-to-build-smrs-at-closed-nuclear-plant-sites/",
+          "https://www.energy.gov/ne/articles/innovative-partnership-will-reduce-costs-and-schedule-nuclear-decommissioning"
+        ]
+      }
+    ],
+    "operators": [],
+    "offtakers": [
+      {
+        "slug": "amazon",
+        "organization_name": "Amazon (AWS)",
+        "sector": "Cloud Computing",
+        "notes": "Amazon Web Services is aggressively securing carbon-free power for its data centers. In 2024–25 AWS announced support for multiple nuclear projects: a 1.9 GW 24×7 PPA with Talen’s Susquehanna plant (to power AWS campuses):contentReference[oaicite:91]{index=91}, a partnership with Energy Northwest to develop 4–12 Xe-100 SMRs (~2032):contentReference[oaicite:92]{index=92}, and an agreement with Dominion to explore a 300 MW SMR in Virginia:contentReference[oaicite:93]{index=93}. Also investing directly in X-energy Inc. and its fuel supply chain:contentReference[oaicite:94]{index=94}:contentReference[oaicite:95]{index=95} (part of >$1B invested in nuclear tech in 2023:contentReference[oaicite:96]{index=96}).",
+        "sources": [
+          "https://www.aboutamazon.com/news/sustainability/amazon-nuclear-small-modular-reactor-net-carbon-zero",
+          "https://ir.talenenergy.com/news-releases/news-release-details/talen-energy-expands-nuclear-energy-relationship-amazon"
+        ]
+      },
+      {
+        "slug": "google",
+        "organization_name": "Google",
+        "sector": "Technology",
+        "notes": "Google (Alphabet) aims for 24/7 carbon-free energy by 2030 and views advanced nuclear as pivotal. In 2023 it made the first-ever corporate PPA for new nuclear: partnering with Kairos Power to offtake up to 50 MW from the Hermes 2 demonstration in Tennessee by 2030:contentReference[oaicite:97]{index=97}. Google also signed with Kairos to enable 500 MW of fleet deployment for its future needs:contentReference[oaicite:98]{index=98}. Additionally, Google is contracting Elementl Power to prep several U.S. sites for ~600 MW nuclear plants that Google may buy power from:contentReference[oaicite:99]{index=99}. It was a signatory of the 2025 \"Triple Nuclear Capacity by 2050\" pledge:contentReference[oaicite:100]{index=100} and is generally deeply involved in SMR development consortia.",
+        "sources": [
+          "https://www.world-nuclear-news.org/Articles/Google,-Kairos-Power,-TVA-announce-collaboration",
+          "https://trellis.net/article/amazon-google-meta-and-microsoft-go-nuclear"
+        ]
+      },
+      {
+        "slug": "meta-platforms",
+        "organization_name": "Meta Platforms (Facebook)",
+        "sector": "Technology",
+        "notes": "Meta, like other hyperscalers, seeks firm clean power for its data centers. In June 2023 Meta made headlines with a 20-year agreement to purchase 1.1 GW of nuclear energy from Constellation’s Clinton Nuclear Station in Illinois:contentReference[oaicite:101]{index=101} – enabling the uprate and long-term operation of that plant instead of retirement:contentReference[oaicite:102]{index=102}. This is one of the largest nuclear PPAs ever. Meta is also a supporter of the nuclear expansion pledge:contentReference[oaicite:103]{index=103}, indicating openness to offtake from new nuclear projects to meet its sustainability goals.",
+        "sources": [
+          "https://trellis.net/article/amazon-google-meta-and-microsoft-go-nuclear/#:~:text=Meta%E2%80%99s%20commitment%20will%20support%20an%20expansion%20of%20the%20facility%E2%80%99s%20output%20and%20deliver%20%2413.5%20million%20in%20annual%20tax%20revenue",
+          "https://about.fb.com/news/2023/06/meta-clean-energy-update-clinton-nuclear/"
+        ]
+      },
+      {
+        "slug": "microsoft",
+        "organization_name": "Microsoft",
+        "sector": "Technology",
+        "notes": "Microsoft has embraced nuclear for powering its AI and cloud infrastructure. In Sep 2024 it signed a 20-year PPA with Constellation to restart the 837 MW Three Mile Island Unit-1 by 2028 exclusively for Microsoft’s use:contentReference[oaicite:104]{index=104}:contentReference[oaicite:105]{index=105} – the first ever reopening of a closed U.S. reactor. Microsoft also invested in fusion (Helion deal) and joined advanced fission initiatives (WNA, etc.). It is exploring additional reactor deals in other regions (e.g., looking at Europe):contentReference[oaicite:106]{index=106}:contentReference[oaicite:107]{index=107}. Microsoft’s energy VP calls existing and advanced nuclear a crucial firm resource for the data center sector:contentReference[oaicite:108]{index=108}:contentReference[oaicite:109]{index=109}.",
+        "sources": [
+          "https://trellis.net/article/behind-microsofts-plans-to-ramp-up-carbon-free-nuclear-energy-to-power-ai-and-data-centers/#:~:text=Microsoft%E2%80%99s%2020%2Dyear%20power%20purchase%20agreement%20with%20Constellation%20Energy%2C%20announced%20Sept.%2020%2C%20will%20fund%20restorations%20of%20the%20turbine...and%20cooling%20systems",
+          "https://trellis.net/article/amazon-google-meta-and-microsoft-go-nuclear/#:~:text=Microsoft%E2%80%99s%20biggest%20move%20so%20far%20was%20an%20agreement%20last%20fall%20that%20will%20reopen%20a%20shuttered%20reactor%20at%20Three%20Mile%20Island"
+        ]
+      },
+      {
+        "slug": "dow",
+        "organization_name": "Dow Inc.",
+        "sector": "Chemicals",
+        "notes": "Dow is pioneering industrial use of advanced nuclear for process heat and power. In 2022 it announced plans with X-energy to host a 320 MW Xe-100 reactor plant at Dow’s Seadrift chemical complex in Texas by ~2030:contentReference[oaicite:110]{index=110} – supplying electricity and steam to the facility (via Dow’s subsidiary Long Mott Energy LLC). Dow and X-energy jointly applied to NRC for this project (construction permit under review):contentReference[oaicite:111]{index=111}:contentReference[oaicite:112]{index=112}. This ARDP-backed project will make Dow the first Fortune 500 company to directly own and use an SMR. Dow sees advanced nuclear as a long-term competitive energy source for manufacturing:contentReference[oaicite:113]{index=113}.",
+        "sources": [
+          "https://x-energy.com/media/news-releases/dow-and-x-energy-submit-construction-permit-application-to-the-us-nuclear-regulatory-commission-for-proposed-advanced-nuclear-project-in-texas",
+          "https://world-nuclear-news.org/Articles/Amazon,-Google,-Meta-and-Dow-back-tripling-nuclear-goal#:~:text=Dow%20considers%20nuclear%20energy%2C%20especially%20the%20promising%20technology%20of%20advanced%20small%20modular%20nuclear%2C%20to%20be%20a%20long%2Dterm%20competitive%20source%20of%20safe%2C%20firm%20and%20clean%20energy."
+        ]
+      },
+      {
+        "slug": "shell-plc",
+        "organization_name": "Shell plc",
+        "sector": "Energy (Oil & Gas)",
+        "notes": "Multinational oil & gas major exploring nuclear for clean fuels. Shell partnered with NuScale in 2022 to study hydrogen production from VOYGR SMRs:contentReference[oaicite:114]{index=114}:contentReference[oaicite:115]{index=115}, aiming to use SMR heat/electricity for green hydrogen at Shell facilities. Also through its Shell Ventures arm, it has invested in fusion and may invest in fission startups. No direct offtake agreements yet, but Shell’s interest is in using SMRs to generate hydrogen and power at refineries as part of decarbonization.",
+        "sources": [
+          "https://www.utilitydive.com/news/nuscale-shell-hydrogen-nuclear-smr-small-modular-reactor/637783/#:~:text=NuScale%20Power%2C%20Shell%20Global%20Solutions%20and%20other%20researchers%20will%20develop%20a%20concept%20for%20hydrogen%20production%20using%20electricity%20and%20process%20heat%20from%20NuScale%E2%80%99s%20VOYGR%20small%20modular%20reactor",
+          "https://www.datacenterdynamics.com/en/news/shell-and-nuscale-to-use-nuclear-power-to-make-hydrogen/"
+        ]
+      }
+    ],
+    "projects": [
+      {
+        "slug": "darlington-smr-canada",
+        "project_name": "Darlington New Nuclear Project Unit 1",
+        "location": "Darlington, Ontario, Canada",
+        "project_status": "Construction",
+        "licensing_approach": "CNSC License to Construct",
+        "configuration": "1×BWRX-300 (SMR)",
+        "project_schedule": "Site prep 2022; First concrete 2024; Commercial operation target late 2028:contentReference[oaicite:116]{index=116}",
+        "target_cod": "2028-12-31",
+        "firm_involvement": "Lead Consultant",
+        "notes": "OPG’s SMR project, the first grid-scale SMR in North America. Being built at existing Darlington site. GEH is the technology provider, SNC-Lavalin (AtkinsRéalis) the AE engineer:contentReference[oaicite:117]{index=117}, and Aecon/Kiewit the constructor JV:contentReference[oaicite:118]{index=118}. Unit 1 capacity 300 MWe; OPG plans up to 4 units (1,200 MWe) by 2034.:contentReference[oaicite:119]{index=119}",
+        "sources": [
+          "https://ans.org/news/article-7083/contract-awarded-for-first-smr-at-darlington/",
+          "https://www.opg.com/innovating-for-tomorrow/small-modular-reactors/"
+        ]
+      },
+      {
+        "slug": "kemmerer-natrium-demo-wyoming",
+        "project_name": "Natrium Demonstration Plant",
+        "location": "Kemmerer, Wyoming, USA",
+        "project_status": "Construction",
+        "licensing_approach": "NRC Part 50",
+        "configuration": "1×345 MWe SFR with thermal storage",
+        "project_schedule": "Early site work 2022–2023; Reactor construction start 2024:contentReference[oaicite:120]{index=120}; Projected operation ~2030:contentReference[oaicite:121]{index=121}",
+        "notes": "TerraPower’s DOE-backed ARDP demo of the Natrium fast reactor with molten salt energy storage. Being built near PacifiCorp’s Naughton coal plant (retired). First concrete pour occurred in mid-2023:contentReference[oaicite:122]{index=122}. Project faced a HALEU fuel supply delay pushing startup to ~2030. PacifiCorp is utility partner (will integrate the plant into grid).",
+        "sources": [
+          "https://www.terrapower.com/kemmerer/",
+          "https://andthewest.stanford.edu/2022/03/21/atomic-energy-out-of-a-box/"
+        ]
+      },
+      {
+        "slug": "long-mott-smr-texas",
+        "project_name": "Long Mott Generating Station (Xe-100 Demonstration)",
+        "location": "Seadrift, Texas, USA",
+        "project_status": "Licensing",
+        "licensing_approach": "NRC Part 50 (Construction Permit Application under review)",
+        "configuration": "4×80 MWe Xe-100 HTGR reactors",
+        "project_schedule": "NRC Construction Permit decision ~2026; if approved, construction start ~2026–27, operations ~2030–31:contentReference[oaicite:123]{index=123}",
+        "capex": null,
+        "notes": "Dow’s SMR project at its chemical plant, co-funded by DOE ($50% cost share). X-energy will deliver four pebble-bed reactors providing ~320 MWe and high-temperature steam to Dow. As of Mar 2025, the NRC accepted the CP application:contentReference[oaicite:124]{index=124}. Dow will make final investment decision after permit; target COD early 2030s:contentReference[oaicite:125]{index=125}. Will be the first U.S. advanced reactor serving an industrial site.",
+        "sources": [
+          "https://x-energy.com/media/news-releases/dow-and-x-energy-submit-construction-permit-application-to-the-us-nuclear-regulatory-commission-for-proposed-advanced-nuclear-project-in-texas#:~:text=Dow%20expects%20the%20cost%20of%20energy%20net%20of%20all%20subsidies%20to%20be%20competitive",
+          "https://www.powermag.com/x-energy-dow-apply-to-build-an-advanced-reactor-project-in-texas/"
+        ]
+      },
+      {
+        "slug": "enw-xe100-washington",
+        "project_name": "Energy Northwest Advanced SMR Project",
+        "location": "Richland, Washington, USA",
+        "project_status": "Planning",
+        "licensing_approach": "NRC Part 50 (planned)",
+        "configuration": "Up to 12×Xe-100 (960 MWe) in phases",
+        "project_schedule": "Phase 1: four units (~320 MWe) online by 2032; expansion to 12 units by mid-2030s:contentReference[oaicite:126]{index=126}",
+        "notes": "Joint project by Energy Northwest (owner/operator) and X-energy. Will be sited at or near the Columbia Generating Station site:contentReference[oaicite:127]{index=127}. Received an influx of support in Oct 2024 when Amazon agreed to back the project for its data center needs:contentReference[oaicite:128]{index=128}. DOE ARDP funding is aiding design (via X-energy’s award). Currently in pre-licensing and site studies; target to begin NRC license process by 2025.",
+        "sources": [
+          "https://x-energy.com/media/news-releases/energy-northwest-x-energy-joint-development-agreement-xe-100",
+          "https://www.aboutamazon.com/news/sustainability/amazon-nuclear-small-modular-reactor-net-carbon-zero"
+        ]
+      },
+      {
+        "slug": "hermes-2-oakridge",
+        "project_name": "Kairos Hermes 2 Demonstration Plant",
+        "location": "Oak Ridge, Tennessee, USA",
+        "project_status": "Licensed",
+        "licensing_approach": "NRC Construction Permit (Issued Nov 2024)",
+        "configuration": "2×35 MWt FHR reactors, 1 steam turbine (~50 MWe)",
+        "project_schedule": "CP issued Nov 2024:contentReference[oaicite:129]{index=129}; Construction 2025–2029; First power by 2030:contentReference[oaicite:130]{index=130}",
+        "notes": "Kairos Power’s grid-connected demo to prove its fluoride salt reactor at power-generating scale. Adjacent to the smaller non-power Hermes 1. TVA will buy the ~50 MW output to supply Google’s data centers under a landmark PPA – the first advanced reactor PPA in the U.S.:contentReference[oaicite:131]{index=131}:contentReference[oaicite:132]{index=132}. Hermes 2 will validate cost and operability for a future commercial fleet. As of Aug 2025, Kairos is increasing output per reactor (single reactor 50 MWe vs originally two smaller) to meet Google’s timeline:contentReference[oaicite:133]{index=133}.",
+        "sources": [
+          "https://www.world-nuclear-news.org/Articles/Google,-Kairos-Power,-TVA-announce-collaboration#:~:text=the%20Hermes%202%20will%20deliver%20up%20to%2050%20MW%20of%20reliable%2024/7%20energy",
+          "https://www.nrc.gov/reactors/non-power/hermes.html"
+        ]
+      },
+      {
+        "slug": "clinch-river-bwrx300",
+        "project_name": "Clinch River SMR Project",
+        "location": "Oak Ridge (Clinch River), Tennessee, USA",
+        "project_status": "Licensing",
+        "licensing_approach": "NRC Part 50 (Construction Permit Application under review)",
+        "configuration": "1×BWRX-300 SMR",
+        "project_schedule": "TVA CP application submitted Jan 2023, docketed May 2023:contentReference[oaicite:134]{index=134}. If permit granted ~2026, target operation ~2033.",
+        "notes": "TVA’s first small modular reactor unit, planned for its Clinch River Nuclear Site. Will use GE Hitachi’s 300 MWe BWRX-300 design:contentReference[oaicite:135]{index=135}. TVA has engaged Bechtel and GEH in project development (as part of the CNS consortium):contentReference[oaicite:136]{index=136}. TVA is seeking DOE support (through IRA and other programs) and envisions a fleet of BWRX-300s if this pioneer unit succeeds:contentReference[oaicite:137]{index=137}.",
+        "sources": [
+          "https://www.nrc.gov/reactors/new-reactors/col/clinch-river.html",
+          "https://www.bechtel.com/newsroom/releases/2023/08/tva-bechtel-plan-initial-smr/"
+        ]
+      },
+      {
+        "slug": "susquehanna-data-center",
+        "project_name": "Susquehanna Nuclear PPA & Data Center Campus",
+        "location": "Salem Township, Pennsylvania, USA",
+        "project_status": "Operating",
+        "configuration": "2×1300 MWe BWRs (existing)",
+        "project_health": "At Risk",
+        "notes": "In March 2024, Amazon announced purchase of a new data center campus adjacent to Talen Energy’s Susquehanna nuclear plant to directly use its carbon-free power:contentReference[oaicite:138]{index=138}. Amazon’s deal (worth ~$650M) essentially secures the output of Susquehanna’s two reactors (total 2.6 GW) for AWS, helping keep the plant profitable:contentReference[oaicite:139]{index=139}. However, final grid interconnection for the campus faced FERC challenges:contentReference[oaicite:140]{index=140}. This project demonstrates repurposing existing nuclear for hyperscale computing loads.",
+        "sources": [
+          "https://trellis.net/article/behind-microsofts-plans-to-ramp-up-carbon-free-nuclear-energy-to-power-ai-and-data-centers/#:~:text=it%20disclosed%20a%20%24650%20million%20deal%20with%20Talen%20Energy%20to%20buy%20a%20Pennsylvania%20data%20center%20campus%20powered%20by%20one%20of%20the%20largest%20U.S.%20nuclear%20plants",
+          "https://trellis.net/article/amazon-google-meta-and-microsoft-go-nuclear/#:~:text=the%20expanded%20relationship%20will%20keep%20Susquehanna%E2%80%99s%20power%20on%20the%20PJM%20grid"
+        ]
+      }
+    ],
+    "personnel": []
+  },
+  "relationships": {
+    "vendor_supplier_relationships": [
+      {
+        "relationship_key": "nuscale-power-doosan-enerbility",
+        "vendor_slug": "nuscale-power",
+        "supplier_slug": "doosan-enerbility",
+        "component_type": "Reactor pressure vessels & major forgings",
+        "is_confidential": false,
+        "notes": "Doosan is manufacturing the NuScale Power Module primary components under a 2021 agreement, supporting NuScale’s first plant deployment:contentReference[oaicite:141]{index=141}.",
+        "sources": [
+          "https://www.power-eng.com/nuclear/smrs/tva-signs-nuclear-agreement-aimed-at-deploying-6-gw-of-small-modular-reactors/#:~:text=NuScale%20and%20its%20partnership%20with%20ENTRA1%20...%20the%20project%E2%80%99s%20termination",
+          "https://newsroom.nuscalepower.com/press-releases?item=122630"
+        ]
+      },
+      {
+        "relationship_key": "ge-hitachi-nuclear-bwxt",
+        "vendor_slug": "ge-hitachi-nuclear",
+        "supplier_slug": "bwxt",
+        "component_type": "BWRX-300 reactor pressure vessel",
+        "is_confidential": false,
+        "notes": "BWX Technologies was contracted by GEH in 2023 to fabricate the first BWRX-300 reactor vessel for OPG’s Darlington SMR:contentReference[oaicite:142]{index=142}.",
+        "sources": [
+          "https://www.ge.com/news/press-releases/ge-hitachi-awards-contract-for-bwrx-300-reactor-pressure-vessel-to-bwxt"
+        ]
+      },
+      {
+        "relationship_key": "x-energy-doosan-enerbility",
+        "vendor_slug": "x-energy",
+        "supplier_slug": "doosan-enerbility",
+        "component_type": "Manufacture of Xe-100 reactor modules",
+        "is_confidential": false,
+        "notes": "Doosan (with other Korean partners) will leverage its manufacturing expertise to produce major components for X-energy’s Xe-100 reactors as part of the 2025 Amazon–X-energy–KHNP partnership:contentReference[oaicite:143]{index=143}:contentReference[oaicite:144]{index=144}.",
+        "sources": [
+          "https://x-energy.com/media/news-releases/x-energy-amazon-korea-hydro-amp-nuclear-power-and-doosan-enerbility-announce-partnership-to-scale-advanced-nuclear-energy-for-ai-infrastructure",
+          "https://www.businesswire.com/news/home/20231031069087/en/X-energy-and-KHNP-Sign-Memorandum-of-Understanding-to-Advance-Advanced-Small-Modular-Reactors"
+        ]
+      }
+    ],
+    "owner_vendor_relationships": [
+      {
+        "relationship_key": "opg-ge-hitachi",
+        "owner_slug": "ontario-power-generation",
+        "vendor_slug": "ge-hitachi-nuclear",
+        "relationship_type": "Delivery_Contract",
+        "is_confidential": false,
+        "notes": "OPG selected GE Hitachi’s BWRX-300 for Darlington and signed an agreement for engineering and design/production of the first unit, targeting operation by end of 2028:contentReference[oaicite:145]{index=145}.",
+        "sources": [
+          "https://ans.org/news/article-7083/contract-awarded-for-first-smr-at-darlington/",
+          "https://www.ge.com/news/press-releases/ge-hitachi-small-modular-reactor-technology-selected-for-darlington-new-nuclear"
+        ]
+      },
+      {
+        "relationship_key": "tva-ge-hitachi",
+        "owner_slug": "tennessee-valley-authority",
+        "vendor_slug": "ge-hitachi-nuclear",
+        "relationship_type": "Development_Agreement",
+        "is_confidential": false,
+        "notes": "TVA has identified GEH’s BWRX-300 as its preferred SMR and in 2022 approved funding to pursue its construction at Clinch River:contentReference[oaicite:146]{index=146}, filing an NRC application. TVA also engaged GEH and Bechtel in an alliance for SMR deployment support:contentReference[oaicite:147]{index=147}.",
+        "sources": [
+          "https://www.bechtel.com/newsroom/releases/2023/08/tva-bechtel-plan-initial-smr/",
+          "https://www.tva.com/newsroom/press-releases/tva-approves-strategic-investment-in-advanced-nuclear-technology"
+        ]
+      },
+      {
+        "relationship_key": "tva-kairos-power",
+        "owner_slug": "tennessee-valley-authority",
+        "vendor_slug": "kairos-power",
+        "relationship_type": "MOU",
+        "is_confidential": false,
+        "notes": "TVA entered an agreement with Kairos Power to host and evaluate the Hermes test reactor(s) at Oak Ridge, providing TVA land and grid access. In 2023 this expanded into a PPA for Hermes 2 power:contentReference[oaicite:148]{index=148}. This collaboration helps TVA assess FHR technology for future use.",
+        "sources": [
+          "https://www.tva.com/about-tva/our-public-service/need-for-energy/new-nuclear-program",
+          "https://www.world-nuclear-news.org/Articles/Google,-Kairos-Power,-TVA-announce-collaboration"
+        ]
+      },
+      {
+        "relationship_key": "pacificorp-terrapower",
+        "owner_slug": "pacificorp",
+        "vendor_slug": "terrapower",
+        "relationship_type": "Development_Agreement",
+        "is_confidential": false,
+        "notes": "In June 2021, TerraPower and PacifiCorp announced an agreement to site TerraPower’s Natrium reactor at a retiring PacifiCorp coal plant in WY:contentReference[oaicite:149]{index=149}. They are also jointly exploring deploying up to 5 additional Natrium units by 2035:contentReference[oaicite:150]{index=150}. PacifiCorp will integrate and likely operate the plants, while TerraPower provides the technology.",
+        "sources": [
+          "https://www.pacificorp.com/about/newsroom/2021/terrapower-pacificorp-natrium.html",
+          "https://www.wyoenergy.org/terrapower-and-pacificorp-announce-expansion-efforts-for-natrium-technology/"
+        ]
+      },
+      {
+        "relationship_key": "energy-northwest-x-energy",
+        "owner_slug": "energy-northwest",
+        "vendor_slug": "x-energy",
+        "relationship_type": "Development_Agreement",
+        "is_confidential": false,
+        "notes": "Energy Northwest and X-energy signed a Joint Development Agreement in July 2023 to deploy up to twelve Xe-100 reactors (960 MW) in WA, starting with 4 units by ~2030:contentReference[oaicite:151]{index=151}. This formalizes EN’s role as the eventual owner-operator and X-energy as technology vendor, covering site, licensing, and financing plans:contentReference[oaicite:152]{index=152}.",
+        "sources": [
+          "https://x-energy.com/media/news-releases/energy-northwest-x-energy-joint-development-agreement-xe-100#:~:text=The%20JDA%20defines%20and%20details%20the%20scope%2C%20location%2C%20and%20schedule%20under%20which%20the%20commercial%20development%20of%20the%20project%20will%20move%20forward.",
+          "https://x-energy.com/media/news-releases/energy-northwest-x-energy-joint-development-agreement-xe-100#:~:text=Energy%20Northwest%20expects%20to%20bring%20the%20first%20Xe-100%20module%20online%20by%202030."
+        ]
+      },
+      {
+        "relationship_key": "dow-x-energy",
+        "owner_slug": "dow",
+        "vendor_slug": "x-energy",
+        "relationship_type": "Development_Agreement",
+        "is_confidential": false,
+        "notes": "Dow and X-energy entered a strategic partnership (MOU in 2022, ARDP contract in 2021) to design and build the Xe-100 demonstration at a Dow site:contentReference[oaicite:153]{index=153}. Dow is co-funding development and will host and use the reactor’s output. The parties jointly submitted the NRC license application in 2023:contentReference[oaicite:154]{index=154}.",
+        "sources": [
+          "https://corporate.dow.com/en-us/news/press-releases/dow-x-energy-advanced-nuclear-project.html",
+          "https://x-energy.com/media/news-releases/dow-and-x-energy-submit-construction-permit-application-to-the-us-nuclear-regulatory-commission-for-proposed-advanced-nuclear-project-in-texas"
+        ]
+      },
+      {
+        "relationship_key": "duke-nuscale",
+        "owner_slug": "duke-energy",
+        "vendor_slug": "nuscale-power",
+        "relationship_type": "MOU",
+        "is_confidential": false,
+        "notes": "Duke Energy joined a 2020 memorandum of understanding with NuScale and the Tennessee Valley Authority to share information on SMR planning and licensing. This allows Duke to observe NuScale’s progress as it evaluates SMRs for its fleet (no site selected yet).",
+        "sources": [
+          "https://news.duke-energy.com/releases/duke-energy-to-study-advanced-nuclear-technology-for-carbon-free-energy-future",
+          "https://www.tva.com/newsroom/press-releases/tva-and-nuscale-power-to-work-on-advancing-nuclear-technology"
+        ]
+      },
+      {
+        "relationship_key": "dominion-ge-hitachi",
+        "owner_slug": "dominion-energy",
+        "vendor_slug": "ge-hitachi-nuclear",
+        "relationship_type": "MOU",
+        "is_confidential": false,
+        "notes": "Dominion Energy has been engaging with GE Hitachi regarding BWRX-300 SMRs as a potential technology for Virginia. While no official contract, Dominion in 2023 received state funding to study SMRs and has referenced GEH’s design in regulatory filings. An informal collaboration exists as Dominion monitors OPG and TVA’s BWRX projects.",
+        "sources": [
+          "https://www.utilitydive.com/news/virginia-governor-signed-budget-smr-small-modular-reactor/632825/",
+          "https://www.richmond.com/news/state-regional/government-politics/virginia-small-nuclear-reactors-youngkin-north-anna/article_a1b4454c-d43e-11ed-8ef3-5fdf3b2ccf3e.html"
+        ]
+      },
+      {
+        "relationship_key": "shell-nuscale",
+        "owner_slug": "shell-plc",
+        "vendor_slug": "nuscale-power",
+        "relationship_type": "Development_Agreement",
+        "is_confidential": false,
+        "notes": "Shell Global Solutions and NuScale agreed (2022) to jointly develop a concept integrating NuScale SMRs for large-scale hydrogen production:contentReference[oaicite:155]{index=155}. The collaboration, part of a DOE project, involves studying how a VOYGR SMR’s heat and power can feed solid-oxide electrolyzers at Shell facilities. It is an R&D partnership toward deploying NuScale modules at Shell sites for H2.",
+        "sources": [
+          "https://www.utilitydive.com/news/nuscale-shell-hydrogen-nuclear-smr-small-modular-reactor/637783/",
+          "https://www.greencarcongress.com/2022/12/20221203-nuscale.html"
+        ]
+      }
+    ],
+    "project_vendor_relationships": [
+      {
+        "relationship_key": "darlington-smr-gehitachi",
+        "project_slug": "darlington-smr-canada",
+        "vendor_slug": "ge-hitachi-nuclear",
+        "is_confidential": false,
+        "notes": "GE Hitachi is providing the BWRX-300 SMR technology for OPG’s Darlington New Nuclear Project:contentReference[oaicite:156]{index=156}. This is the reference deployment for GEH’s design.",
+        "sources": [
+          "https://ans.org/news/article-7083/contract-awarded-for-first-smr-at-darlington/#:~:text=collaborating%20on%20the%20project%20with%20BWRX-300%20developer%20GE%20Hitachi :contentReference[oaicite:157]{index=157}",
+          "https://www.world-nuclear-news.org/Articles/OPG-gets-permission-to-build-Darlington-SMR"
+        ]
+      },
+      {
+        "relationship_key": "natrium-pacificorp-terrapower",
+        "project_slug": "kemmerer-natrium-demo-wyoming",
+        "vendor_slug": "terrapower",
+        "is_confidential": false,
+        "notes": "TerraPower is lead technology provider (reactor designer and project manager) for the Natrium demo in Kemmerer. TerraPower and PacifiCorp coordinate closely on this ARDP-funded project:contentReference[oaicite:158]{index=158}.",
+        "sources": [
+          "https://www.pacificorp.com/energy/nuclear/wyoming-nuclear.html",
+          "https://www.ans.org/news/article-4283/construction-of-terrapowers-natrium-demonstration/"
+        ]
+      },
+      {
+        "relationship_key": "longmott-xenergy",
+        "project_slug": "long-mott-smr-texas",
+        "vendor_slug": "x-energy",
+        "is_confidential": false,
+        "notes": "X-energy is the reactor vendor for Dow’s Long Mott project, supplying four Xe-100 HTGR units and related engineering:contentReference[oaicite:159]{index=159}. X-energy is also co-licensee on the NRC application.",
+        "sources": [
+          "https://x-energy.com/media/news-releases/dow-and-x-energy-submit-construction-permit-application-to-the-us-nuclear-regulatory-commission-for-proposed-advanced-nuclear-project-in-texas",
+          "https://www.powermag.com/x-energy-dow-and-doe-move-forward-on-gulf-coast-nuclear-demo-project/"
+        ]
+      },
+      {
+        "relationship_key": "enw-smr-xenergy",
+        "project_slug": "enw-xe100-washington",
+        "vendor_slug": "x-energy",
+        "is_confidential": false,
+        "notes": "X-energy will provide its Xe-100 reactor design and serve as primary contractor for Energy Northwest’s proposed SMR project:contentReference[oaicite:160]{index=160}, per their joint agreement.",
+        "sources": [
+          "https://x-energy.com/media/news-releases/energy-northwest-x-energy-joint-development-agreement-xe-100",
+          "https://www.ans.org/news/article-4288/amazon-invests-in-xenergy-advanced-nuclear-technology/"
+        ]
+      },
+      {
+        "relationship_key": "hermes2-kairos",
+        "project_slug": "hermes-2-oakridge",
+        "vendor_slug": "kairos-power",
+        "is_confidential": false,
+        "notes": "Kairos Power is both vendor and constructor/operator for the Hermes 2 FHR demonstration, responsible for design, licensing and build of the Oak Ridge reactors:contentReference[oaicite:161]{index=161}:contentReference[oaicite:162]{index=162}.",
+        "sources": [
+          "https://www.nrc.gov/reading-rm/doc-collections/news/2024/24-030.pdf",
+          "https://www.world-nuclear-news.org/Articles/NRC-approves-construction-of-second-Kairos-reactor"
+        ]
+      },
+      {
+        "relationship_key": "clinchriver-gehitachi",
+        "project_slug": "clinch-river-bwrx300",
+        "vendor_slug": "ge-hitachi-nuclear",
+        "is_confidential": false,
+        "notes": "GE Hitachi is supplying its BWRX-300 SMR design for TVA’s Clinch River project (TVA’s CP application is based on GEH’s design):contentReference[oaicite:163]{index=163}.",
+        "sources": [
+          "https://www.nrc.gov/docs/ML2303/ML23038A209.pdf",
+          "https://www.world-nuclear-news.org/Articles/TVA-submits-first-US-BWRX-300-construction-applica"
+        ]
+      }
+    ],
+    "project_constructor_relationships": [
+      {
+        "relationship_key": "darlington-smr-atkinsrealis",
+        "project_slug": "darlington-smr-canada",
+        "constructor_slug": "atkins-realis",
+        "is_confidential": false,
+        "notes": "AtkinsRéalis (SNC’s Candu Energy) is the architect-engineer and a key constructor for Darlington Unit 1 SMR under a $450M contract:contentReference[oaicite:164]{index=164}, handling project management, engineering and construction support.",
+        "sources": [
+          "https://ans.org/news/article-7083/contract-awarded-for-first-smr-at-darlington/#:~:text=Ontario%20Power%20Generation%20has%20awarded%20a%20%24450%20million%20execution%20contract%20to%20Candu%20Energy",
+          "https://www.atkinsrealis.com/en/media/press-releases/2023/dec-13"
+        ]
+      },
+      {
+        "relationship_key": "clinchriver-bechtel",
+        "project_slug": "clinch-river-bwrx300",
+        "constructor_slug": "bechtel",
+        "is_confidential": false,
+        "notes": "TVA selected Bechtel in 2023 to lead project execution planning for the Clinch River SMR, positioning Bechtel as the likely EPC contractor if the project moves forward:contentReference[oaicite:165]{index=165}.",
+        "sources": [
+          "https://www.bechtel.com/newsroom/releases/2023/08/tva-bechtel-plan-initial-smr/",
+          "https://www.reuters.com/article/us-usa-nuclear-tva-idCAKBN2AD1CQ"
+        ]
+      },
+      {
+        "relationship_key": "natriumdemo-bechtel",
+        "project_slug": "kemmerer-natrium-demo-wyoming",
+        "constructor_slug": "bechtel",
+        "is_confidential": false,
+        "notes": "Bechtel is the engineering, procurement, and construction partner for TerraPower’s Natrium demonstration plant:contentReference[oaicite:166]{index=166}, responsible for plant design finalization and construction.",
+        "sources": [
+          "https://www.bechtel.com/newsroom/releases/2021/10/terrapower-bechtel-partner-natrium-demonstration-project/",
+          "https://www.powermag.com/terrapower-selects-bechtel-as-engineering-construction-partner-for-natrium/"
+        ]
+      }
+    ],
+    "project_operator_relationships": [
+      {
+        "relationship_key": "susquehanna-operator-constellation",
+        "project_slug": "susquehanna-data-center",
+        "operator_slug": "constellation-energy",
+        "is_confidential": false,
+        "notes": "In 2022, Talen Energy transferred operational control of Susquehanna nuclear plant to Constellation Energy:contentReference[oaicite:167]{index=167}. Under Amazon’s data center deal, Constellation (as NRC-licensed operator) will continue running Susquehanna to supply AWS with carbon-free power.",
+        "sources": [
+          "https://www.prnewswire.com/news-releases/talen-energy-transitions-operations-of-susquehanna-nuclear-plant-to-constellation-301580169.html",
+          "https://trellis.net/article/amazon-google-meta-and-microsoft-go-nuclear/#:~:text=Based%20in%20Houston%2C%20Talen%20is%20the%20majority%20owner%20of%20the%20Susquehanna%20nuclear%20plant%20in%20Pennsylvania."
+        ]
+      }
+    ],
+    "project_owner_relationships": [
+      {
+        "relationship_key": "darlington-smr-owner-opg",
+        "project_slug": "darlington-smr-canada",
+        "owner_slug": "ontario-power-generation",
+        "is_confidential": false,
+        "notes": "OPG is the owner and licensee for the Darlington SMR project, developing it as a regulated asset to supply Ontario’s grid:contentReference[oaicite:168]{index=168}.",
+        "sources": [
+          "https://www.opg.com/media/reports/darlington-new-nuclear-project-overview.pdf"
+        ]
+      },
+      {
+        "relationship_key": "natriumdemo-owner-pacificorp",
+        "project_slug": "kemmerer-natrium-demo-wyoming",
+        "owner_slug": "pacificorp",
+        "is_confidential": false,
+        "notes": "PacifiCorp will be the offtaking utility and likely co-owner/asset manager of the Natrium demo plant, integrating it into its system to serve WY and broader western customers:contentReference[oaicite:169]{index=169}.",
+        "sources": [
+          "https://www.pacificorp.com/energy/nuclear/wyoming-nuclear.html"
+        ]
+      },
+      {
+        "relationship_key": "longmott-owner-dow",
+        "project_slug": "long-mott-smr-texas",
+        "owner_slug": "dow",
+        "is_confidential": false,
+        "notes": "Dow (via subsidiary Long Mott Energy LLC) will own and operate the Xe-100 reactors at its Seadrift site to directly supply its manufacturing operations:contentReference[oaicite:170]{index=170}.",
+        "sources": [
+          "https://corporate.dow.com/en-us/news/press-releases/dow-x-energy-advanced-nuclear-project.html"
+        ]
+      },
+      {
+        "relationship_key": "enwsmr-owner-energynw",
+        "project_slug": "enw-xe100-washington",
+        "owner_slug": "energy-northwest",
+        "is_confidential": false,
+        "notes": "Energy Northwest will own and operate the planned Xe-100 SMR units in WA, expanding its carbon-free generation portfolio beyond the existing Columbia nuclear station:contentReference[oaicite:171]{index=171}.",
+        "sources": [
+          "https://x-energy.com/media/news-releases/energy-northwest-x-energy-joint-development-agreement-xe-100"
+        ]
+      },
+      {
+        "relationship_key": "hermes2-owner-kairos",
+        "project_slug": "hermes-2-oakridge",
+        "owner_slug": "kairos-power",
+        "is_confidential": false,
+        "notes": "Kairos Power will own and operate the Hermes 2 demo reactors under a TVA services agreement. TVA is not the owner of Hermes; Kairos holds the construction permit and will run the plant during the demonstration:contentReference[oaicite:172]{index=172}.",
+        "sources": [
+          "https://www.nrc.gov/docs/ML24345A001.pdf",
+          "https://world-nuclear-news.org/Articles/Kairos-Power-raises-additional-funds-for-Hermes-reac"
+        ]
+      },
+      {
+        "relationship_key": "clinchriver-owner-tva",
+        "project_slug": "clinch-river-bwrx300",
+        "owner_slug": "tennessee-valley-authority",
+        "is_confidential": false,
+        "notes": "TVA is the license applicant and will be the owner/operator of the Clinch River BWRX-300 SMR, intended to serve TVA’s region with ~300 MW of new nuclear generation:contentReference[oaicite:173]{index=173}.",
+        "sources": [
+          "https://www.tva.com/about-tva/our-public-service/need-for-energy/new-nuclear-program"
+        ]
+      },
+      {
+        "relationship_key": "susquehanna-owner-talen",
+        "project_slug": "susquehanna-data-center",
+        "owner_slug": "talen-energy",
+        "is_confidential": false,
+        "notes": "Talen Energy (through Cumulus Data, its subsidiary) remains majority owner of Susquehanna Steam Electric Station and is developing the adjacent data center campus that will purchase the plant’s output:contentReference[oaicite:174]{index=174}. The arrangement preserves Talen’s asset value via a direct corporate PPA with Amazon.",
+        "sources": [
+          "https://trellis.net/article/amazon-google-meta-and-microsoft-go-nuclear/#:~:text=Amazon%20moved%20to%20buy%20a%20data%20center%20campus%20powered%20by%20one%20of%20the%20largest%20U.S.%20nuclear%20plants",
+          "https://www.datacenterdynamics.com/en/news/amazon-to-buy-data-center-campus-powered-by-pennsylvania-nuclear-plant/"
+        ]
+      }
+    ],
+    "project_offtaker_relationships": [
+      {
+        "relationship_key": "hermes2-google",
+        "project_slug": "hermes-2-oakridge",
+        "offtaker_slug": "google",
+        "agreement_type": "PPA",
+        "contracted_volume": "50 MW",
+        "is_confidential": false,
+        "notes": "First-of-a-kind PPA where Google will buy ~50 MW of 24x7 carbon-free power from Kairos’s Hermes 2 advanced reactor via TVA, to supply Google’s Tennessee/Alabama data centers:contentReference[oaicite:175]{index=175}.",
+        "sources": [
+          "https://www.world-nuclear-news.org/Articles/Google,-Kairos-Power,-TVA-announce-collaboration#:~:text=deliver%20up%20to%2050%20MW%20of%20reliable%2C%2024/7%20energy%20to%20the%20TVA%20grid%20that%20powers%20Google%20data%20centres"
+        ]
+      },
+      {
+        "relationship_key": "enwsmr-amazon",
+        "project_slug": "enw-xe100-washington",
+        "offtaker_slug": "amazon",
+        "agreement_type": "PPA",
+        "contracted_volume": "320 MW",
+        "is_confidential": false,
+        "notes": "Amazon’s October 2024 agreement with Energy Northwest enables Phase-1 (4 units, ~320 MW) of ENW’s Xe-100 SMR, with Amazon expected to contract for the output to serve its Pacific NW data centers:contentReference[oaicite:176]{index=176}. Amazon holds option to expand to 960 MW in later phases.",
+        "sources": [
+          "https://www.aboutamazon.com/news/sustainability/amazon-nuclear-small-modular-reactor-net-carbon-zero#:~:text=will%20enable%20the%20development%20of%20four%20advanced%20SMRs.%20The%20reactors%20will%20be%20constructed%2C%20owned%20and%20operated%20by%20Energy%20Northwest%2C%20and%20are%20expected%20to%20generate%20roughly%20320%20MW",
+          "https://trellis.net/article/amazon-google-meta-and-microsoft-go-nuclear/#:~:text=Amazon%E2%80%99s%20contract%20will%20support%20four%20projects%2C%20with%20a%20combined%20generation%20capacity%20of%20320%20MW%20in%20the%20first%20phase%20and%20an%20option%20to%20scale%20up%20to%20960%20MW"
+        ]
+      },
+      {
+        "relationship_key": "susquehanna-amazon",
+        "project_slug": "susquehanna-data-center",
+        "offtaker_slug": "amazon",
+        "agreement_type": "PPA",
+        "contracted_volume": "1,920 MW",
+        "is_confidential": false,
+        "notes": "Amazon (AWS) signed a contract to directly procure up to 1.92 GW from Talen’s Susquehanna nuclear plant to power a new adjacent AWS data center campus:contentReference[oaicite:177]{index=177}. This ensures essentially the full output of Susquehanna’s two reactors can be dedicated to Amazon, under a unique arrangement coupling a data center load to an existing nuclear station.",
+        "sources": [
+          "https://ir.talenenergy.com/node/11321/pdf",
+          "https://www.govtech.com/education/higher-ed/former-texas-governors-nuclear-ai-company-goes-public"
+        ]
+      },
+      {
+        "relationship_key": "clinton-meta",
+        "project_slug": "susquehanna-data-center",
+        "offtaker_slug": "meta",
+        "agreement_type": "PPA",
+        "contracted_volume": "1,100 MW",
+        "is_confidential": false,
+        "notes": "In 2023, Meta (Facebook) entered a 20-year PPA with Constellation to offtake ~1.1 GW from the Clinton Nuclear Power Station in Illinois:contentReference[oaicite:178]{index=178}. This enabled Constellation to consider a power uprate and long-term operation for Clinton specifically to supply Meta’s data center demand.",
+        "sources": [
+          "https://trellis.net/article/amazon-google-meta-and-microsoft-go-nuclear/#:~:text=Meta%E2%80%99s%20...%20announced%20June%203%2C%20to%20buy%201.1%20GW%20of%20nuclear%20energy%20from%20the%20Clinton%20Clean%20Energy%20Center",
+          "https://about.fb.com/news/2023/06/meta-clean-energy-update-clinton-nuclear/"
+        ]
+      }
+    ],
+    "vendor_preferred_constructor": [],
+    "personnel_entity_relationships": []
+  }
+}
+

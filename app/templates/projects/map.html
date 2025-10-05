@@ -1,0 +1,190 @@
+{% extends "base.html" %}
+
+{% block title %}Project Map - NukeWorks{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+<style>
+.projects-map-layout {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    align-items: stretch;
+}
+
+.projects-map-container {
+    flex: 1 1 60%;
+    min-width: 320px;
+}
+
+#projectsMap {
+    width: 100%;
+    height: calc(100vh - 220px);
+    min-height: 420px;
+    border-radius: 0.5rem;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.project-info-panel {
+    flex: 0 0 360px;
+    max-width: 100%;
+    border-radius: 0.5rem;
+    height: fit-content;
+}
+
+.project-info-panel .map-panel-empty {
+    color: #6c757d;
+    font-style: italic;
+}
+
+@media (max-width: 991.98px) {
+    .projects-map-layout {
+        flex-direction: column;
+    }
+
+    .project-info-panel {
+        order: -1;
+        flex: 1 1 auto;
+    }
+
+    #projectsMap {
+        height: 60vh;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <nav aria-label="breadcrumb" class="mb-1">
+                <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item"><a href="{{ url_for('projects.list_projects') }}">Projects</a></li>
+                    <li class="breadcrumb-item active">Map</li>
+                </ol>
+            </nav>
+            <h1 class="mb-0"><i class="bi bi-geo-alt"></i> Project Map</h1>
+        </div>
+        <a class="btn btn-outline-secondary" href="{{ url_for('projects.list_projects') }}">
+            <i class="bi bi-list"></i> Back to List
+        </a>
+    </div>
+
+    <div class="projects-map-layout">
+        <div class="projects-map-container">
+            <div id="projectsMap" aria-label="Project locations map"></div>
+        </div>
+        <div id="projectInfoPanel" class="project-info-panel card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0" id="projectInfoTitle"><i class="bi bi-info-circle"></i> Project Details</h5>
+                <button type="button" class="btn-close" id="projectInfoClose" aria-label="Reset details"></button>
+            </div>
+            <div class="card-body" id="projectInfoBody"></div>
+            <div class="card-footer d-flex justify-content-between align-items-center" id="projectInfoFooter">
+                <div class="small text-muted" id="projectInfoMeta"></div>
+                <a href="#" class="btn btn-sm btn-primary d-none" id="projectInfoLink">View Project</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+<script>
+(function() {
+    const projects = {{ projects_data | tojson }};
+    const defaultMessage = projects.length
+        ? 'Select a project marker on the map to see details here.'
+        : 'Add latitude and longitude to a project to show it on the map.';
+
+    function escapeHtml(text) {
+        return text.replace(/[&<>"']/g, function(match) {
+            const escapes = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#39;'
+            };
+            return escapes[match];
+        });
+    }
+
+    const mapElement = document.getElementById('projectsMap');
+    const panel = document.getElementById('projectInfoPanel');
+    const panelTitle = document.getElementById('projectInfoTitle');
+    const panelBody = document.getElementById('projectInfoBody');
+    const panelMeta = document.getElementById('projectInfoMeta');
+    const panelLink = document.getElementById('projectInfoLink');
+    const panelClose = document.getElementById('projectInfoClose');
+
+    function resetPanel() {
+        panelTitle.innerHTML = '<i class="bi bi-info-circle"></i> Project Details';
+        panelBody.innerHTML = '<p class="map-panel-empty mb-0">' + defaultMessage + '</p>';
+        panelMeta.textContent = '';
+        panelLink.classList.add('d-none');
+        panelLink.href = '#';
+    }
+
+    resetPanel();
+
+    const map = L.map(mapElement, {
+        zoomControl: true,
+    });
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 18,
+        attribution: '&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
+    }).addTo(map);
+
+    if (projects.length) {
+        const bounds = L.latLngBounds();
+
+        projects.forEach(project => {
+            const marker = L.marker([project.latitude, project.longitude]).addTo(map);
+            marker.bindTooltip(escapeHtml(project.name));
+            bounds.extend(marker.getLatLng());
+
+            marker.on('click', () => {
+                panelTitle.innerHTML = '<i class="bi bi-building"></i> ' + escapeHtml(project.name);
+
+                const details = [];
+                if (project.location) {
+                    details.push('<strong>Location:</strong> ' + escapeHtml(project.location));
+                }
+                details.push('<strong>Coordinates:</strong> ' + project.latitude.toFixed(6) + ', ' + project.longitude.toFixed(6));
+                if (project.status) {
+                    details.push('<strong>Status:</strong> ' + escapeHtml(project.status));
+                }
+                if (project.configuration) {
+                    details.push('<strong>Configuration:</strong> ' + escapeHtml(project.configuration));
+                }
+                if (project.target_cod) {
+                    details.push('<strong>Target COD:</strong> ' + escapeHtml(project.target_cod));
+                }
+                if (project.notes) {
+                    const trimmed = project.notes.length > 240 ? project.notes.slice(0, 240) + '…' : project.notes;
+                    const safeNotes = escapeHtml(trimmed).replace(/\n/g, '<br>');
+                    details.push('<strong>Notes:</strong> ' + safeNotes);
+                }
+
+                panelBody.innerHTML = '<div class="small">' + details.join('<br><br>') + '</div>';
+                panelMeta.textContent = 'Marker selected';
+                panelLink.href = project.url;
+                panelLink.classList.remove('d-none');
+            });
+        });
+
+        map.fitBounds(bounds.pad(0.2));
+    } else {
+        map.setView([20, 0], 2);
+    }
+
+    panelClose.addEventListener('click', () => {
+        resetPanel();
+    });
+})();
+</script>
+{% endblock %}

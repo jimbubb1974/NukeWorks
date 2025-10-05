@@ -1,0 +1,250 @@
+{% extends "base.html" %}
+
+{% block title %}Network Diagram{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='lib/vis/vis.min.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/network-diagram.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="row g-3">
+    <div class="col-lg-3">
+        <div class="card mb-3">
+            <div class="card-header">Filters</div>
+            <div class="card-body">
+                <form id="network-filter-form" class="network-filter-form">
+                    <div class="mb-3">
+                        <h6 class="text-uppercase text-muted">Entities</h6>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="entity-vendor" name="entity_types" value="vendor" checked>
+                            <label class="form-check-label" for="entity-vendor">Technology Vendors</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="entity-owner" name="entity_types" value="owner" checked>
+                            <label class="form-check-label" for="entity-owner">Owners &amp; Developers</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="entity-project" name="entity_types" value="project" checked>
+                            <label class="form-check-label" for="entity-project">Projects</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="entity-constructor" name="entity_types" value="constructor" checked>
+                            <label class="form-check-label" for="entity-constructor">Constructors</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="entity-operator" name="entity_types" value="operator" checked>
+                            <label class="form-check-label" for="entity-operator">Operators</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="entity-offtaker" name="entity_types" value="offtaker" checked>
+                            <label class="form-check-label" for="entity-offtaker">Energy Off-takers</label>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <h6 class="text-uppercase text-muted">Relationships</h6>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="rel-owner-vendor" name="relationship_types" value="owner_vendor" checked>
+                            <label class="form-check-label" for="rel-owner-vendor">Owner ↔ Vendor</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="rel-project-vendor" name="relationship_types" value="project_vendor" checked>
+                            <label class="form-check-label" for="rel-project-vendor">Project ↔ Vendor</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="rel-project-owner" name="relationship_types" value="project_owner" checked>
+                            <label class="form-check-label" for="rel-project-owner">Project ↔ Owner</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="rel-project-constructor" name="relationship_types" value="project_constructor" checked>
+                            <label class="form-check-label" for="rel-project-constructor">Project ↔ Constructor</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="rel-project-operator" name="relationship_types" value="project_operator" checked>
+                            <label class="form-check-label" for="rel-project-operator">Project ↔ Operator</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="rel-vendor-supplier" name="relationship_types" value="vendor_supplier" checked>
+                            <label class="form-check-label" for="rel-vendor-supplier">Vendor Supplier</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="rel-vendor-constructor" name="relationship_types" value="vendor_constructor" checked>
+                            <label class="form-check-label" for="rel-vendor-constructor">Vendor Preferred Constructor</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="rel-project-offtaker" name="relationship_types" value="project_offtaker" checked>
+                            <label class="form-check-label" for="rel-project-offtaker">Project ↔ Off-taker</label>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-sm w-100">Apply Filters</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="card mb-3">
+            <div class="card-header">Focus Mode</div>
+            <div class="card-body">
+                <form id="focus-form" class="network-focus-form">
+                    <div class="mb-2">
+                        <label for="focus-entity" class="form-label">Select Entity</label>
+                        <select id="focus-entity" class="form-select form-select-sm">
+                            <option value="">-- Show Entire Network --</option>
+                        </select>
+                    </div>
+                    <div class="mb-2">
+                        <label for="focus-depth" class="form-label">Depth</label>
+                        <select id="focus-depth" class="form-select form-select-sm">
+                            <option value="1">Direct connections</option>
+                            <option value="2" selected>Depth 2</option>
+                            <option value="3">Depth 3</option>
+                            <option value="all">Show all</option>
+                        </select>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-outline-primary btn-sm flex-grow-1">Apply Focus</button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm flex-grow-1" id="clear-focus-btn">Clear</button>
+                    </div>
+                    <p class="form-text mt-2 mb-0">Tip: Double-click a node to focus on it quickly.</p>
+                </form>
+            </div>
+        </div>
+
+        <div class="card mb-3">
+            <div class="card-header">Network Stats</div>
+            <div class="card-body">
+                <ul class="list-unstyled small mb-0">
+                    <li><strong>Total Nodes:</strong> <span id="total-nodes">0</span></li>
+                    <li><strong>Total Edges:</strong> <span id="total-edges">0</span></li>
+                    <li><strong>Hidden (Confidential):</strong> <span id="hidden-count">0</span></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">Legend</div>
+            <div class="card-body">
+                <div class="legend-item">
+                    <span class="legend-node vendor"></span>
+                    <span>Technology Vendor</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-node owner"></span>
+                    <span>Owner / Developer</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-node project"></span>
+                    <span>Project</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-node constructor"></span>
+                    <span>Constructor</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-node operator"></span>
+                    <span>Operator</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-node offtaker"></span>
+                    <span>Off-taker</span>
+                </div>
+                <hr>
+                <div class="legend-item">
+                    <span class="legend-edge solid"></span>
+                    <span>Relationship</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-edge dashed"></span>
+                    <span>MOU</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-edge arrow"></span>
+                    <span>Supplier Direction</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-9">
+        <div class="card h-100">
+            <div class="card-header d-flex align-items-center">
+                <span>Relationship Network</span>
+                <div class="ms-auto d-flex gap-2">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" id="reset-physics-btn">Re-enable Physics</button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" id="reset-view-btn">Reset View</button>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div id="network-container" class="network-container">
+                    <div class="network-loading" id="network-loading">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-header">Node Details</div>
+            <div class="card-body" id="node-detail-panel">
+                <p class="text-muted mb-0" id="node-detail-placeholder">Hover over a node to see quick details here.</p>
+                <div id="node-detail-content" class="d-none">
+                    <h6 id="node-detail-label" class="mb-1"></h6>
+                    <p id="node-detail-description" class="mb-0 small"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='lib/vis/vis.min.js') }}"></script>
+<script>
+    if (typeof vis === 'undefined') {
+        const script = document.createElement('script');
+        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.js';
+        script.crossOrigin = 'anonymous';
+        script.referrerPolicy = 'no-referrer';
+        window.__visLibraryLoading = true;
+        script.onload = function () {
+            window.__visLibraryLoading = false;
+        };
+        script.onerror = function () {
+            window.__visLibraryLoading = false;
+        };
+        document.head.appendChild(script);
+    }
+</script>
+<script src="{{ url_for('static', filename='js/network-diagram.js') }}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        if (window.NetworkDiagram) {
+            window.NetworkDiagram.init({
+                dataUrl: "{{ url_for('network.network_data') }}",
+                containerId: 'network-container',
+                loadingIndicatorId: 'network-loading',
+                filterFormId: 'network-filter-form',
+                focusFormId: 'focus-form',
+                focusSelectId: 'focus-entity',
+                focusDepthId: 'focus-depth',
+                clearFocusButtonId: 'clear-focus-btn',
+                resetViewButtonId: 'reset-view-btn',
+                resetPhysicsButtonId: 'reset-physics-btn',
+                statsSelectors: {
+                    totalNodes: '#total-nodes',
+                    totalEdges: '#total-edges',
+                    hidden: '#hidden-count'
+                },
+                detailPanel: {
+                    placeholderSelector: '#node-detail-placeholder',
+                    containerSelector: '#node-detail-content',
+                    labelSelector: '#node-detail-label',
+                    descriptionSelector: '#node-detail-description'
+                },
+                errorBannerId: 'network-error-banner'
+            });
+        }
+    });
+</script>
+{% endblock %}

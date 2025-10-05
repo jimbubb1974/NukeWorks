@@ -1,0 +1,203 @@
+{% extends "base.html" %}
+
+{% block title %}Add Roundtable Entry: {{ client.client_name }} - NukeWorks{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('crm.dashboard') }}">CRM Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('crm.roundtable_meeting') }}">Roundtable Meeting</a></li>
+                    <li class="breadcrumb-item active">{{ client.client_name }}</li>
+                </ol>
+            </nav>
+            <h2><i class="bi bi-clipboard-check"></i> Add Roundtable Entry</h2>
+            <h4 class="text-muted">{{ client.client_name }}</h4>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Form -->
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Meeting Notes</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" novalidate>
+                        {{ form.hidden_tag() }}
+
+                        <!-- Meeting Date -->
+                        <div class="mb-3">
+                            {{ form.meeting_date.label(class="form-label") }}
+                            <span class="text-danger">*</span>
+                            {{ form.meeting_date(class="form-control" + (" is-invalid" if form.meeting_date.errors else "")) }}
+                            {% if form.meeting_date.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.meeting_date.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <small class="form-text text-muted">Date of the roundtable meeting</small>
+                        </div>
+
+                        <!-- Next Steps -->
+                        <div class="mb-3">
+                            {{ form.next_steps.label(class="form-label") }}
+                            <span class="badge bg-primary ms-2">Key Field</span>
+                            {{ form.next_steps(class="form-control" + (" is-invalid" if form.next_steps.errors else "")) }}
+                            {% if form.next_steps.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.next_steps.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <small class="form-text text-muted">
+                                What are the next steps for this client? What actions need to be taken?
+                            </small>
+                        </div>
+
+                        <!-- Client Near-Term Focus -->
+                        <div class="mb-3">
+                            {{ form.client_near_term_focus.label(class="form-label") }}
+                            <span class="badge bg-primary ms-2">Key Field</span>
+                            {{ form.client_near_term_focus(class="form-control" + (" is-invalid" if form.client_near_term_focus.errors else "")) }}
+                            {% if form.client_near_term_focus.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.client_near_term_focus.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <small class="form-text text-muted">
+                                What is the client currently focused on? What are their priorities?
+                            </small>
+                        </div>
+
+                        <!-- MPR Work Targets -->
+                        <div class="mb-3">
+                            {{ form.mpr_work_targets.label(class="form-label") }}
+                            <span class="badge bg-primary ms-2">Key Field</span>
+                            {{ form.mpr_work_targets(class="form-control" + (" is-invalid" if form.mpr_work_targets.errors else "")) }}
+                            {% if form.mpr_work_targets.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.mpr_work_targets.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <small class="form-text text-muted">
+                                What are MPR's goals and targets for this client relationship?
+                            </small>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <h6 class="text-muted">Optional Additional Notes</h6>
+
+                        <!-- General Discussion -->
+                        <div class="mb-3">
+                            {{ form.discussion.label(class="form-label") }}
+                            {{ form.discussion(class="form-control" + (" is-invalid" if form.discussion.errors else "")) }}
+                            {% if form.discussion.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.discussion.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <small class="form-text text-muted">General discussion notes (optional)</small>
+                        </div>
+
+                        <!-- Buttons -->
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ url_for('crm.roundtable_meeting') }}" class="btn btn-secondary">
+                                <i class="bi bi-x-circle"></i> Cancel
+                            </a>
+                            {{ form.submit(class="btn btn-primary") }}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar with Previous Entries and Help -->
+        <div class="col-md-4">
+            <!-- Client Quick Info -->
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="bi bi-info-circle"></i> Client Information</h6>
+                </div>
+                <div class="card-body">
+                    <dl class="row mb-0">
+                        <dt class="col-sm-5">Type:</dt>
+                        <dd class="col-sm-7">{{ client.client_type or '—' }}</dd>
+
+                        <dt class="col-sm-5">Priority:</dt>
+                        <dd class="col-sm-7">{{ client.client_priority or '—' }}</dd>
+
+                        <dt class="col-sm-5">Status:</dt>
+                        <dd class="col-sm-7">{{ client.client_status or '—' }}</dd>
+
+                        <dt class="col-sm-5">MPR POC:</dt>
+                        <dd class="col-sm-7">{{ client.mpr_primary_contact.full_name if client.mpr_primary_contact else '—' }}</dd>
+                    </dl>
+                    <a href="{{ url_for('clients.view_client', client_id=client.client_id) }}" class="btn btn-sm btn-outline-secondary w-100 mt-2">
+                        <i class="bi bi-eye"></i> View Full Client Details
+                    </a>
+                </div>
+            </div>
+
+            <!-- Previous Roundtable Entries -->
+            {% if previous_entries %}
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="bi bi-clock-history"></i> Previous Entries</h6>
+                </div>
+                <div class="card-body">
+                    {% for entry in previous_entries %}
+                    <div class="{% if not loop.last %}border-bottom pb-2 mb-2{% endif %}">
+                        <small class="text-muted">{{ entry.meeting_date.strftime('%b %d, %Y') }}</small>
+                        {% if entry.next_steps %}
+                        <p class="small mb-1"><strong>Next Steps:</strong> {{ entry.next_steps[:80] }}{% if entry.next_steps|length > 80 %}...{% endif %}</p>
+                        {% endif %}
+                        {% if entry.mpr_work_targets %}
+                        <p class="small mb-0"><strong>Targets:</strong> {{ entry.mpr_work_targets[:80] }}{% if entry.mpr_work_targets|length > 80 %}...{% endif %}</p>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Help Panel -->
+            <div class="card bg-light">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="bi bi-question-circle"></i> Guidelines</h6>
+                </div>
+                <div class="card-body">
+                    <h6>Key Fields</h6>
+                    <ul class="small">
+                        <li><strong>Next Steps:</strong> Action items and follow-ups</li>
+                        <li><strong>Client Focus:</strong> What they're working on</li>
+                        <li><strong>MPR Targets:</strong> Our goals for this relationship</li>
+                    </ul>
+
+                    <h6 class="mt-3">Tips</h6>
+                    <ul class="small mb-0">
+                        <li>Be specific and actionable</li>
+                        <li>Include dates when possible</li>
+                        <li>Note decision makers and influencers</li>
+                        <li>Track competitive intelligence</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

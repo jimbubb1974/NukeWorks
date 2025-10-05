@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+
+{% block title %}Network View - NukeWorks{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2><i class="bi bi-diagram-3"></i> Network View</h2>
+            <p class="text-muted">Flexible view of project relationships with customizable columns and grouping</p>
+        </div>
+    </div>
+
+    <!-- Column and Grouping Controls -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-sliders"></i> View Configuration</h5>
+                </div>
+                <div class="card-body">
+                    <form method="GET" action="{{ url_for('network.network_table') }}" id="networkForm">
+                        <div class="row">
+                            <!-- Group By Selection -->
+                            <div class="col-md-3 mb-3">
+                                <label class="form-label"><strong>Group By:</strong></label>
+                                <select name="group_by" class="form-select" onchange="this.form.submit()">
+                                    {% for key, col in available_columns.items() %}
+                                    <option value="{{ key }}" {% if group_by == key %}selected{% endif %}>{{ col.label }}</option>
+                                    {% endfor %}
+                                </select>
+                                <small class="text-muted">Primary grouping field</small>
+                            </div>
+
+                            <!-- Column Selection -->
+                            <div class="col-md-9 mb-3">
+                                <label class="form-label"><strong>Display Columns:</strong></label>
+                                <div class="d-flex flex-wrap gap-2">
+                                    {% for key, col in available_columns.items() %}
+                                    <div class="form-check form-check-inline">
+                                        <input
+                                            class="form-check-input column-checkbox"
+                                            type="checkbox"
+                                            name="columns_check"
+                                            value="{{ key }}"
+                                            id="col_{{ key }}"
+                                            {% if key in selected_columns %}checked{% endif %}
+                                            onchange="updateColumns()"
+                                        >
+                                        <label class="form-check-label" for="col_{{ key }}">
+                                            {{ col.label }}
+                                        </label>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                <input type="hidden" name="columns" id="columns_input" value="{{ selected_columns|join(',') }}">
+                                <small class="text-muted">Select which columns to display in the table</small>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="badge bg-info">Grouped by: {{ available_columns[group_by].label }}</span>
+                                <span class="badge bg-secondary">{{ selected_columns|length }} columns selected</span>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-sm">
+                                <i class="bi bi-arrow-repeat"></i> Refresh View
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Network Data Table -->
+    <div class="row">
+        <div class="col-12">
+            {% if grouped_data %}
+            <div class="card">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light sticky-top">
+                                <tr>
+                                    <th>{{ available_columns[group_by].label }}</th>
+                                    {% for col in selected_columns %}
+                                    {% if col != group_by %}
+                                    <th>{{ available_columns[col].label }}</th>
+                                    {% endif %}
+                                    {% endfor %}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for group in grouped_data %}
+                                    {% for item in group.projects %}
+                                    <tr>
+                                        {% if loop.first %}
+                                        <td rowspan="{{ group.projects|length }}" class="align-top bg-light" style="border-right: 2px solid #dee2e6;">
+                                            <strong>{{ group.group_name }}</strong>
+                                            <br><small class="text-muted">{{ group.projects|length }} project(s)</small>
+                                        </td>
+                                        {% endif %}
+                                        {% for col in selected_columns %}
+                                        {% if col != group_by %}
+                                        <td style="padding-left: 1.5rem;">
+                                            {% if col == 'project' %}
+                                                <a href="{{ url_for('projects.view_project', project_id=item.project_id) }}">
+                                                    {{ item.project_name }}
+                                                </a>
+                                            {% elif col == 'owner' and item.owners %}
+                                                {{ item.owners|join(', ') }}
+                                            {% elif col == 'vendor' and item.vendors %}
+                                                {{ item.vendors|join(', ') }}
+                                            {% elif col == 'technology' and item.technologies %}
+                                                {{ item.technologies|join(', ') }}
+                                            {% elif col == 'operator' and item.operators %}
+                                                {{ item.operators|join(', ') }}
+                                            {% elif col == 'offtaker' and item.offtakers %}
+                                                {{ item.offtakers|join(', ') }}
+                                            {% else %}
+                                                <span class="text-muted">—</span>
+                                            {% endif %}
+                                        </td>
+                                        {% endif %}
+                                        {% endfor %}
+                                    </tr>
+                                    {% endfor %}
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle"></i> No data to display. Try adjusting your filters or add some projects.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+function updateColumns() {
+    // Get all checked checkboxes
+    const checkboxes = document.querySelectorAll('.column-checkbox:checked');
+    const selectedColumns = Array.from(checkboxes).map(cb => cb.value);
+
+    // Update hidden input
+    document.getElementById('columns_input').value = selectedColumns.join(',');
+
+    // Auto-submit form
+    document.getElementById('networkForm').submit();
+}
+</script>
+{% endblock %}

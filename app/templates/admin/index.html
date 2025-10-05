@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block title %}Admin - NukeWorks{% endblock %}
+
+{% block content %}
+<h1>Administration</h1>
+
+<div class="row mt-4">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5>User Management</h5>
+            </div>
+            <div class="card-body">
+                <p>{{ user_count }} users registered</p>
+                <p class="small text-muted mb-2">Active: {{ active_users }} | Inactive: {{ inactive_users }}</p>
+                <a href="{{ url_for('admin.manage_users') }}" class="btn btn-primary">Manage Users</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5>System Settings</h5>
+            </div>
+            <div class="card-body">
+                <p>Configure application settings</p>
+                <a href="#" class="btn btn-primary disabled">Settings (Coming Soon)</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5>Database Snapshots</h5>
+            </div>
+            <div class="card-body">
+                <p>Backup and restore database</p>
+                <a href="{{ url_for('admin.snapshots') }}" class="btn btn-primary">Open Snapshot Manager</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-3">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5>Permission Scrubbing</h5>
+            </div>
+            <div class="card-body">
+                <p>Review and modify confidentiality flags.</p>
+                <a href="{{ url_for('admin.permission_scrubbing') }}" class="btn btn-primary">Open Tool</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5>Audit Log</h5>
+            </div>
+            <div class="card-body">
+                <p>Inspect create, update, and delete history.</p>
+                <a href="{{ url_for('admin.audit_log') }}" class="btn btn-primary">View Audit Log</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

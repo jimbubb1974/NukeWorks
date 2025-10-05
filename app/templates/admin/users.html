@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+
+{% block title %}User Management - NukeWorks{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0">User Management</h1>
+            <p class="text-muted mb-0">Total: {{ total_users }} | Active: {{ active_users }} | Inactive: {{ inactive_users }}</p>
+        </div>
+        <div>
+            <a href="{{ url_for('admin.create_user') }}" class="btn btn-primary"><i class="bi bi-person-plus"></i> Add User</a>
+        </div>
+    </div>
+
+    <form method="get" class="row g-2 mb-3">
+        <div class="col-md-6">
+            <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-search"></i></span>
+                <input type="text" name="search" class="form-control" placeholder="Search by username, email, or name" value="{{ search }}">
+            </div>
+        </div>
+        <div class="col-md-3">
+            <select name="status" class="form-select">
+                <option value="all" {% if status == 'all' %}selected{% endif %}>All Users</option>
+                <option value="active" {% if status == 'active' %}selected{% endif %}>Active Only</option>
+                <option value="inactive" {% if status == 'inactive' %}selected{% endif %}>Inactive Only</option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <button type="submit" class="btn btn-outline-primary w-100">Apply Filters</button>
+        </div>
+    </form>
+
+    <div class="table-responsive shadow-sm">
+        <table class="table table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Username</th>
+                    <th>Full Name</th>
+                    <th>Email</th>
+                    <th>Permissions</th>
+                    <th>Status</th>
+                    <th>Last Login</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr>
+                    <td>{{ user.username }}</td>
+                    <td>{{ user.full_name or '—' }}</td>
+                    <td>{{ user.email }}</td>
+                    <td>
+                        {% set perms = [] %}
+                        {% if user.is_admin %}{% set _ = perms.append('Admin') %}{% endif %}
+                        {% if user.is_ned_team %}{% set _ = perms.append('NED') %}{% endif %}
+                        {% if user.has_confidential_access %}{% set _ = perms.append('Conf') %}{% endif %}
+                        {% if perms %}
+                            {{ perms|join(', ') }}
+                        {% else %}
+                            <span class="text-muted">None</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if user.is_active %}
+                            <span class="badge bg-success">Active</span>
+                        {% else %}
+                            <span class="badge bg-secondary">Inactive</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ user.last_login.strftime('%Y-%m-%d %H:%M') if user.last_login else 'Never' }}</td>
+                    <td class="text-end">
+                        <div class="btn-group" role="group">
+                            <a href="{{ url_for('admin.edit_user', user_id=user.user_id) }}" class="btn btn-sm btn-outline-primary">Edit</a>
+                            <a href="{{ url_for('admin.change_user_password', user_id=user.user_id) }}" class="btn btn-sm btn-outline-secondary">Password</a>
+                            {% if user.is_active %}
+                            <form method="post" action="{{ url_for('admin.deactivate_user', user_id=user.user_id) }}" class="d-inline">
+                                {{ csrf_token() }}
+                                <button type="submit" class="btn btn-sm btn-outline-warning" {% if current_user.user_id == user.user_id %}disabled{% endif %}>Deactivate</button>
+                            </form>
+                            {% else %}
+                            <form method="post" action="{{ url_for('admin.activate_user', user_id=user.user_id) }}" class="d-inline">
+                                {{ csrf_token() }}
+                                <button type="submit" class="btn btn-sm btn-outline-success">Reactivate</button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7" class="text-center text-muted">No users match the current filters.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="alert alert-light mt-3" role="alert">
+        <strong>Permission Legend:</strong>
+        <span class="ms-2"><span class="badge bg-danger">Admin</span> Administrator</span>
+        <span class="ms-2"><span class="badge bg-info text-dark">NED</span> NED Team Member</span>
+        <span class="ms-2"><span class="badge bg-primary">Conf</span> Confidential Access</span>
+    </div>
+
+    <div class="alert alert-warning" role="alert">
+        Users cannot be deleted because their historical activity must be preserved. Deactivate users to prevent access.
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+
+{% block title %}Delete Vendor: {{ vendor.vendor_name }} - NukeWorks{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('vendors.list_vendors') }}">Vendors</a></li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('vendors.view_vendor', vendor_id=vendor.vendor_id) }}">{{ vendor.vendor_name }}</a></li>
+                    <li class="breadcrumb-item active">Delete</li>
+                </ol>
+            </nav>
+            <h2 class="text-danger">
+                <i class="bi bi-exclamation-triangle"></i> Delete Vendor
+            </h2>
+        </div>
+    </div>
+
+    <!-- Confirmation Card -->
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">Confirm Deletion</h5>
+                </div>
+                <div class="card-body">
+                    {% if has_dependencies %}
+                    <!-- Has Dependencies - Cannot Delete -->
+                    <div class="alert alert-warning">
+                        <h5><i class="bi bi-exclamation-triangle"></i> Cannot Delete Vendor</h5>
+                        <p class="mb-0">
+                            This vendor has dependencies and cannot be deleted. Please remove the following dependencies first:
+                        </p>
+                    </div>
+
+                    <div class="mt-3">
+                        {% if product_count > 0 %}
+                        <div class="alert alert-info">
+                            <i class="bi bi-box-seam"></i>
+                            <strong>{{ product_count }}</strong> product(s) are associated with this vendor.
+                            <br><small>Please delete or reassign these products first.</small>
+                        </div>
+                        {% endif %}
+
+                        {% if relationship_count > 0 %}
+                        <div class="alert alert-info">
+                            <i class="bi bi-diagram-3"></i>
+                            <strong>{{ relationship_count }}</strong> project relationship(s) exist for this vendor.
+                            <br><small>Please delete these relationships first.</small>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mt-4">
+                        <a href="{{ url_for('vendors.view_vendor', vendor_id=vendor.vendor_id) }}" class="btn btn-primary">
+                            <i class="bi bi-arrow-left"></i> Back to Vendor
+                        </a>
+                    </div>
+
+                    {% else %}
+                    <!-- No Dependencies - Can Delete -->
+                    <p class="lead">
+                        Are you sure you want to delete the vendor
+                        <strong>"{{ vendor.vendor_name }}"</strong>?
+                    </p>
+
+                    <div class="alert alert-danger">
+                        <i class="bi bi-exclamation-triangle"></i>
+                        <strong>Warning:</strong> This action cannot be undone. All vendor information will be permanently deleted.
+                    </div>
+
+                    <div class="card bg-light mb-3">
+                        <div class="card-body">
+                            <h6>Vendor Information:</h6>
+                            <dl class="row mb-0">
+                                <dt class="col-sm-3">Vendor Name:</dt>
+                                <dd class="col-sm-9">{{ vendor.vendor_name }}</dd>
+
+                                <dt class="col-sm-3">Vendor ID:</dt>
+                                <dd class="col-sm-9">{{ vendor.vendor_id }}</dd>
+
+                                <dt class="col-sm-3">Created:</dt>
+                                <dd class="col-sm-9">
+                                    {% if vendor.created_date %}
+                                        {{ vendor.created_date.strftime('%B %d, %Y') }}
+                                    {% else %}
+                                        Unknown
+                                    {% endif %}
+                                </dd>
+
+                                <dt class="col-sm-3">Products:</dt>
+                                <dd class="col-sm-9">{{ product_count }}</dd>
+
+                                <dt class="col-sm-3">Relationships:</dt>
+                                <dd class="col-sm-9">{{ relationship_count }}</dd>
+                            </dl>
+                        </div>
+                    </div>
+
+                    <form method="POST">
+                        {{ form.hidden_tag() }}
+
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ url_for('vendors.view_vendor', vendor_id=vendor.vendor_id) }}" class="btn btn-secondary">
+                                <i class="bi bi-x-circle"></i> Cancel
+                            </a>
+                            {{ form.submit(class="btn btn-danger") }}
+                        </div>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Warning Panel -->
+        <div class="col-md-4">
+            <div class="card border-warning">
+                <div class="card-header bg-warning">
+                    <h5 class="mb-0"><i class="bi bi-shield-exclamation"></i> Deletion Rules</h5>
+                </div>
+                <div class="card-body">
+                    <h6>Before You Delete</h6>
+                    <p>A vendor can only be deleted if:</p>
+                    <ul>
+                        <li>No products are associated with it</li>
+                        <li>No project relationships exist</li>
+                        <li>No vendor-supplier relationships exist</li>
+                    </ul>
+
+                    <h6 class="mt-3">Admin Only</h6>
+                    <p>Only administrators can delete vendors.</p>
+
+                    <h6 class="mt-3">Alternative Actions</h6>
+                    <ul>
+                        <li>Edit vendor information instead</li>
+                        <li>Add a note indicating vendor is inactive</li>
+                        <li>Remove dependencies first, then delete</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

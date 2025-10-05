@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block title %}Operators - NukeWorks{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-speedometer"></i> Operators</h2>
+        {% if can_manage %}
+        <a href="{{ url_for('operators.create_operator') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> New Operator
+        </a>
+        {% endif %}
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            {% if operators %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Notes</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for operator in operators %}
+                        <tr>
+                            <td>{{ operator.company_name }}</td>
+                            <td class="text-muted small">
+                                {% if operator.notes %}
+                                {{ operator.notes[:120] }}{% if operator.notes|length > 120 %}…{% endif %}
+                                {% else %}
+                                <span class="text-muted">No notes</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end">
+                                <a href="{{ url_for('operators.view_operator', operator_id=operator.operator_id) }}" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-eye"></i> View
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-muted mb-0">No operators recorded yet.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,223 @@
+{% extends "base.html" %}
+
+{% block title %}CRM Dashboard - NukeWorks{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2><i class="bi bi-people-fill"></i> CRM Dashboard <span class="badge bg-warning text-dark">NED Team Only</span></h2>
+            <p class="text-muted">Client Relationship Management and Roundtable Tracking</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{{ url_for('crm.roundtable_meeting') }}" class="btn btn-primary">
+                <i class="bi bi-clipboard-check"></i> Roundtable Meeting
+            </a>
+            <a href="{{ url_for('clients.create_client') }}" class="btn btn-success">
+                <i class="bi bi-plus-circle"></i> Add Client
+            </a>
+        </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <h3 class="mb-0">{{ stats.total_clients }}</h3>
+                    <small>Total Clients</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <h3 class="mb-0">{{ stats.high_priority }}</h3>
+                    <small>High Priority</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <h3 class="mb-0">{{ stats.active }}</h3>
+                    <small>Active Clients</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters and Client List -->
+    <div class="row mb-3">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-funnel"></i> Filters</h5>
+                </div>
+                <div class="card-body">
+                    <form method="GET" action="{{ url_for('crm.dashboard') }}" class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label">Priority</label>
+                            <select name="priority" class="form-select" onchange="this.form.submit()">
+                                <option value="">All Priorities</option>
+                                <option value="Strategic" {% if priority_filter == 'Strategic' %}selected{% endif %}>Strategic</option>
+                                <option value="High" {% if priority_filter == 'High' %}selected{% endif %}>High</option>
+                                <option value="Medium" {% if priority_filter == 'Medium' %}selected{% endif %}>Medium</option>
+                                <option value="Low" {% if priority_filter == 'Low' %}selected{% endif %}>Low</option>
+                                <option value="Opportunistic" {% if priority_filter == 'Opportunistic' %}selected{% endif %}>Opportunistic</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Status</label>
+                            <select name="status" class="form-select" onchange="this.form.submit()">
+                                <option value="">All Statuses</option>
+                                <option value="Active" {% if status_filter == 'Active' %}selected{% endif %}>Active</option>
+                                <option value="Warm" {% if status_filter == 'Warm' %}selected{% endif %}>Warm</option>
+                                <option value="Cold" {% if status_filter == 'Cold' %}selected{% endif %}>Cold</option>
+                                <option value="Prospective" {% if status_filter == 'Prospective' %}selected{% endif %}>Prospective</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">MPR POC</label>
+                            <select name="poc" class="form-select" onchange="this.form.submit()">
+                                <option value="">All POCs</option>
+                                {% for person in mpr_personnel %}
+                                <option value="{{ person.personnel_id }}" {% if poc_filter == person.personnel_id|string %}selected{% endif %}>{{ person.full_name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        {% if priority_filter or status_filter or poc_filter %}
+                        <div class="col-12">
+                            <a href="{{ url_for('crm.dashboard') }}" class="btn btn-secondary btn-sm">
+                                <i class="bi bi-x-circle"></i> Clear All Filters
+                            </a>
+                        </div>
+                        {% endif %}
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- All Clients Table -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="bi bi-people"></i> All Clients ({{ clients|length }})</h5>
+                    <a href="{{ url_for('clients.list_clients') }}" class="btn btn-sm btn-outline-primary">
+                        View Full Client List
+                    </a>
+                </div>
+                <div class="card-body p-0">
+                    {% if clients %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Client</th>
+                                    <th>Priority</th>
+                                    <th>Status</th>
+                                    <th>MPR POC</th>
+                                    <th>Next Contact</th>
+                                    <th class="text-end">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for client in clients %}
+                                <tr>
+                                    <td>
+                                        <strong><a href="{{ url_for('clients.view_client', client_id=client.client_id) }}">{{ client.client_name }}</a></strong>
+                                        {% if client.client_type %}<br><small class="text-muted">{{ client.client_type }}</small>{% endif %}
+                                    </td>
+                                    <td>
+                                        {% if client.client_priority %}
+                                            <span class="badge bg-{% if client.client_priority in ['Strategic', 'High'] %}danger{% elif client.client_priority == 'Medium' %}warning{% else %}secondary{% endif %}">
+                                                {{ client.client_priority }}
+                                            </span>
+                                        {% else %}—{% endif %}
+                                    </td>
+                                    <td>
+                                        {% if client.client_status %}
+                                            <span class="badge bg-{% if client.client_status == 'Active' %}success{% elif client.client_status == 'Warm' %}info{% else %}secondary{% endif %}">
+                                                {{ client.client_status }}
+                                            </span>
+                                        {% else %}—{% endif %}
+                                    </td>
+                                    <td>
+                                        {% if client.mpr_primary_contact %}
+                                            <a href="{{ url_for('crm.clients_by_poc', personnel_id=client.mpr_primary_poc) }}">
+                                                {{ client.mpr_primary_contact.full_name }}
+                                            </a>
+                                        {% else %}—{% endif %}
+                                    </td>
+                                    <td>
+                                        {% if client.next_planned_contact_date %}
+                                            {{ client.next_planned_contact_date.strftime('%Y-%m-%d') }}
+                                        {% else %}—{% endif %}
+                                    </td>
+                                    <td class="text-end">
+                                        <a href="{{ url_for('clients.view_client', client_id=client.client_id) }}" class="btn btn-sm btn-outline-primary" title="View">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="p-3 text-muted">
+                        No clients match the current filters.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Roundtable Entries -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="bi bi-clock-history"></i> Recent Roundtable Entries</h5>
+                    <a href="{{ url_for('crm.roundtable_meeting') }}" class="btn btn-sm btn-outline-primary">
+                        Go to Roundtable Meeting
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if recent_roundtables %}
+                    <div class="list-group">
+                        {% for entry in recent_roundtables %}
+                        {% set client = roundtable_clients.get(entry.entity_id) %}
+                        <div class="list-group-item">
+                            <div class="d-flex justify-content-between">
+                                <h6 class="mb-1">
+                                    {% if client %}
+                                    <a href="{{ url_for('clients.view_client', client_id=client.client_id) }}">{{ client.client_name }}</a>
+                                    {% else %}
+                                    Unknown Client
+                                    {% endif %}
+                                </h6>
+                                <small>{{ entry.meeting_date.strftime('%B %d, %Y') }}</small>
+                            </div>
+                            {% if entry.next_steps %}
+                            <p class="mb-1"><strong>Next Steps:</strong> {{ entry.next_steps[:100] }}{% if entry.next_steps|length > 100 %}...{% endif %}</p>
+                            {% endif %}
+                            {% if entry.mpr_work_targets %}
+                            <p class="mb-1"><strong>MPR Targets:</strong> {{ entry.mpr_work_targets[:100] }}{% if entry.mpr_work_targets|length > 100 %}...{% endif %}</p>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="text-muted mb-0">No roundtable entries yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

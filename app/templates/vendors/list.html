@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+
+{% block title %}Technology Vendors - NukeWorks{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header with Actions -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <h2><i class="bi bi-building"></i> Technology Vendors</h2>
+            <p class="text-muted">Nuclear technology vendors and reactor developers</p>
+        </div>
+        <div class="col-md-6 text-end">
+            <a href="{{ url_for('vendors.create_vendor') }}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Add New Vendor
+            </a>
+        </div>
+    </div>
+
+    <!-- Search Bar -->
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <form method="GET" action="{{ url_for('vendors.list_vendors') }}" class="input-group">
+                <input type="text" name="search" class="form-control" placeholder="Search vendors..." value="{{ search or '' }}">
+                <button class="btn btn-outline-secondary" type="submit">
+                    <i class="bi bi-search"></i> Search
+                </button>
+                {% if search %}
+                <a href="{{ url_for('vendors.list_vendors') }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-x-circle"></i> Clear
+                </a>
+                {% endif %}
+            </form>
+        </div>
+        <div class="col-md-6 text-end">
+            <span class="text-muted">{{ vendors|length }} vendor(s){% if search %} found{% endif %}</span>
+        </div>
+    </div>
+
+    <!-- Vendors Table -->
+    <div class="row">
+        <div class="col-12">
+            {% if vendors %}
+            <div class="card">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Vendor Name</th>
+                                    <th>Products</th>
+                                    <th>Notes</th>
+                                    <th>Created Date</th>
+                                    <th class="text-end">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for vendor in vendors %}
+                                <tr>
+                                    <td>
+                                        <a href="{{ url_for('vendors.view_vendor', vendor_id=vendor.vendor_id) }}" class="fw-bold text-decoration-none">
+                                            {{ vendor.vendor_name }}
+                                        </a>
+                                    </td>
+                                    <td>
+                                        {% set product_count = vendor_product_counts.get(vendor.vendor_id, 0) %}
+                                        {% if product_count > 0 %}
+                                            <span class="badge bg-info">{{ product_count }} product(s)</span>
+                                        {% else %}
+                                            <span class="text-muted">None</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if vendor.notes %}
+                                            {{ vendor.notes[:50] }}{% if vendor.notes|length > 50 %}...{% endif %}
+                                        {% else %}
+                                            <span class="text-muted">—</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if vendor.created_date %}
+                                            {{ vendor.created_date.strftime('%Y-%m-%d') }}
+                                        {% else %}
+                                            <span class="text-muted">—</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end">
+                                        <a href="{{ url_for('vendors.view_vendor', vendor_id=vendor.vendor_id) }}" class="btn btn-sm btn-outline-primary" title="View">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        <a href="{{ url_for('vendors.edit_vendor', vendor_id=vendor.vendor_id) }}" class="btn btn-sm btn-outline-secondary" title="Edit">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle"></i>
+                {% if search %}
+                    No vendors found matching "{{ search }}". <a href="{{ url_for('vendors.list_vendors') }}">Show all vendors</a>
+                {% else %}
+                    No vendors have been added yet. <a href="{{ url_for('vendors.create_vendor') }}">Add your first vendor</a>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

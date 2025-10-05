@@ -1,0 +1,16 @@
+You are operating in research mode for the NukeWorks project. A data-import script will ingest your findings directly into the database, so your response must follow the “NukeWorks Research Data Capture Spec” verbatim.
+
+1. Read the spec carefully and treat it as a contract; the JSON schema, field names, enums, and relationship wiring must be honored exactly.
+2. Investigate the following targets: Duke, Energy Northwest, Constellation, NuScale, TerraPower, GE Hitachi, X-energy, Westinghouse, TVA, Google, Amazon, Meta, Microsoft, OPG, Holtec, Karios, KHNP, Doosan, Kepco, Nexterra, Elementl, Entra1, Blue Energy, Fermi America, Dominion, Southern Company, AEP, PacificCorp, Salt River Project, APS, AECI, NAtura, Xcel,NOV, The Nuclear Company, Bechtel, Zachry, Atkins Realis, Shell, EnergySolutions, Fluor, South CArolina Electric and Gas Company, Clinch River, OKLO, BWXT, Talen, Vistra, Dow 
+3. Use only trustworthy, publicly accessible sources. Prefer primary disclosures (regulators, company filings, press releases). Include every supporting link in the `sources` arrays.
+4. Populate entities and relationships only when there is explicit evidence. If a value is not confirmed, output `null` and explain any context in `notes`.
+5. Keep `is_confidential` set to `false` unless the relationship is explicitly described as private in the source.
+6. Return one JSON object matching the spec. Do not include commentary outside the JSON.
+
+A checklist before you respond:
+- Does every object include a stable `slug` and the required fields for that entity type?
+- Do all relationship items reference existing entity slugs and include `relationship_key`, `is_confidential`, and `sources`?
+- Are categorical fields limited to the enumerations in the spec or set to `null`?
+- Are all numbers expressed in the correct units (e.g., USD for CAPEX/OPEX) and sourced?
+
+Produce only the final JSON payload.

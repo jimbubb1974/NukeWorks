@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block title %}Add {{ relationship_type }} - {{ client.client_name }} - NukeWorks{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('clients.list_clients') }}">Clients</a></li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('clients.view_client', client_id=client.client_id) }}">{{ client.client_name }}</a></li>
+                    <li class="breadcrumb-item active">Add {{ relationship_type }}</li>
+                </ol>
+            </nav>
+            <h2><i class="bi bi-link-45deg"></i> Add {{ relationship_type }}</h2>
+            <p class="text-muted">Link {{ relationship_type }} to {{ client.client_name }}</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Select {{ relationship_type }}</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" novalidate>
+                        {{ form.hidden_tag() }}
+
+                        {% for field in form if field.name not in ['csrf_token', 'submit'] %}
+                        <div class="mb-3">
+                            {{ field.label(class="form-label") }}
+                            {% if field.flags.required %}
+                                <span class="text-danger">*</span>
+                            {% endif %}
+
+                            {% if field.type == 'SelectField' %}
+                                {{ field(class="form-select" + (" is-invalid" if field.errors else "")) }}
+                            {% elif field.type == 'TextAreaField' %}
+                                {{ field(class="form-control" + (" is-invalid" if field.errors else "")) }}
+                            {% elif field.type == 'StringField' %}
+                                {{ field(class="form-control" + (" is-invalid" if field.errors else "")) }}
+                            {% elif field.type == 'BooleanField' %}
+                                <div class="form-check">
+                                    {{ field(class="form-check-input" + (" is-invalid" if field.errors else "")) }}
+                                    <label class="form-check-label" for="{{ field.id }}">
+                                        {{ field.label.text }}
+                                    </label>
+                                </div>
+                            {% else %}
+                                {{ field(class="form-control" + (" is-invalid" if field.errors else "")) }}
+                            {% endif %}
+
+                            {% if field.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in field.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+
+                            {% if field.description %}
+                                <small class="form-text text-muted">{{ field.description }}</small>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ url_for('clients.view_client', client_id=client.client_id) }}" class="btn btn-secondary">
+                                <i class="bi bi-x-circle"></i> Cancel
+                            </a>
+                            {{ form.submit(class="btn btn-primary") }}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar with client info -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="bi bi-info-circle"></i> Client Information</h6>
+                </div>
+                <div class="card-body">
+                    <dl class="row mb-0">
+                        <dt class="col-sm-5">Client:</dt>
+                        <dd class="col-sm-7">{{ client.client_name }}</dd>
+
+                        <dt class="col-sm-5">Type:</dt>
+                        <dd class="col-sm-7">{{ client.client_type or '—' }}</dd>
+
+                        <dt class="col-sm-5">Priority:</dt>
+                        <dd class="col-sm-7">{{ client.client_priority or '—' }}</dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

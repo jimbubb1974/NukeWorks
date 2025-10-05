@@ -1,0 +1,205 @@
+"""
+Network View - Flexible table view with dynamic columns and grouping
+Allows users to select which entity to group by and which columns to display
+"""
+from flask import Blueprint, render_template, request
+from flask_login import login_required
+from sqlalchemy import func, distinct
+from collections import defaultdict
+
+from app.models import (
+    Project,
+    OwnerDeveloper,
+    TechnologyVendor,
+    Technology,
+    Operator,
+    Personnel,
+    Offtaker,
+    ProjectOwnerRelationship,
+    ProjectVendorRelationship,
+    ProjectOperatorRelationship,
+    ProjectPersonnelRelationship,
+    ProjectOfftakerRelationship
+)
+from app import db_session
+
+bp = Blueprint('network', __name__, url_prefix='/network')
+
+
+# Define available columns/entities
+AVAILABLE_COLUMNS = {
+    'project': {'label': 'Project', 'model': Project, 'field': 'project_name'},
+    'owner': {'label': 'Owner/Developer', 'model': OwnerDeveloper, 'field': 'company_name'},
+    'vendor': {'label': 'Technology Vendor', 'model': TechnologyVendor, 'field': 'vendor_name'},
+    'technology': {'label': 'Technology', 'model': Technology, 'field': 'technology_name'},
+    'operator': {'label': 'Operator', 'model': Operator, 'field': 'company_name'},
+    'offtaker': {'label': 'Offtaker', 'model': Offtaker, 'field': 'organization_name'},
+}
+
+
+def _get_project_relationships(project_id):
+    """Get all relationships for a project"""
+    relationships = {
+        'owners': [],
+        'vendors': [],
+        'technologies': [],
+        'operators': [],
+        'offtakers': []
+    }
+
+    # Get owners
+    owner_rels = db_session.query(ProjectOwnerRelationship).filter_by(project_id=project_id).all()
+    for rel in owner_rels:
+        if rel.owner:
+            relationships['owners'].append({
+                'id': rel.owner.owner_id,
+                'name': rel.owner.company_name
+            })
+
+    # Get vendors and technologies
+    vendor_rels = db_session.query(ProjectVendorRelationship).filter_by(project_id=project_id).all()
+    for rel in vendor_rels:
+        if rel.vendor:
+            relationships['vendors'].append({
+                'id': rel.vendor.vendor_id,
+                'name': rel.vendor.vendor_name
+            })
+        if rel.technology:
+            relationships['technologies'].append({
+                'id': rel.technology.technology_id,
+                'name': rel.technology.technology_name
+            })
+
+    # Get operators
+    operator_rels = db_session.query(ProjectOperatorRelationship).filter_by(project_id=project_id).all()
+    for rel in operator_rels:
+        if rel.operator:
+            relationships['operators'].append({
+                'id': rel.operator.operator_id,
+                'name': rel.operator.company_name
+            })
+
+    # Get offtakers
+    offtaker_rels = db_session.query(ProjectOfftakerRelationship).filter_by(project_id=project_id).all()
+    for rel in offtaker_rels:
+        if rel.offtaker:
+            relationships['offtakers'].append({
+                'id': rel.offtaker.offtaker_id,
+                'name': rel.offtaker.organization_name
+            })
+
+    return relationships
+
+
+def _build_grouped_data(group_by, selected_columns):
+    """Build data grouped by the specified entity"""
+
+    # Get all projects with their relationships
+    projects = db_session.query(Project).all()
+
+    # Build network data
+    grouped_data = defaultdict(lambda: {
+        'group_id': None,
+        'group_name': None,
+        'items': []
+    })
+
+    for project in projects:
+        project_rels = _get_project_relationships(project.project_id)
+
+        # Determine grouping
+        if group_by == 'project':
+            groups = [{'id': project.project_id, 'name': project.project_name}]
+        elif group_by == 'owner':
+            groups = project_rels['owners'] if project_rels['owners'] else [{'id': None, 'name': 'No Owner'}]
+        elif group_by == 'vendor':
+            groups = project_rels['vendors'] if project_rels['vendors'] else [{'id': None, 'name': 'No Vendor'}]
+        elif group_by == 'technology':
+            groups = project_rels['technologies'] if project_rels['technologies'] else [{'id': None, 'name': 'No Technology'}]
+        elif group_by == 'operator':
+            groups = project_rels['operators'] if project_rels['operators'] else [{'id': None, 'name': 'No Operator'}]
+        elif group_by == 'offtaker':
+            groups = project_rels['offtakers'] if project_rels['offtakers'] else [{'id': None, 'name': 'No Offtaker'}]
+        else:
+            groups = [{'id': None, 'name': 'All'}]
+
+        # Add project to each group it belongs to
+        for group in groups:
+            group_key = f"{group_by}_{group['id']}"
+
+            if not grouped_data[group_key]['group_id']:
+                grouped_data[group_key]['group_id'] = group['id']
+                grouped_data[group_key]['group_name'] = group['name']
+
+            # Build item data with selected columns
+            item = {
+                'project_id': project.project_id,
+                'project_name': project.project_name
+            }
+
+            # Add selected column data
+            for col in selected_columns:
+                if col == 'project':
+                    continue  # Already have project
+                elif col == 'owner':
+                    item['owners'] = [o['name'] for o in project_rels['owners']]
+                elif col == 'vendor':
+                    item['vendors'] = [v['name'] for v in project_rels['vendors']]
+                elif col == 'technology':
+                    item['technologies'] = [t['name'] for t in project_rels['technologies']]
+                elif col == 'operator':
+                    item['operators'] = [o['name'] for o in project_rels['operators']]
+                elif col == 'offtaker':
+                    item['offtakers'] = [o['name'] for o in project_rels['offtakers']]
+
+            grouped_data[group_key]['items'].append(item)
+
+    # Convert to list and sort
+    result = list(grouped_data.values())
+    result.sort(key=lambda x: x['group_name'] or '')
+
+    return result
+
+
+@bp.route('/')
+@login_required
+def index():
+    """
+    Network view with dynamic columns and grouping
+
+    Query params:
+    - group_by: Entity to group by (project, owner, vendor, technology, operator, offtaker)
+    - columns: Comma-separated list of columns to display
+    """
+    # Get parameters
+    group_by = request.args.get('group_by', 'project')
+    columns_param = request.args.get('columns', 'project,owner,vendor,technology')
+
+    # Parse selected columns
+    selected_columns = [col.strip() for col in columns_param.split(',') if col.strip()]
+
+    # Ensure group_by is valid
+    if group_by not in AVAILABLE_COLUMNS:
+        group_by = 'project'
+
+    # Ensure selected columns are valid
+    selected_columns = [col for col in selected_columns if col in AVAILABLE_COLUMNS]
+
+    # If no columns selected, default to project and owner
+    if not selected_columns:
+        selected_columns = ['project', 'owner']
+
+    # Ensure group_by is in selected columns
+    if group_by not in selected_columns:
+        selected_columns.insert(0, group_by)
+
+    # Build grouped data
+    grouped_data = _build_grouped_data(group_by, selected_columns)
+
+    return render_template(
+        'network/view.html',
+        available_columns=AVAILABLE_COLUMNS,
+        selected_columns=selected_columns,
+        group_by=group_by,
+        grouped_data=grouped_data
+    )

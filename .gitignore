@@ -1,0 +1,104 @@
+# NukeWorks .gitignore
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual Environment
+venv/
+ENV/
+env/
+.venv
+
+# Flask
+instance/
+flask_sessions/
+.webassets-cache
+
+# Database Files
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+*.db
+nukeworks_db.sqlite
+dev_nukeworks.sqlite
+
+# Environment Variables
+.env
+.env.local
+.env.production
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Logs
+logs/
+*.log
+
+# Snapshots/Backups
+snapshots/
+backups/
+*.backup
+
+# Uploads
+uploads/
+
+# Reports (generated PDFs)
+reports/
+*.pdf
+
+# Testing
+.coverage
+htmlcov/
+.pytest_cache/
+.tox/
+
+# Documentation builds
+docs/_build/
+docs/_static/
+docs/_templates/
+
+# PyInstaller
+*.spec
+dist/
+build/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# pyenv
+.python-version
+
+# Temp files
+*.tmp
+*.temp
+temp/
+
+# OS
+Thumbs.db
+.DS_Store
+*.bak

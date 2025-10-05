@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block title %}Contact Log #{{ contact_log.contact_id }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2><i class="bi bi-file-earmark-text"></i> Contact Log</h2>
+            <p class="text-muted mb-0">{{ entity_label }}</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{{ url_for('contact_log.list_contact_logs', entity_type=contact_log.entity_type, entity_id=contact_log.entity_id) }}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Back to List
+            </a>
+            <a href="{{ url_for('contact_log.edit_contact_log', contact_id=contact_log.contact_id) }}" class="btn btn-primary">
+                <i class="bi bi-pencil"></i> Edit
+            </a>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <div class="row mb-3">
+                <div class="col-md-3">
+                    <h6 class="text-uppercase text-muted small">Contact Date</h6>
+                    <p class="mb-0">{{ contact_log.contact_date }}</p>
+                </div>
+                <div class="col-md-3">
+                    <h6 class="text-uppercase text-muted small">Contact Type</h6>
+                    <p class="mb-0">{{ contact_log.contact_type or '—' }}</p>
+                </div>
+                <div class="col-md-3">
+                    <h6 class="text-uppercase text-muted small">Your Representative</h6>
+                    <p class="mb-0">{{ contact_log.contacted_by_person.full_name if contact_log.contacted_by_person else '—' }}</p>
+                </div>
+                <div class="col-md-3">
+                    <h6 class="text-uppercase text-muted small">Client Contact</h6>
+                    <p class="mb-0">
+                        {% if contact_log.contact_person %}
+                            {{ contact_log.contact_person.full_name }}
+                        {% elif contact_log.contact_person_freetext %}
+                            {{ contact_log.contact_person_freetext }}
+                        {% else %}
+                            —
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <h6 class="text-uppercase text-muted small">Summary</h6>
+                <p class="mb-0" style="white-space: pre-wrap;">{{ contact_log.summary or 'No summary provided.' }}</p>
+            </div>
+
+            <div class="row mb-4">
+                <div class="col-md-4">
+                    <h6 class="text-uppercase text-muted small">Confidential</h6>
+                    {% if contact_log.is_confidential %}
+                        <span class="badge bg-warning text-dark">Confidential</span>
+                    {% else %}
+                        <span class="text-muted">No</span>
+                    {% endif %}
+                </div>
+                <div class="col-md-4">
+                    <h6 class="text-uppercase text-muted small">Follow-up Needed</h6>
+                    {% if contact_log.follow_up_needed %}
+                        <span class="badge bg-info text-dark">Yes</span>
+                    {% else %}
+                        <span class="text-muted">No</span>
+                    {% endif %}
+                </div>
+                <div class="col-md-4">
+                    <h6 class="text-uppercase text-muted small">Follow-up Owner</h6>
+                    {% if contact_log.follow_up_needed %}
+                        <p class="mb-0">{{ contact_log.follow_up_person.full_name if contact_log.follow_up_person else 'Unassigned' }}</p>
+                    {% else %}
+                        <span class="text-muted">—</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            {% if contact_log.follow_up_needed %}
+            <div class="alert alert-info">
+                <strong>Follow-up:</strong>
+                {% if contact_log.follow_up_date %}
+                    Scheduled for {{ contact_log.follow_up_date }}.
+                {% else %}
+                    Date not set.
+                {% endif %}
+            </div>
+            {% endif %}
+
+            <div class="text-muted small">
+                <div>Created: {{ contact_log.created_date }} by User #{{ contact_log.created_by }}</div>
+                {% if contact_log.modified_date %}
+                <div>Last Modified: {{ contact_log.modified_date }} by User #{{ contact_log.modified_by }}</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

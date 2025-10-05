@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }} - NukeWorks{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('operators.list_operators') }}">Operators</a></li>
+                    {% if operator %}
+                    <li class="breadcrumb-item"><a href="{{ url_for('operators.view_operator', operator_id=operator.operator_id) }}">{{ operator.company_name }}</a></li>
+                    <li class="breadcrumb-item active">Edit</li>
+                    {% else %}
+                    <li class="breadcrumb-item active">New Operator</li>
+                    {% endif %}
+                </ol>
+            </nav>
+            <h2>
+                <i class="bi bi-{% if operator %}pencil{% else %}plus-circle{% endif %}"></i>
+                {{ title }}
+            </h2>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body">
+                    <form method="post" novalidate>
+                        {{ form.hidden_tag() }}
+
+                        <div class="mb-3">
+                            {{ form.company_name.label(class="form-label") }}
+                            <span class="text-danger">*</span>
+                            {{ form.company_name(class="form-control" + (" is-invalid" if form.company_name.errors else "")) }}
+                            {% if form.company_name.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.company_name.errors %}
+                                {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form.notes.label(class="form-label") }}
+                            {{ form.notes(class="form-control" + (" is-invalid" if form.notes.errors else "")) }}
+                            {% if form.notes.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.notes.errors %}
+                                {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a href="{% if operator %}{{ url_for('operators.view_operator', operator_id=operator.operator_id) }}{% else %}{{ url_for('operators.list_operators') }}{% endif %}" class="btn btn-secondary">
+                                <i class="bi bi-x-circle"></i> Cancel
+                            </a>
+                            {{ form.submit(class="btn btn-primary") }}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card bg-light">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-info-circle"></i> Operator Details</h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-2">Operators are organizations responsible for operating nuclear facilities. Keep names consistent with official company references.</p>
+                    <ul class="mb-0">
+                        <li>Operator name is required and should be unique.</li>
+                        <li>Use notes for additional context or contact information.</li>
+                        <li>Relationships to projects are managed from each project page.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
