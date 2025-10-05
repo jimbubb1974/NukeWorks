@@ -35,6 +35,7 @@ from app.routes.relationship_utils import (
     get_personnel_choices
 )
 from app.services.company_sync import sync_company_from_vendor
+from app.services.company_query import get_company_for_vendor
 
 bp = Blueprint('vendors', __name__, url_prefix='/vendors')
 
@@ -108,6 +109,7 @@ def view_vendor(vendor_id):
     - Edit/delete buttons for authorized users
     """
     vendor = _get_vendor_or_404(vendor_id)
+    company_record = get_company_for_vendor(vendor_id)
 
     # Get products for this vendor
     products = db_session.query(Product).filter(
@@ -148,6 +150,7 @@ def view_vendor(vendor_id):
     return render_template(
         'vendors/detail.html',
         vendor=vendor,
+        company_record=company_record,
         products=products,
         supplier_relationships=supplier_relationships,
         customer_relationships=customer_relationships,
