@@ -64,3 +64,36 @@ class PersonnelForm(FlaskForm):
     is_active = BooleanField('Active')
 
     submit = SubmitField('Save')
+
+
+class PersonnelClientLinkForm(FlaskForm):
+    """Link a personnel record to a client."""
+
+    client_id = SelectField(
+        'Client',
+        coerce=int,
+        validators=[DataRequired(message='Select a client')]
+    )
+
+    role_at_client = StringField(
+        'Role at Client',
+        validators=[Optional(), Length(max=255)]
+    )
+
+    is_primary_contact = BooleanField('Primary Contact')
+    is_confidential = BooleanField('Confidential')
+
+    notes = TextAreaField(
+        'Notes',
+        validators=[Optional(), Length(max=5000)],
+        render_kw={'rows': 3}
+    )
+
+    submit = SubmitField('Add Client')
+
+    def __init__(self, client_choices=None, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if client_choices:
+            self.client_id.choices = client_choices
+        else:
+            self.client_id.choices = []
