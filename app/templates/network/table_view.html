@@ -94,39 +94,56 @@
                             </thead>
                             <tbody>
                                 {% for group in grouped_data %}
-                                    {% for item in group.projects %}
-                                    <tr>
-                                        {% if loop.first %}
-                                        <td rowspan="{{ group.projects|length }}" class="align-top bg-light" style="border-right: 2px solid #dee2e6;">
-                                            <strong>{{ group.group_name }}</strong>
-                                            <br><small class="text-muted">{{ group.projects|length }} project(s)</small>
-                                        </td>
-                                        {% endif %}
-                                        {% for col in selected_columns %}
-                                        {% if col != group_by %}
-                                        <td style="padding-left: 1.5rem;">
-                                            {% if col == 'project' %}
-                                                <a href="{{ url_for('projects.view_project', project_id=item.project_id) }}">
-                                                    {{ item.project_name }}
-                                                </a>
-                                            {% elif col == 'owner' and item.owners %}
-                                                {{ item.owners|join(', ') }}
-                                            {% elif col == 'vendor' and item.vendors %}
-                                                {{ item.vendors|join(', ') }}
-                                            {% elif col == 'technology' and item.technologies %}
-                                                {{ item.technologies|join(', ') }}
-                                            {% elif col == 'operator' and item.operators %}
-                                                {{ item.operators|join(', ') }}
-                                            {% elif col == 'offtaker' and item.offtakers %}
-                                                {{ item.offtakers|join(', ') }}
-                                            {% else %}
-                                                <span class="text-muted">—</span>
+                                    {% if group.projects %}
+                                        {% for item in group.projects %}
+                                        <tr>
+                                            {% if loop.first %}
+                                            <td rowspan="{{ group.projects|length }}" class="align-top bg-light" style="border-right: 2px solid #dee2e6;">
+                                                <strong>{{ group.group_name }}</strong>
+                                                <br><small class="text-muted">{{ group.projects|length }} project(s)</small>
+                                            </td>
                                             {% endif %}
-                                        </td>
-                                        {% endif %}
+                                            {% for col in selected_columns %}
+                                            {% if col != group_by %}
+                                            <td style="padding-left: 1.5rem;">
+                                                {% if col == 'project' %}
+                                                    <a href="{{ url_for('projects.view_project', project_id=item.project_id) }}">
+                                                        {{ item.project_name }}
+                                                    </a>
+                                                {% elif col == 'owner' and item.owners %}
+                                                    {{ item.owners|join(', ') }}
+                                                {% elif col == 'vendor' and item.vendors %}
+                                                    {{ item.vendors|join(', ') }}
+                                                {% elif col == 'technology' and item.technologies %}
+                                                    {{ item.technologies|join(', ') }}
+                                                {% elif col == 'operator' and item.operators %}
+                                                    {{ item.operators|join(', ') }}
+                                                {% elif col == 'offtaker' and item.offtakers %}
+                                                    {{ item.offtakers|join(', ') }}
+                                                {% else %}
+                                                    <span class="text-muted">—</span>
+                                                {% endif %}
+                                            </td>
+                                            {% endif %}
+                                            {% endfor %}
+                                        </tr>
                                         {% endfor %}
-                                    </tr>
-                                    {% endfor %}
+                                    {% else %}
+                                        <!-- Show groups with no projects -->
+                                        <tr>
+                                            <td class="align-top bg-light" style="border-right: 2px solid #dee2e6;">
+                                                <strong>{{ group.group_name }}</strong>
+                                                <br><small class="text-muted">0 project(s)</small>
+                                            </td>
+                                            {% for col in selected_columns %}
+                                            {% if col != group_by %}
+                                            <td style="padding-left: 1.5rem;">
+                                                <span class="text-muted">—</span>
+                                            </td>
+                                            {% endif %}
+                                            {% endfor %}
+                                        </tr>
+                                    {% endif %}
                                 {% endfor %}
                             </tbody>
                         </table>

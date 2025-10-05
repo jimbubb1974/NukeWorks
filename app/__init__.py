@@ -187,7 +187,7 @@ def register_blueprints(app):
     Args:
         app: Flask application
     """
-    from app.routes import auth, dashboard, vendors, projects, owners, operators, technologies, offtakers, clients, crm, reports, admin, contact_log, network
+    from app.routes import auth, dashboard, vendors, projects, owners, operators, technologies, offtakers, clients, crm, reports, admin, contact_log, network, personnel
 
     app.register_blueprint(auth.bp)
     app.register_blueprint(dashboard.bp)
@@ -203,6 +203,7 @@ def register_blueprints(app):
     app.register_blueprint(admin.bp)
     app.register_blueprint(contact_log.bp)
     app.register_blueprint(network.bp)
+    app.register_blueprint(personnel.bp)
 
 
 def register_error_handlers(app):

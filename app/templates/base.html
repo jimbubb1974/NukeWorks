@@ -66,6 +66,11 @@
                         <a class="nav-link" href="{{ url_for('crm.dashboard') }}">CRM</a>
                     </li>
                     {% endif %}
+                    {% if has_endpoint('personnel.list_personnel') %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('personnel.list_personnel') }}">Personnel</a>
+                    </li>
+                    {% endif %}
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('reports.index') }}">Reports</a>
                     </li>

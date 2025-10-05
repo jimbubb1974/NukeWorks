@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+
+{% block title %}Edit Personnel - {{ person.full_name }}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12 d-flex justify-content-between align-items-center">
+        <div>
+            <h1 class="h3 mb-1"><i class="bi bi-person-lines-fill"></i> Edit Personnel</h1>
+            <p class="text-muted mb-0">{{ person.full_name }}</p>
+        </div>
+        <a href="{{ url_for('personnel.list_personnel') }}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Back to Directory</a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8 col-xl-6">
+        <div class="card">
+            <div class="card-body">
+                <form method="post">
+                    {{ form.hidden_tag() }}
+
+                    <div class="mb-3">
+                        {{ form.full_name.label(class='form-label') }}
+                        {{ form.full_name(class='form-control') }}
+                        {% if form.full_name.errors %}
+                            <div class="text-danger small">{{ form.full_name.errors[0] }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form.role.label(class='form-label') }}
+                        {{ form.role(class='form-control') }}
+                        {% if form.role.errors %}
+                            <div class="text-danger small">{{ form.role.errors[0] }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            {{ form.email.label(class='form-label') }}
+                            {{ form.email(class='form-control') }}
+                            {% if form.email.errors %}
+                                <div class="text-danger small">{{ form.email.errors[0] }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.phone.label(class='form-label') }}
+                            {{ form.phone(class='form-control') }}
+                            {% if form.phone.errors %}
+                                <div class="text-danger small">{{ form.phone.errors[0] }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mt-1">
+                        <div class="col-md-6">
+                            {{ form.personnel_type.label(class='form-label') }}
+                            {{ form.personnel_type(class='form-select') }}
+                            {% if form.personnel_type.errors %}
+                                <div class="text-danger small">{{ form.personnel_type.errors[0] }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.organization_type.label(class='form-label') }}
+                            {{ form.organization_type(class='form-select') }}
+                            {% if form.organization_type.errors %}
+                                <div class="text-danger small">{{ form.organization_type.errors[0] }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="form-check form-switch mt-3">
+                        {{ form.is_active(class='form-check-input', id='isActiveSwitch') }}
+                        <label class="form-check-label" for="isActiveSwitch">Active</label>
+                    </div>
+
+                    <div class="mb-3 mt-3">
+                        {{ form.notes.label(class='form-label') }}
+                        {{ form.notes(class='form-control') }}
+                        {% if form.notes.errors %}
+                            <div class="text-danger small">{{ form.notes.errors[0] }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2">
+                        <a href="{{ url_for('personnel.list_personnel') }}" class="btn btn-outline-secondary">Cancel</a>
+                        {{ form.submit(class='btn btn-primary') }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

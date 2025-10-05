@@ -92,7 +92,7 @@ def _get_project_relationships(project_id):
 
 
 def _build_grouped_data(group_by, selected_columns):
-    """Build data grouped by the specified entity"""
+    """Build data grouped by the specified entity, including entities without relationships"""
 
     # Get all projects with their relationships
     projects = db_session.query(Project).all()
@@ -104,6 +104,7 @@ def _build_grouped_data(group_by, selected_columns):
         'items': []
     })
 
+    # First, add all projects to their respective groups
     for project in projects:
         project_rels = _get_project_relationships(project.project_id)
 
@@ -153,6 +154,63 @@ def _build_grouped_data(group_by, selected_columns):
                     item['offtakers'] = [o['name'] for o in project_rels['offtakers']]
 
             grouped_data[group_key]['items'].append(item)
+
+    # Now add entities without relationships as empty groups
+    if group_by == 'owner':
+        # Get all owners that don't have any projects
+        all_owners = db_session.query(AVAILABLE_COLUMNS['owner']['model']).all()
+        for owner in all_owners:
+            group_key = f"owner_{owner.owner_id}"
+            if group_key not in grouped_data:
+                grouped_data[group_key] = {
+                    'group_id': owner.owner_id,
+                    'group_name': owner.company_name,
+                    'items': []
+                }
+    elif group_by == 'vendor':
+        # Get all vendors that don't have any projects
+        all_vendors = db_session.query(AVAILABLE_COLUMNS['vendor']['model']).all()
+        for vendor in all_vendors:
+            group_key = f"vendor_{vendor.vendor_id}"
+            if group_key not in grouped_data:
+                grouped_data[group_key] = {
+                    'group_id': vendor.vendor_id,
+                    'group_name': vendor.vendor_name,
+                    'items': []
+                }
+    elif group_by == 'operator':
+        # Get all operators that don't have any projects
+        all_operators = db_session.query(AVAILABLE_COLUMNS['operator']['model']).all()
+        for operator in all_operators:
+            group_key = f"operator_{operator.operator_id}"
+            if group_key not in grouped_data:
+                grouped_data[group_key] = {
+                    'group_id': operator.operator_id,
+                    'group_name': operator.company_name,
+                    'items': []
+                }
+    elif group_by == 'offtaker':
+        # Get all offtakers that don't have any projects
+        all_offtakers = db_session.query(AVAILABLE_COLUMNS['offtaker']['model']).all()
+        for offtaker in all_offtakers:
+            group_key = f"offtaker_{offtaker.offtaker_id}"
+            if group_key not in grouped_data:
+                grouped_data[group_key] = {
+                    'group_id': offtaker.offtaker_id,
+                    'group_name': offtaker.organization_name,
+                    'items': []
+                }
+    elif group_by == 'technology':
+        # Get all technologies that don't have any projects
+        all_technologies = db_session.query(AVAILABLE_COLUMNS['technology']['model']).all()
+        for technology in all_technologies:
+            group_key = f"technology_{technology.technology_id}"
+            if group_key not in grouped_data:
+                grouped_data[group_key] = {
+                    'group_id': technology.technology_id,
+                    'group_name': technology.technology_name,
+                    'items': []
+                }
 
     # Convert to list and sort
     result = list(grouped_data.values())
