@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block title %}Constructors - NukeWorks{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-hammer"></i> Constructors</h2>
+        {% if can_manage %}
+        <a href="{{ url_for('constructors.create_constructor') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> New Constructor
+        </a>
+        {% endif %}
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            {% if constructors %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Notes</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for constructor in constructors %}
+                        <tr>
+                            <td>{{ constructor.company_name }}</td>
+                            <td class="text-muted small">
+                                {% if constructor.notes %}
+                                {{ constructor.notes[:120] }}{% if constructor.notes|length > 120 %}…{% endif %}
+                                {% else %}
+                                <span class="text-muted">No notes</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end">
+                                <a href="{{ url_for('constructors.view_constructor', constructor_id=constructor.constructor_id) }}" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-eye"></i> View
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-muted mb-0">No constructors recorded yet.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

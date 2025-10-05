@@ -10,6 +10,7 @@ _VENDOR_CONTEXT = 'VendorRecord'
 _OWNER_CONTEXT = 'OwnerRecord'
 _CLIENT_CONTEXT = 'ClientRecord'
 _OPERATOR_CONTEXT = 'OperatorRecord'
+_CONSTRUCTOR_CONTEXT = 'ConstructorRecord'
 
 
 def _get_company_for_context(context_type: str, context_id: int) -> Company | None:
@@ -41,9 +42,14 @@ def get_company_for_operator(operator_id: int) -> Company | None:
     return _get_company_for_context(_OPERATOR_CONTEXT, operator_id)
 
 
+def get_company_for_constructor(constructor_id: int) -> Company | None:
+    return _get_company_for_context(_CONSTRUCTOR_CONTEXT, constructor_id)
+
+
 __all__ = [
     'get_company_for_vendor',
     'get_company_for_owner',
     'get_company_for_client',
     'get_company_for_operator',
+    'get_company_for_constructor',
 ]

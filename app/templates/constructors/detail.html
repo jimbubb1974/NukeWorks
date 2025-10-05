@@ -1,0 +1,178 @@
+{% extends "base.html" %}
+
+{% block title %}{{ constructor.company_name }} - NukeWorks{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('constructors.list_constructors') }}">Constructors</a></li>
+                    <li class="breadcrumb-item active">{{ constructor.company_name }}</li>
+                </ol>
+            </nav>
+            <h2><i class="bi bi-hammer"></i> {{ constructor.company_name }}</h2>
+        </div>
+        <div class="col-md-4 text-end">
+            {% if can_manage %}
+            <a href="{{ url_for('constructors.edit_constructor', constructor_id=constructor.constructor_id) }}" class="btn btn-primary me-2">
+                <i class="bi bi-pencil"></i> Edit
+            </a>
+            {% endif %}
+            <a href="{{ url_for('constructors.list_constructors') }}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Back to List
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-info-circle"></i> Constructor Overview</h5>
+                </div>
+                <div class="card-body">
+                    <dl class="row mb-0">
+                        <dt class="col-sm-4">Constructor ID:</dt>
+                        <dd class="col-sm-8">{{ constructor.constructor_id }}</dd>
+
+                        <dt class="col-sm-4">Name:</dt>
+                        <dd class="col-sm-8">{{ constructor.company_name }}</dd>
+
+                        {% if company_record %}
+                        <dt class="col-sm-4">Unified Company:</dt>
+                        <dd class="col-sm-8">
+                            <div>{{ company_record.company_name }}</div>
+                            <small class="text-muted">Company ID: {{ company_record.company_id }}</small>
+                        </dd>
+                        {% endif %}
+
+                        <dt class="col-sm-4">Notes:</dt>
+                        <dd class="col-sm-8">
+                            {% if constructor.notes %}
+                                <div style="white-space: pre-wrap;">{{ constructor.notes }}</div>
+                            {% else %}
+                                <span class="text-muted">No notes recorded.</span>
+                            {% endif %}
+                        </dd>
+
+                        <dt class="col-sm-4">Linked Projects:</dt>
+                        <dd class="col-sm-8">{{ project_count }}</dd>
+
+                        <dt class="col-sm-4">Preferred By Vendors:</dt>
+                        <dd class="col-sm-8">{{ vendor_preference_count }}</dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-diagram-3"></i> Project Assignments ({{ project_relationships|length }})</h5>
+                </div>
+                <div class="card-body">
+                    {% if project_relationships %}
+                    <div class="table-responsive">
+                        <table class="table table-sm align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Project</th>
+                                    <th>Confidential</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for rel in project_relationships %}
+                                <tr>
+                                    <td>{{ rel.project.project_name if rel.project else 'Unknown' }}</td>
+                                    <td>
+                                        {% if rel.is_confidential %}
+                                            <span class="badge bg-warning">Confidential</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">Public</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end">
+                                        <a href="{{ url_for('projects.view_project', project_id=rel.project_id) }}" class="btn btn-sm btn-outline-secondary">View Project</a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-muted mb-0">No projects currently assigned to this constructor.</p>
+                    {% endif %}
+                    <p class="small text-muted mt-3 mb-0">Manage constructor assignments from the project detail page.</p>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-building"></i> Preferred By Vendors ({{ preferred_by_vendors|length }})</h5>
+                </div>
+                <div class="card-body">
+                    {% if preferred_by_vendors %}
+                    <div class="table-responsive">
+                        <table class="table table-sm align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Vendor</th>
+                                    <th>Confidential</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for rel in preferred_by_vendors %}
+                                <tr>
+                                    <td>{{ rel.vendor.vendor_name if rel.vendor else 'Unknown' }}</td>
+                                    <td>
+                                        {% if rel.is_confidential %}
+                                            <span class="badge bg-warning">Confidential</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">Public</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end">
+                                        <a href="{{ url_for('vendors.view_vendor', vendor_id=rel.vendor_id) }}" class="btn btn-sm btn-outline-secondary">View Vendor</a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-muted mb-0">No vendors have marked this constructor as preferred.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if current_user.is_admin %}
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="card border-danger">
+                <div class="card-header text-danger">
+                    <h5 class="mb-0"><i class="bi bi-exclamation-triangle"></i> Administrative Actions</h5>
+                </div>
+                <div class="card-body">
+                    {% if project_count > 0 or vendor_preference_count > 0 %}
+                    <div class="alert alert-warning mb-3">
+                        <strong>Cannot delete:</strong> This constructor is linked to {{ project_count }} project(s) and {{ vendor_preference_count }} vendor preference(s).
+                    </div>
+                    {% else %}
+                    <form method="post" action="{{ url_for('constructors.delete_constructor', constructor_id=constructor.constructor_id) }}" onsubmit="return confirmDelete('Deleting this constructor cannot be undone. Proceed?');">
+                        {{ delete_form.hidden_tag() }}
+                        {{ delete_form.submit(class="btn btn-outline-danger", **{'value': 'Delete Constructor'}) }}
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

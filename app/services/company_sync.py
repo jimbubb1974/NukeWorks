@@ -15,6 +15,7 @@ from app.models import (
     OwnerDeveloper,
     Client,
     Operator,
+    Constructor,
 )
 
 _VENDOR_ROLE_CODE = 'vendor'
@@ -32,6 +33,10 @@ _CLIENT_CONTEXT = 'ClientRecord'
 _OPERATOR_ROLE_CODE = 'operator'
 _OPERATOR_ROLE_LABEL = 'Operator'
 _OPERATOR_CONTEXT = 'OperatorRecord'
+
+_CONSTRUCTOR_ROLE_CODE = 'constructor'
+_CONSTRUCTOR_ROLE_LABEL = 'Constructor'
+_CONSTRUCTOR_CONTEXT = 'ConstructorRecord'
 
 
 def _get_or_create_role(code: str, label: str, description: str | None, user_id: int | None = None) -> CompanyRole:
@@ -378,9 +383,52 @@ def sync_company_from_operator(operator: Operator, user_id: int | None = None) -
     return company
 
 
+def sync_company_from_constructor(constructor: Constructor, user_id: int | None = None) -> Company:
+    """Ensure constructor records map into the unified company schema."""
+    role = _get_or_create_role(
+        _CONSTRUCTOR_ROLE_CODE,
+        _CONSTRUCTOR_ROLE_LABEL,
+        'Company providing EPC or construction services',
+        user_id=user_id,
+    )
+
+    assignment = _get_assignment_by_context(role.role_id, _CONSTRUCTOR_CONTEXT, constructor.constructor_id)
+
+    if assignment:
+        company = assignment.company
+    else:
+        company = Company(
+            company_name=constructor.company_name,
+            company_type='Constructor',
+            notes=constructor.notes,
+            is_mpr_client=False,
+            is_internal=False,
+            created_by=user_id,
+            modified_by=user_id,
+        )
+        db_session.add(company)
+        db_session.flush()
+
+        assignment = CompanyRoleAssignment(
+            company_id=company.company_id,
+            role_id=role.role_id,
+            context_type=_CONSTRUCTOR_CONTEXT,
+            context_id=constructor.constructor_id,
+            is_primary=True,
+            created_by=user_id,
+            modified_by=user_id,
+        )
+        db_session.add(assignment)
+
+    _sync_company_name_and_notes(company, constructor.company_name, constructor.notes, user_id)
+    db_session.flush()
+    return company
+
+
 __all__ = [
     'sync_company_from_vendor',
     'sync_company_from_owner',
     'sync_company_from_client',
     'sync_company_from_operator',
+    'sync_company_from_constructor',
 ]
