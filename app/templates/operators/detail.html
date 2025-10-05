@@ -40,6 +40,14 @@
                         <dt class="col-sm-4">Name:</dt>
                         <dd class="col-sm-8">{{ operator.company_name }}</dd>
 
+                        {% if company_record %}
+                        <dt class="col-sm-4">Unified Company:</dt>
+                        <dd class="col-sm-8">
+                            <div>{{ company_record.company_name }}</div>
+                            <small class="text-muted">Company ID: {{ company_record.company_id }}</small>
+                        </dd>
+                        {% endif %}
+
                         <dt class="col-sm-4">Notes:</dt>
                         <dd class="col-sm-8">
                             {% if operator.notes %}

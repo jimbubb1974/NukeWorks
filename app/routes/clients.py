@@ -40,6 +40,7 @@ from flask_wtf import FlaskForm
 from app import db_session
 from app.utils.permissions import admin_required, ned_team_required
 from app.services.company_sync import sync_company_from_client
+from app.services.company_query import get_company_for_client
 
 bp = Blueprint('clients', __name__, url_prefix='/clients')
 
@@ -144,6 +145,8 @@ def view_client(client_id):
     """
     client = _get_client_or_404(client_id)
 
+    company_record = get_company_for_client(client_id)
+
     # Get relationships
     owner_relationships = client.owner_relationships
     project_relationships = client.project_relationships
@@ -176,6 +179,7 @@ def view_client(client_id):
         vendor_relationships=vendor_relationships,
         operator_relationships=operator_relationships,
         personnel_relationships=personnel_relationships,
+        company_record=company_record,
         recent_contacts=recent_contacts,
         roundtable_history=roundtable_history,
         can_see_ned_fields=_can_manage_ned_fields(current_user),

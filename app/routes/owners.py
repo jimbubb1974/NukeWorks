@@ -32,6 +32,7 @@ from app.routes.relationship_utils import (
     get_personnel_choices
 )
 from app.services.company_sync import sync_company_from_owner
+from app.services.company_query import get_company_for_owner
 
 bp = Blueprint('owners', __name__, url_prefix='/owners')
 
@@ -136,6 +137,7 @@ def view_owner(owner_id):
     ).order_by(EntityTeamMember.is_active.desc(), EntityTeamMember.assigned_date.desc().nullslast()).all()
 
     can_manage = _can_manage_relationships(current_user)
+    company_record = get_company_for_owner(owner.owner_id)
 
     vendor_form = project_form = personnel_form = team_form = None
     if can_manage:
@@ -154,6 +156,7 @@ def view_owner(owner_id):
     return render_template(
         'owners/detail.html',
         owner=owner,
+        company_record=company_record,
         vendor_relationships=vendor_relationships,
         project_relationships=project_relationships,
         personnel_relationships=personnel_relationships,

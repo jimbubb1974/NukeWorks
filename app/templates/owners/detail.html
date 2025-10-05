@@ -37,6 +37,14 @@
                         <dt class="col-sm-4">Company Type:</dt>
                         <dd class="col-sm-8">{{ owner.company_type or 'N/A' }}</dd>
 
+                        {% if company_record %}
+                        <dt class="col-sm-4">Unified Company:</dt>
+                        <dd class="col-sm-8">
+                            <div>{{ company_record.company_name }}</div>
+                            <small class="text-muted">Company ID: {{ company_record.company_id }}</small>
+                        </dd>
+                        {% endif %}
+
                         <dt class="col-sm-4">Engagement Level:</dt>
                         <dd class="col-sm-8">{{ owner.engagement_level or 'N/A' }}</dd>
 

@@ -11,6 +11,7 @@ from app.forms.relationships import ConfirmActionForm
 from app.models import Operator, ProjectOperatorRelationship
 from app.utils.permissions import filter_relationships
 from app.services.company_sync import sync_company_from_operator
+from app.services.company_query import get_company_for_operator
 
 bp = Blueprint('operators', __name__, url_prefix='/operators')
 
@@ -73,6 +74,7 @@ def view_operator(operator_id):
     operator = _get_operator_or_404(operator_id)
     project_relationships = filter_relationships(current_user, operator.project_relationships)
     can_manage = _can_manage(current_user)
+    company_record = get_company_for_operator(operator.operator_id)
 
     dependent_count = db_session.query(func.count(ProjectOperatorRelationship.relationship_id)).filter(
         ProjectOperatorRelationship.operator_id == operator.operator_id
@@ -81,6 +83,7 @@ def view_operator(operator_id):
     return render_template(
         'operators/detail.html',
         operator=operator,
+        company_record=company_record,
         project_relationships=project_relationships,
         can_manage=can_manage,
         delete_form=ConfirmActionForm(),
