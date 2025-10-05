@@ -34,6 +34,7 @@ from app.routes.relationship_utils import (
     get_constructor_choices,
     get_personnel_choices
 )
+from app.services.company_sync import sync_company_from_vendor
 
 bp = Blueprint('vendors', __name__, url_prefix='/vendors')
 
@@ -606,6 +607,9 @@ def create_vendor():
             )
 
             db_session.add(vendor)
+            db_session.flush()
+
+            sync_company_from_vendor(vendor, current_user.user_id)
             db_session.commit()
 
             flash(f'Vendor "{vendor.vendor_name}" created successfully', 'success')
@@ -644,6 +648,7 @@ def edit_vendor(vendor_id):
             vendor.modified_by = current_user.user_id
             vendor.modified_date = datetime.utcnow()
 
+            sync_company_from_vendor(vendor, current_user.user_id)
             db_session.commit()
 
             flash(f'Vendor "{vendor.vendor_name}" updated successfully', 'success')
