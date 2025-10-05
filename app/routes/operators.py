@@ -10,6 +10,7 @@ from app.forms.operators import OperatorForm
 from app.forms.relationships import ConfirmActionForm
 from app.models import Operator, ProjectOperatorRelationship
 from app.utils.permissions import filter_relationships
+from app.services.company_sync import sync_company_from_operator
 
 bp = Blueprint('operators', __name__, url_prefix='/operators')
 
@@ -53,6 +54,8 @@ def create_operator():
         )
         try:
             db_session.add(operator)
+            db_session.flush()
+            sync_company_from_operator(operator, current_user.user_id)
             db_session.commit()
             flash('Operator created successfully.', 'success')
             return redirect(url_for('operators.view_operator', operator_id=operator.operator_id))
@@ -104,6 +107,7 @@ def edit_operator(operator_id):
         operator.modified_date = datetime.utcnow()
 
         try:
+            sync_company_from_operator(operator, current_user.user_id)
             db_session.commit()
             flash('Operator updated successfully.', 'success')
             return redirect(url_for('operators.view_operator', operator_id=operator.operator_id))

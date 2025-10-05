@@ -14,6 +14,7 @@ from app.models import (
     TechnologyVendor,
     OwnerDeveloper,
     Client,
+    Operator,
 )
 
 _VENDOR_ROLE_CODE = 'vendor'
@@ -27,6 +28,10 @@ _OWNER_CONTEXT = 'OwnerRecord'
 _CLIENT_ROLE_CODE = 'client'
 _CLIENT_ROLE_LABEL = 'MPR Client'
 _CLIENT_CONTEXT = 'ClientRecord'
+
+_OPERATOR_ROLE_CODE = 'operator'
+_OPERATOR_ROLE_LABEL = 'Operator'
+_OPERATOR_CONTEXT = 'OperatorRecord'
 
 
 def _get_or_create_role(code: str, label: str, description: str | None, user_id: int | None = None) -> CompanyRole:
@@ -331,4 +336,51 @@ def sync_company_from_client(client: Client, user_id: int | None = None) -> Comp
     return company
 
 
-__all__ = ['sync_company_from_vendor', 'sync_company_from_owner', 'sync_company_from_client']
+def sync_company_from_operator(operator: Operator, user_id: int | None = None) -> Company:
+    """Ensure an operator record is represented in the unified company table."""
+    role = _get_or_create_role(
+        _OPERATOR_ROLE_CODE,
+        _OPERATOR_ROLE_LABEL,
+        'Company that operates nuclear facilities',
+        user_id=user_id,
+    )
+
+    assignment = _get_assignment_by_context(role.role_id, _OPERATOR_CONTEXT, operator.operator_id)
+
+    if assignment:
+        company = assignment.company
+    else:
+        company = Company(
+            company_name=operator.company_name,
+            company_type='Operator',
+            notes=operator.notes,
+            is_mpr_client=False,
+            is_internal=False,
+            created_by=user_id,
+            modified_by=user_id,
+        )
+        db_session.add(company)
+        db_session.flush()
+
+        assignment = CompanyRoleAssignment(
+            company_id=company.company_id,
+            role_id=role.role_id,
+            context_type=_OPERATOR_CONTEXT,
+            context_id=operator.operator_id,
+            is_primary=True,
+            created_by=user_id,
+            modified_by=user_id,
+        )
+        db_session.add(assignment)
+
+    _sync_company_name_and_notes(company, operator.company_name, operator.notes, user_id)
+    db_session.flush()
+    return company
+
+
+__all__ = [
+    'sync_company_from_vendor',
+    'sync_company_from_owner',
+    'sync_company_from_client',
+    'sync_company_from_operator',
+]
