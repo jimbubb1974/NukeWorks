@@ -101,7 +101,7 @@ def _build_constructor_node(constructor: Constructor) -> Dict[str, Any]:
         "label": constructor.company_name,
         "group": "constructor",
         "title": f"Constructor: {constructor.company_name}",
-        "url": None,  # Constructor detail pages are not implemented yet
+        "url": url_for("constructors.view_constructor", constructor_id=constructor.constructor_id),
     }
 
 
@@ -111,7 +111,7 @@ def _build_operator_node(operator: Operator) -> Dict[str, Any]:
         "label": operator.company_name,
         "group": "operator",
         "title": f"Operator: {operator.company_name}",
-        "url": None,  # Operator detail pages are not implemented yet
+        "url": url_for("operators.view_operator", operator_id=operator.operator_id),
     }
 
 
