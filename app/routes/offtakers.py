@@ -10,6 +10,8 @@ from app.forms.offtakers import OfftakerForm
 from app.forms.relationships import ConfirmActionForm
 from app.models import Offtaker, ProjectOfftakerRelationship
 from app.utils.permissions import filter_relationships
+from app.services.company_sync import sync_company_from_offtaker
+from app.services.company_query import get_company_for_offtaker
 
 bp = Blueprint('offtakers', __name__, url_prefix='/offtakers')
 
@@ -57,6 +59,8 @@ def create_offtaker():
 
         try:
             db_session.add(offtaker)
+            db_session.flush()
+            sync_company_from_offtaker(offtaker, current_user.user_id)
             db_session.commit()
             flash('Off-taker created successfully.', 'success')
             return redirect(url_for('offtakers.view_offtaker', offtaker_id=offtaker.offtaker_id))
@@ -74,6 +78,7 @@ def view_offtaker(offtaker_id):
     relationships = filter_relationships(current_user, offtaker.project_relationships)
     dependent_count = db_session.query(func.count(ProjectOfftakerRelationship.relationship_id)).filter_by(offtaker_id=offtaker.offtaker_id).scalar()
     delete_form = ConfirmActionForm()
+    company_record = get_company_for_offtaker(offtaker.offtaker_id)
 
     return render_template(
         'offtakers/detail.html',
@@ -81,7 +86,8 @@ def view_offtaker(offtaker_id):
         relationships=relationships,
         dependent_count=dependent_count,
         can_manage=_can_manage(current_user),
-        delete_form=delete_form
+        delete_form=delete_form,
+        company_record=company_record,
     )
 
 
@@ -103,6 +109,7 @@ def edit_offtaker(offtaker_id):
         offtaker.modified_date = datetime.utcnow()
 
         try:
+            sync_company_from_offtaker(offtaker, current_user.user_id)
             db_session.commit()
             flash('Off-taker updated successfully.', 'success')
             return redirect(url_for('offtakers.view_offtaker', offtaker_id=offtaker.offtaker_id))

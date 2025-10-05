@@ -16,6 +16,7 @@ from app.models import (
     Client,
     Operator,
     Constructor,
+    Offtaker,
 )
 
 _VENDOR_ROLE_CODE = 'vendor'
@@ -37,6 +38,10 @@ _OPERATOR_CONTEXT = 'OperatorRecord'
 _CONSTRUCTOR_ROLE_CODE = 'constructor'
 _CONSTRUCTOR_ROLE_LABEL = 'Constructor'
 _CONSTRUCTOR_CONTEXT = 'ConstructorRecord'
+
+_OFFTAKER_ROLE_CODE = 'offtaker'
+_OFFTAKER_ROLE_LABEL = 'Off-taker'
+_OFFTAKER_CONTEXT = 'OfftakerRecord'
 
 
 def _get_or_create_role(code: str, label: str, description: str | None, user_id: int | None = None) -> CompanyRole:
@@ -425,10 +430,54 @@ def sync_company_from_constructor(constructor: Constructor, user_id: int | None 
     return company
 
 
+def sync_company_from_offtaker(offtaker: Offtaker, user_id: int | None = None) -> Company:
+    """Ensure off-takers are represented in the unified company table."""
+    role = _get_or_create_role(
+        _OFFTAKER_ROLE_CODE,
+        _OFFTAKER_ROLE_LABEL,
+        'Organization purchasing energy output',
+        user_id=user_id,
+    )
+
+    assignment = _get_assignment_by_context(role.role_id, _OFFTAKER_CONTEXT, offtaker.offtaker_id)
+
+    if assignment:
+        company = assignment.company
+    else:
+        company = Company(
+            company_name=offtaker.organization_name,
+            company_type=offtaker.sector or 'Off-taker',
+            notes=offtaker.notes,
+            is_mpr_client=False,
+            is_internal=False,
+            created_by=user_id,
+            modified_by=user_id,
+        )
+        db_session.add(company)
+        db_session.flush()
+
+        assignment = CompanyRoleAssignment(
+            company_id=company.company_id,
+            role_id=role.role_id,
+            context_type=_OFFTAKER_CONTEXT,
+            context_id=offtaker.offtaker_id,
+            is_primary=True,
+            created_by=user_id,
+            modified_by=user_id,
+        )
+        db_session.add(assignment)
+
+    company.company_type = offtaker.sector or company.company_type
+    _sync_company_name_and_notes(company, offtaker.organization_name, offtaker.notes, user_id)
+    db_session.flush()
+    return company
+
+
 __all__ = [
     'sync_company_from_vendor',
     'sync_company_from_owner',
     'sync_company_from_client',
     'sync_company_from_operator',
     'sync_company_from_constructor',
+    'sync_company_from_offtaker',
 ]

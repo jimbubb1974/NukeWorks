@@ -12,6 +12,7 @@ from app.models import (
     Client,
     Operator,
     Constructor,
+    Offtaker,
 )
 from app.services.company_sync import (
     sync_company_from_vendor,
@@ -19,6 +20,7 @@ from app.services.company_sync import (
     sync_company_from_client,
     sync_company_from_operator,
     sync_company_from_constructor,
+    sync_company_from_offtaker,
 )
 
 
@@ -56,6 +58,10 @@ def backfill(config_name: Optional[str] = None) -> None:
         constructor_count = _process_records(constructors, sync_company_from_constructor, 'Constructors')
         total += constructor_count
 
+        offtakers = db_session.query(Offtaker).all()
+        offtaker_count = _process_records(offtakers, sync_company_from_offtaker, 'Off-takers')
+        total += offtaker_count
+
         db_session.commit()
 
         print('Backfill complete:')
@@ -64,6 +70,7 @@ def backfill(config_name: Optional[str] = None) -> None:
         print(f'  Clients        : {client_count}')
         print(f'  Operators      : {operator_count}')
         print(f'  Constructors   : {constructor_count}')
+        print(f'  Off-takers     : {offtaker_count}')
         print(f'  Total processed: {total}')
 
 
