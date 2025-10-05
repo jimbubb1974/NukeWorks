@@ -52,6 +52,11 @@ def _session():
         return app_module.db_session
 
 
+def _find_company_by_name(name: str) -> Company | None:
+    session = _session()
+    return session.query(Company).filter(Company.company_name == name).one_or_none()
+
+
 def _get_or_create_role(code: str, label: str, description: str | None, user_id: int | None = None) -> CompanyRole:
     """Return an existing CompanyRole or create it if missing."""
     session = _session()
@@ -156,17 +161,19 @@ def sync_company_from_vendor(vendor: TechnologyVendor, user_id: int | None = Non
     if assignment:
         company = assignment.company
     else:
-        company = Company(
-            company_name=vendor.vendor_name,
-            company_type='Vendor',
-            notes=vendor.notes,
-            is_mpr_client=False,
-            is_internal=False,
-            created_by=user_id,
-            modified_by=user_id,
-        )
-        session.add(company)
-        session.flush()
+        company = _find_company_by_name(vendor.vendor_name)
+        if company is None:
+            company = Company(
+                company_name=vendor.vendor_name,
+                company_type='Vendor',
+                notes=vendor.notes,
+                is_mpr_client=False,
+                is_internal=False,
+                created_by=user_id,
+                modified_by=user_id,
+            )
+            session.add(company)
+            session.flush()
 
         assignment = CompanyRoleAssignment(
             company_id=company.company_id,
@@ -199,17 +206,19 @@ def sync_company_from_owner(owner: OwnerDeveloper, user_id: int | None = None) -
     if assignment:
         company = assignment.company
     else:
-        company = Company(
-            company_name=owner.company_name,
-            company_type=owner.company_type or 'Owner/Developer',
-            notes=owner.notes,
-            is_mpr_client=False,
-            is_internal=False,
-            created_by=user_id,
-            modified_by=user_id,
-        )
-        session.add(company)
-        session.flush()
+        company = _find_company_by_name(owner.company_name)
+        if company is None:
+            company = Company(
+                company_name=owner.company_name,
+                company_type=owner.company_type or 'Owner/Developer',
+                notes=owner.notes,
+                is_mpr_client=False,
+                is_internal=False,
+                created_by=user_id,
+                modified_by=user_id,
+            )
+            session.add(company)
+            session.flush()
 
         assignment = CompanyRoleAssignment(
             company_id=company.company_id,
@@ -243,17 +252,19 @@ def sync_company_from_client(client: Client, user_id: int | None = None) -> Comp
     if assignment:
         company = assignment.company
     else:
-        company = Company(
-            company_name=client.client_name,
-            company_type=client.client_type or 'Client',
-            notes=client.notes,
-            is_mpr_client=True,
-            is_internal=False,
-            created_by=user_id,
-            modified_by=user_id,
-        )
-        session.add(company)
-        session.flush()
+        company = _find_company_by_name(client.client_name)
+        if company is None:
+            company = Company(
+                company_name=client.client_name,
+                company_type=client.client_type or 'Client',
+                notes=client.notes,
+                is_mpr_client=True,
+                is_internal=False,
+                created_by=user_id,
+                modified_by=user_id,
+            )
+            session.add(company)
+            session.flush()
 
         assignment = CompanyRoleAssignment(
             company_id=company.company_id,
@@ -311,17 +322,19 @@ def sync_company_from_operator(operator: Operator, user_id: int | None = None) -
     if assignment:
         company = assignment.company
     else:
-        company = Company(
-            company_name=operator.company_name,
-            company_type='Operator',
-            notes=operator.notes,
-            is_mpr_client=False,
-            is_internal=False,
-            created_by=user_id,
-            modified_by=user_id,
-        )
-        session.add(company)
-        session.flush()
+        company = _find_company_by_name(operator.company_name)
+        if company is None:
+            company = Company(
+                company_name=operator.company_name,
+                company_type='Operator',
+                notes=operator.notes,
+                is_mpr_client=False,
+                is_internal=False,
+                created_by=user_id,
+                modified_by=user_id,
+            )
+            session.add(company)
+            session.flush()
 
         assignment = CompanyRoleAssignment(
             company_id=company.company_id,
@@ -354,17 +367,19 @@ def sync_company_from_constructor(constructor: Constructor, user_id: int | None 
     if assignment:
         company = assignment.company
     else:
-        company = Company(
-            company_name=constructor.company_name,
-            company_type='Constructor',
-            notes=constructor.notes,
-            is_mpr_client=False,
-            is_internal=False,
-            created_by=user_id,
-            modified_by=user_id,
-        )
-        session.add(company)
-        session.flush()
+        company = _find_company_by_name(constructor.company_name)
+        if company is None:
+            company = Company(
+                company_name=constructor.company_name,
+                company_type='Constructor',
+                notes=constructor.notes,
+                is_mpr_client=False,
+                is_internal=False,
+                created_by=user_id,
+                modified_by=user_id,
+            )
+            session.add(company)
+            session.flush()
 
         assignment = CompanyRoleAssignment(
             company_id=company.company_id,
@@ -397,17 +412,19 @@ def sync_company_from_offtaker(offtaker: Offtaker, user_id: int | None = None) -
     if assignment:
         company = assignment.company
     else:
-        company = Company(
-            company_name=offtaker.organization_name,
-            company_type=offtaker.sector or 'Off-taker',
-            notes=offtaker.notes,
-            is_mpr_client=False,
-            is_internal=False,
-            created_by=user_id,
-            modified_by=user_id,
-        )
-        session.add(company)
-        session.flush()
+        company = _find_company_by_name(offtaker.organization_name)
+        if company is None:
+            company = Company(
+                company_name=offtaker.organization_name,
+                company_type=offtaker.sector or 'Off-taker',
+                notes=offtaker.notes,
+                is_mpr_client=False,
+                is_internal=False,
+                created_by=user_id,
+                modified_by=user_id,
+            )
+            session.add(company)
+            session.flush()
 
         assignment = CompanyRoleAssignment(
             company_id=company.company_id,
