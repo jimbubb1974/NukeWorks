@@ -98,9 +98,13 @@
                                 {% for client in clients %}
                                 <tr>
                                     <td>
+                                        {% set company = client_company_map.get(client.client_id) %}
                                         <a href="{{ url_for('clients.view_client', client_id=client.client_id) }}" class="fw-bold text-decoration-none">
                                             {{ client.client_name }}
                                         </a>
+                                        {% if company %}
+                                            <div class="small text-muted">Company ID: {{ company.company_id }}</div>
+                                        {% endif %}
                                     </td>
                                     <td>
                                         {% if client.client_type %}

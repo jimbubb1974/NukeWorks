@@ -33,7 +33,16 @@ def _can_manage(user) -> bool:
 def list_operators():
     """List all operators."""
     operators = db_session.query(Operator).order_by(Operator.company_name).all()
-    return render_template('operators/list.html', operators=operators, can_manage=_can_manage(current_user))
+    operator_company_map = {
+        operator.operator_id: get_company_for_operator(operator.operator_id)
+        for operator in operators
+    }
+    return render_template(
+        'operators/list.html',
+        operators=operators,
+        can_manage=_can_manage(current_user),
+        operator_company_map=operator_company_map
+    )
 
 
 @bp.route('/create', methods=['GET', 'POST'])

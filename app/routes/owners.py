@@ -33,6 +33,7 @@ from app.routes.relationship_utils import (
 )
 from app.services.company_sync import sync_company_from_owner
 from app.services.company_query import get_company_for_owner
+from app.services.company_query import get_company_for_owner
 
 bp = Blueprint('owners', __name__, url_prefix='/owners')
 
@@ -54,10 +55,15 @@ def _can_manage_relationships(user) -> bool:
 def list_owners():
     """List all owners/developers"""
     owners = db_session.query(OwnerDeveloper).order_by(OwnerDeveloper.company_name).all()
+    owner_company_map = {
+        owner.owner_id: get_company_for_owner(owner.owner_id)
+        for owner in owners
+    }
     return render_template(
         'owners/list.html',
         owners=owners,
-        can_manage=_can_manage_relationships(current_user)
+        can_manage=_can_manage_relationships(current_user),
+        owner_company_map=owner_company_map,
     )
 
 

@@ -80,6 +80,11 @@ def list_vendors():
     # Order by name
     vendors = query.order_by(TechnologyVendor.vendor_name).all()
 
+    vendor_company_map = {
+        vendor.vendor_id: get_company_for_vendor(vendor.vendor_id)
+        for vendor in vendors
+    }
+
     # Get product counts
     vendor_product_counts = {}
     for vendor in vendors:
@@ -92,7 +97,8 @@ def list_vendors():
         'vendors/list.html',
         vendors=vendors,
         vendor_product_counts=vendor_product_counts,
-        search=search
+        search=search,
+        vendor_company_map=vendor_company_map,
     )
 
 

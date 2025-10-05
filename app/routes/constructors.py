@@ -33,7 +33,16 @@ def _can_manage(user) -> bool:
 def list_constructors():
     """List all constructors."""
     constructors = db_session.query(Constructor).order_by(Constructor.company_name).all()
-    return render_template('constructors/list.html', constructors=constructors, can_manage=_can_manage(current_user))
+    constructor_company_map = {
+        constructor.constructor_id: get_company_for_constructor(constructor.constructor_id)
+        for constructor in constructors
+    }
+    return render_template(
+        'constructors/list.html',
+        constructors=constructors,
+        can_manage=_can_manage(current_user),
+        constructor_company_map=constructor_company_map
+    )
 
 
 @bp.route('/create', methods=['GET', 'POST'])

@@ -28,7 +28,13 @@
                     <tbody>
                         {% for constructor in constructors %}
                         <tr>
-                            <td>{{ constructor.company_name }}</td>
+                            {% set company = constructor_company_map.get(constructor.constructor_id) %}
+                            <td>
+                                {{ constructor.company_name }}
+                                {% if company %}
+                                    <div class="small text-muted">Company ID: {{ company.company_id }}</div>
+                                {% endif %}
+                            </td>
                             <td class="text-muted small">
                                 {% if constructor.notes %}
                                 {{ constructor.notes[:120] }}{% if constructor.notes|length > 120 %}…{% endif %}

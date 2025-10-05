@@ -58,9 +58,13 @@
                                 {% for vendor in vendors %}
                                 <tr>
                                     <td>
+                                        {% set company = vendor_company_map.get(vendor.vendor_id) %}
                                         <a href="{{ url_for('vendors.view_vendor', vendor_id=vendor.vendor_id) }}" class="fw-bold text-decoration-none">
                                             {{ vendor.vendor_name }}
                                         </a>
+                                        {% if company %}
+                                        <div class="small text-muted">Company ID: {{ company.company_id }}</div>
+                                        {% endif %}
                                     </td>
                                     <td>
                                         {% set product_count = vendor_product_counts.get(vendor.vendor_id, 0) %}

@@ -27,7 +27,13 @@
             <tbody>
                 {% for owner in owners %}
                 <tr>
-                    <td>{{ owner.company_name }}</td>
+                    {% set company = owner_company_map.get(owner.owner_id) %}
+                    <td>
+                        {{ owner.company_name }}
+                        {% if company %}
+                            <div class="small text-muted">Company ID: {{ company.company_id }}</div>
+                        {% endif %}
+                    </td>
                     <td>{{ owner.company_type or 'N/A' }}</td>
                     <td>{{ owner.engagement_level or 'N/A' }}</td>
                     <td>

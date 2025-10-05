@@ -41,6 +41,7 @@ from app import db_session
 from app.utils.permissions import admin_required, ned_team_required
 from app.services.company_sync import sync_company_from_client
 from app.services.company_query import get_company_for_client
+from app.services.company_query import get_company_for_client
 
 bp = Blueprint('clients', __name__, url_prefix='/clients')
 
@@ -108,6 +109,11 @@ def list_clients():
     # Order by name
     clients = query.order_by(Client.client_name).all()
 
+    client_company_map = {
+        client.client_id: get_company_for_client(client.client_id)
+        for client in clients
+    }
+
     # Get relationship counts for each client
     client_counts = {}
     for client in clients:
@@ -126,7 +132,8 @@ def list_clients():
         priority_filter=priority_filter,
         status_filter=status_filter,
         can_see_ned_fields=_can_manage_ned_fields(current_user),
-        today=datetime.now().date()
+        today=datetime.now().date(),
+        client_company_map=client_company_map,
     )
 
 

@@ -28,7 +28,13 @@
                 <tbody>
                     {% for offtaker in offtakers %}
                     <tr>
-                        <td>{{ offtaker.organization_name }}</td>
+                        {% set company = offtaker_company_map.get(offtaker.offtaker_id) %}
+                        <td>
+                            {{ offtaker.organization_name }}
+                            {% if company %}
+                                <div class="small text-muted">Company ID: {{ company.company_id }}</div>
+                            {% endif %}
+                        </td>
                         <td>{{ offtaker.sector or '—' }}</td>
                         <td class="text-muted small">
                             {% if offtaker.notes %}

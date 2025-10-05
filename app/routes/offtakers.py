@@ -32,10 +32,15 @@ def _can_manage(user) -> bool:
 @login_required
 def list_offtakers():
     offtakers = db_session.query(Offtaker).order_by(Offtaker.organization_name).all()
+    offtaker_company_map = {
+        offtaker.offtaker_id: get_company_for_offtaker(offtaker.offtaker_id)
+        for offtaker in offtakers
+    }
     return render_template(
         'offtakers/list.html',
         offtakers=offtakers,
-        can_manage=_can_manage(current_user)
+        can_manage=_can_manage(current_user),
+        offtaker_company_map=offtaker_company_map
     )
 
 

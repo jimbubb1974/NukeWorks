@@ -28,7 +28,13 @@
                     <tbody>
                         {% for operator in operators %}
                         <tr>
-                            <td>{{ operator.company_name }}</td>
+                            {% set company = operator_company_map.get(operator.operator_id) %}
+                            <td>
+                                {{ operator.company_name }}
+                                {% if company %}
+                                    <div class="small text-muted">Company ID: {{ company.company_id }}</div>
+                                {% endif %}
+                            </td>
                             <td class="text-muted small">
                                 {% if operator.notes %}
                                 {{ operator.notes[:120] }}{% if operator.notes|length > 120 %}…{% endif %}
