@@ -10,7 +10,12 @@
       "Bash(flask migration-history:*)",
       "Bash(./venv/bin/python:*)",
       "Bash(./venv/bin/flask check-migrations)",
-      "Bash(./venv/bin/flask apply-migrations)"
+      "Bash(./venv/bin/flask apply-migrations)",
+      "Bash(cd:*)",
+      "Bash(pytest:*)",
+      "Read(//home/jim/**)",
+      "Bash(python:*)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nfeat: complete company unification refactor with migration tooling\n\nThis commit completes the company unification refactor, migrating from legacy \nrole-specific tables to a unified company schema with comprehensive migration \ntooling and updated navigation.\n\nMajor Changes:\n- Personnel affiliations: Migrate PersonnelEntityRelationship to PersonCompanyAffiliation\n- Project relationships: Sync all project-company links to CompanyRoleAssignment\n- Analytics views: Update dashboard to query unified schema\n- Navigation: Replace role-specific menus with unified Companies dropdown\n- Migration tooling: Master backfill script, validation, and duplicate resolution\n\nNew Files:\n- app/services/company_analytics.py - Analytics helpers for unified schema\n- scripts/backfill_all.py - Master backfill script with progress reporting\n- scripts/backfill_personnel_affiliations.py - Personnel migration\n- scripts/backfill_project_relationships.py - Project relationship migration\n- scripts/validate_company_migration.py - Comprehensive validation suite\n- scripts/resolve_duplicate_companies.py - Interactive duplicate merger\n- scripts/README.md - Complete migration script documentation\n- docs/MIGRATION_PLAN.md - Step-by-step production migration guide\n- docs/company_refactor_status.md - Refactor progress tracker\n\nModified:\n- app/routes/companies.py - Added statistics and enhanced filtering\n- app/routes/dashboard.py - Query unified schema for company counts\n- app/routes/projects.py - Sync project relationships on create\n- app/routes/owners.py - Sync personnel affiliations on create\n- app/routes/vendors.py - Sync personnel affiliations on create\n- app/services/company_sync.py - Added personnel and project sync functions\n- app/templates/base.html - Restructured navigation with Companies dropdown\n- app/templates/companies/list.html - Added statistics dashboard\n\nAll 19 tests passing. Migration validated and ready for production rollout.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")"
     ],
     "deny": [],
     "ask": []
