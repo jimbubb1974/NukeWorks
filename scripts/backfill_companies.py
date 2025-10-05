@@ -5,7 +5,11 @@ import argparse
 import os
 from typing import Optional
 
-from app import create_app, db_session
+import sys
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+import app as app_module
 from app.models import (
     TechnologyVendor,
     OwnerDeveloper,
@@ -33,36 +37,37 @@ def _process_records(query, sync_fn, label: str) -> int:
 
 
 def backfill(config_name: Optional[str] = None) -> None:
-    app = create_app(config_name)
+    flask_app = app_module.create_app(config_name)
 
-    with app.app_context():
+    with flask_app.app_context():
+        session = app_module.db_session
         total = 0
 
-        vendors = db_session.query(TechnologyVendor).all()
+        vendors = session.query(TechnologyVendor).all()
         vendor_count = _process_records(vendors, sync_company_from_vendor, 'Vendors')
         total += vendor_count
 
-        owners = db_session.query(OwnerDeveloper).all()
+        owners = session.query(OwnerDeveloper).all()
         owner_count = _process_records(owners, sync_company_from_owner, 'Owners/Developers')
         total += owner_count
 
-        clients = db_session.query(Client).all()
+        clients = session.query(Client).all()
         client_count = _process_records(clients, sync_company_from_client, 'Clients')
         total += client_count
 
-        operators = db_session.query(Operator).all()
+        operators = session.query(Operator).all()
         operator_count = _process_records(operators, sync_company_from_operator, 'Operators')
         total += operator_count
 
-        constructors = db_session.query(Constructor).all()
+        constructors = session.query(Constructor).all()
         constructor_count = _process_records(constructors, sync_company_from_constructor, 'Constructors')
         total += constructor_count
 
-        offtakers = db_session.query(Offtaker).all()
+        offtakers = session.query(Offtaker).all()
         offtaker_count = _process_records(offtakers, sync_company_from_offtaker, 'Off-takers')
         total += offtaker_count
 
-        db_session.commit()
+        session.commit()
 
         print('Backfill complete:')
         print(f'  Vendors        : {vendor_count}')

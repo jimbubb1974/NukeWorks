@@ -5,7 +5,9 @@ from datetime import datetime
 
 from sqlalchemy import and_
 
-from app import db_session
+from flask import current_app
+
+import app as app_module
 from app.models import (
     Company,
     CompanyRole,
@@ -43,10 +45,17 @@ _OFFTAKER_ROLE_CODE = 'offtaker'
 _OFFTAKER_ROLE_LABEL = 'Off-taker'
 _OFFTAKER_CONTEXT = 'OfftakerRecord'
 
+def _session():
+    try:
+        return current_app.db_session  # type: ignore[attr-defined]
+    except RuntimeError:
+        return app_module.db_session
+
 
 def _get_or_create_role(code: str, label: str, description: str | None, user_id: int | None = None) -> CompanyRole:
     """Return an existing CompanyRole or create it if missing."""
-    role = db_session.query(CompanyRole).filter(CompanyRole.role_code == code).one_or_none()
+    session = _session()
+    role = session.query(CompanyRole).filter(CompanyRole.role_code == code).one_or_none()
     if role:
         return role
 
@@ -58,14 +67,15 @@ def _get_or_create_role(code: str, label: str, description: str | None, user_id:
         created_by=user_id,
         modified_by=user_id,
     )
-    db_session.add(role)
-    db_session.flush()
+    session.add(role)
+    session.flush()
     return role
 
 
 def _get_assignment_for_vendor(vendor_id: int, role_id: int) -> CompanyRoleAssignment | None:
+    session = _session()
     return (
-        db_session.query(CompanyRoleAssignment)
+        session.query(CompanyRoleAssignment)
         .filter(
             and_(
                 CompanyRoleAssignment.role_id == role_id,
@@ -77,74 +87,10 @@ def _get_assignment_for_vendor(vendor_id: int, role_id: int) -> CompanyRoleAssig
     )
 
 
-def sync_company_from_vendor(vendor: TechnologyVendor, user_id: int | None = None) -> Company:
-    """Ensure a Company + role assignment exists for the given vendor and sync core fields.
-
-    Args:
-        vendor: Legacy TechnologyVendor record.
-        user_id: Optional user performing the sync for audit fields.
-
-    Returns:
-        Company instance linked to the vendor.
-    """
-    role = _get_or_create_role(
-        _VENDOR_ROLE_CODE,
-        _VENDOR_ROLE_LABEL,
-        'Company that develops or supplies nuclear technology',
-        user_id=user_id,
-    )
-
-    assignment = _get_assignment_for_vendor(vendor.vendor_id, role.role_id)
-
-    if assignment:
-        company = assignment.company
-    else:
-        company = Company(
-            company_name=vendor.vendor_name,
-            company_type='Vendor',
-            notes=vendor.notes,
-            is_mpr_client=False,
-            is_internal=False,
-            created_by=user_id,
-            modified_by=user_id,
-        )
-        db_session.add(company)
-        db_session.flush()  # acquire company_id for assignment
-
-        assignment = CompanyRoleAssignment(
-            company_id=company.company_id,
-            role_id=role.role_id,
-            context_type=_VENDOR_CONTEXT,
-            context_id=vendor.vendor_id,
-            is_primary=True,
-            created_by=user_id,
-            modified_by=user_id,
-        )
-        db_session.add(assignment)
-
-    # Update company fields if the legacy record changed
-    fields_updated = False
-
-    if company.company_name != vendor.vendor_name:
-        company.company_name = vendor.vendor_name
-        fields_updated = True
-
-    # Only update notes if vendor provides a value; avoid overwriting richer company notes with empty text
-    if vendor.notes and vendor.notes != company.notes:
-        company.notes = vendor.notes
-        fields_updated = True
-
-    if fields_updated:
-        company.modified_by = user_id
-        company.modified_date = datetime.utcnow()
-
-    db_session.flush()
-    return company
-
-
 def _get_assignment(company_id: int, role_id: int, context_type: str, context_id: int) -> CompanyRoleAssignment | None:
+    session = _session()
     return (
-        db_session.query(CompanyRoleAssignment)
+        session.query(CompanyRoleAssignment)
         .filter(
             and_(
                 CompanyRoleAssignment.company_id == company_id,
@@ -158,8 +104,9 @@ def _get_assignment(company_id: int, role_id: int, context_type: str, context_id
 
 
 def _get_assignment_by_context(role_id: int, context_type: str, context_id: int) -> CompanyRoleAssignment | None:
+    session = _session()
     return (
-        db_session.query(CompanyRoleAssignment)
+        session.query(CompanyRoleAssignment)
         .filter(
             and_(
                 CompanyRoleAssignment.role_id == role_id,
@@ -203,6 +150,7 @@ def sync_company_from_vendor(vendor: TechnologyVendor, user_id: int | None = Non
         user_id=user_id,
     )
 
+    session = _session()
     assignment = _get_assignment_by_context(role.role_id, _VENDOR_CONTEXT, vendor.vendor_id)
 
     if assignment:
@@ -217,8 +165,8 @@ def sync_company_from_vendor(vendor: TechnologyVendor, user_id: int | None = Non
             created_by=user_id,
             modified_by=user_id,
         )
-        db_session.add(company)
-        db_session.flush()
+        session.add(company)
+        session.flush()
 
         assignment = CompanyRoleAssignment(
             company_id=company.company_id,
@@ -229,10 +177,10 @@ def sync_company_from_vendor(vendor: TechnologyVendor, user_id: int | None = Non
             created_by=user_id,
             modified_by=user_id,
         )
-        db_session.add(assignment)
+        session.add(assignment)
 
     _sync_company_name_and_notes(company, vendor.vendor_name, vendor.notes, user_id)
-    db_session.flush()
+    session.flush()
     return company
 
 
@@ -245,6 +193,7 @@ def sync_company_from_owner(owner: OwnerDeveloper, user_id: int | None = None) -
         user_id=user_id,
     )
 
+    session = _session()
     assignment = _get_assignment_by_context(role.role_id, _OWNER_CONTEXT, owner.owner_id)
 
     if assignment:
@@ -259,8 +208,8 @@ def sync_company_from_owner(owner: OwnerDeveloper, user_id: int | None = None) -
             created_by=user_id,
             modified_by=user_id,
         )
-        db_session.add(company)
-        db_session.flush()
+        session.add(company)
+        session.flush()
 
         assignment = CompanyRoleAssignment(
             company_id=company.company_id,
@@ -271,11 +220,11 @@ def sync_company_from_owner(owner: OwnerDeveloper, user_id: int | None = None) -
             created_by=user_id,
             modified_by=user_id,
         )
-        db_session.add(assignment)
+        session.add(assignment)
 
     company.company_type = owner.company_type or company.company_type
     _sync_company_name_and_notes(company, owner.company_name, owner.notes, user_id)
-    db_session.flush()
+    session.flush()
     return company
 
 
@@ -288,6 +237,7 @@ def sync_company_from_client(client: Client, user_id: int | None = None) -> Comp
         user_id=user_id,
     )
 
+    session = _session()
     assignment = _get_assignment_by_context(role.role_id, _CLIENT_CONTEXT, client.client_id)
 
     if assignment:
@@ -302,8 +252,8 @@ def sync_company_from_client(client: Client, user_id: int | None = None) -> Comp
             created_by=user_id,
             modified_by=user_id,
         )
-        db_session.add(company)
-        db_session.flush()
+        session.add(company)
+        session.flush()
 
         assignment = CompanyRoleAssignment(
             company_id=company.company_id,
@@ -314,20 +264,20 @@ def sync_company_from_client(client: Client, user_id: int | None = None) -> Comp
             created_by=user_id,
             modified_by=user_id,
         )
-        db_session.add(assignment)
+        session.add(assignment)
 
     company.company_type = client.client_type or company.company_type
     company.is_mpr_client = True
     _sync_company_name_and_notes(company, client.client_name, client.notes, user_id, force_notes=True)
 
-    profile = db_session.get(ClientProfile, company.company_id)
+    profile = session.get(ClientProfile, company.company_id)
     if profile is None:
         profile = ClientProfile(
             company_id=company.company_id,
             created_by=user_id,
             modified_by=user_id,
         )
-        db_session.add(profile)
+        session.add(profile)
 
     profile.relationship_strength = client.relationship_strength
     profile.relationship_notes = client.relationship_notes
@@ -342,7 +292,7 @@ def sync_company_from_client(client: Client, user_id: int | None = None) -> Comp
     profile.modified_by = user_id
     profile.modified_date = datetime.utcnow()
 
-    db_session.flush()
+    session.flush()
     return company
 
 
@@ -355,6 +305,7 @@ def sync_company_from_operator(operator: Operator, user_id: int | None = None) -
         user_id=user_id,
     )
 
+    session = _session()
     assignment = _get_assignment_by_context(role.role_id, _OPERATOR_CONTEXT, operator.operator_id)
 
     if assignment:
@@ -369,8 +320,8 @@ def sync_company_from_operator(operator: Operator, user_id: int | None = None) -
             created_by=user_id,
             modified_by=user_id,
         )
-        db_session.add(company)
-        db_session.flush()
+        session.add(company)
+        session.flush()
 
         assignment = CompanyRoleAssignment(
             company_id=company.company_id,
@@ -381,10 +332,10 @@ def sync_company_from_operator(operator: Operator, user_id: int | None = None) -
             created_by=user_id,
             modified_by=user_id,
         )
-        db_session.add(assignment)
+        session.add(assignment)
 
     _sync_company_name_and_notes(company, operator.company_name, operator.notes, user_id)
-    db_session.flush()
+    session.flush()
     return company
 
 
@@ -397,6 +348,7 @@ def sync_company_from_constructor(constructor: Constructor, user_id: int | None 
         user_id=user_id,
     )
 
+    session = _session()
     assignment = _get_assignment_by_context(role.role_id, _CONSTRUCTOR_CONTEXT, constructor.constructor_id)
 
     if assignment:
@@ -411,8 +363,8 @@ def sync_company_from_constructor(constructor: Constructor, user_id: int | None 
             created_by=user_id,
             modified_by=user_id,
         )
-        db_session.add(company)
-        db_session.flush()
+        session.add(company)
+        session.flush()
 
         assignment = CompanyRoleAssignment(
             company_id=company.company_id,
@@ -423,10 +375,10 @@ def sync_company_from_constructor(constructor: Constructor, user_id: int | None 
             created_by=user_id,
             modified_by=user_id,
         )
-        db_session.add(assignment)
+        session.add(assignment)
 
     _sync_company_name_and_notes(company, constructor.company_name, constructor.notes, user_id)
-    db_session.flush()
+    session.flush()
     return company
 
 
@@ -439,6 +391,7 @@ def sync_company_from_offtaker(offtaker: Offtaker, user_id: int | None = None) -
         user_id=user_id,
     )
 
+    session = _session()
     assignment = _get_assignment_by_context(role.role_id, _OFFTAKER_CONTEXT, offtaker.offtaker_id)
 
     if assignment:
@@ -453,8 +406,8 @@ def sync_company_from_offtaker(offtaker: Offtaker, user_id: int | None = None) -
             created_by=user_id,
             modified_by=user_id,
         )
-        db_session.add(company)
-        db_session.flush()
+        session.add(company)
+        session.flush()
 
         assignment = CompanyRoleAssignment(
             company_id=company.company_id,
@@ -465,11 +418,11 @@ def sync_company_from_offtaker(offtaker: Offtaker, user_id: int | None = None) -
             created_by=user_id,
             modified_by=user_id,
         )
-        db_session.add(assignment)
+        session.add(assignment)
 
     company.company_type = offtaker.sector or company.company_type
     _sync_company_name_and_notes(company, offtaker.organization_name, offtaker.notes, user_id)
-    db_session.flush()
+    session.flush()
     return company
 
 
