@@ -4,6 +4,14 @@ All SQLAlchemy models for the application
 """
 from .base import Base, TimestampMixin
 from .user import User
+from .company import (
+    Company,
+    CompanyRole,
+    CompanyRoleAssignment,
+    ClientProfile,
+    PersonCompanyAffiliation,
+    InternalExternalLink,
+)
 from .vendor import TechnologyVendor, Product
 from .owner import OwnerDeveloper
 from .constructor import Constructor
@@ -40,6 +48,12 @@ __all__ = [
     'Base',
     'TimestampMixin',
     'User',
+    'Company',
+    'CompanyRole',
+    'CompanyRoleAssignment',
+    'ClientProfile',
+    'PersonCompanyAffiliation',
+    'InternalExternalLink',
     'TechnologyVendor',
     'Product',
     'OwnerDeveloper',

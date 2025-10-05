@@ -29,8 +29,15 @@ def verify_schema():
 
     # Expected tables from 02_DATABASE_SCHEMA.md and 03_DATABASE_RELATIONSHIPS.md
     expected_tables = {
-        # Core Entity Tables (16)
+        # Core Entity Tables (22)
         'users',
+        'companies',
+        'company_roles',
+        'company_role_assignments',
+        'client_profiles',
+        'person_company_affiliations',
+        'internal_external_links',
+        'clients',
         'technology_vendors',
         'products',
         'owners_developers',
@@ -46,7 +53,7 @@ def verify_schema():
         'database_snapshots',
         'system_settings',
         'schema_version',
-        # Junction Tables (10)
+        # Junction Tables (15)
         'vendor_supplier_relationships',
         'owner_vendor_relationships',
         'project_vendor_relationships',
@@ -57,6 +64,11 @@ def verify_schema():
         'vendor_preferred_constructor',
         'personnel_entity_relationships',
         'entity_team_members',
+        'client_owner_relationships',
+        'client_project_relationships',
+        'client_vendor_relationships',
+        'client_operator_relationships',
+        'client_personnel_relationships',
     }
 
     print("="*70)
@@ -96,9 +108,12 @@ def verify_schema():
     print("-"*70)
     print(f"{'TOTALS':40s} {total_columns:2d} cols, {total_indexes:2d} indexes, {total_fks:2d} FKs")
 
-    print("\nCORE ENTITY TABLES (16):")
+    print("\nCORE ENTITY TABLES (22):")
     core_tables = [
-        'users', 'technology_vendors', 'products', 'owners_developers',
+        'users', 'companies', 'company_roles', 'company_role_assignments',
+        'client_profiles', 'person_company_affiliations', 'internal_external_links',
+        'clients',
+        'technology_vendors', 'products', 'owners_developers',
         'constructors', 'operators', 'projects', 'personnel', 'offtakers',
         'contact_log', 'roundtable_history', 'confidential_field_flags',
         'audit_log', 'database_snapshots', 'system_settings', 'schema_version'
@@ -107,13 +122,16 @@ def verify_schema():
         status = "✓" if table in tables else "✗"
         print(f"  {status} {table}")
 
-    print("\nJUNCTION TABLES (10):")
+    print("\nJUNCTION TABLES (15):")
     junction_tables = [
         'vendor_supplier_relationships', 'owner_vendor_relationships',
         'project_vendor_relationships', 'project_constructor_relationships',
         'project_operator_relationships', 'project_owner_relationships',
         'project_offtaker_relationships', 'vendor_preferred_constructor',
-        'personnel_entity_relationships', 'entity_team_members'
+        'personnel_entity_relationships', 'entity_team_members',
+        'client_owner_relationships', 'client_project_relationships',
+        'client_vendor_relationships', 'client_operator_relationships',
+        'client_personnel_relationships'
     ]
     for table in junction_tables:
         status = "✓" if table in tables else "✗"
