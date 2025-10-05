@@ -187,7 +187,7 @@ def register_blueprints(app):
     Args:
         app: Flask application
     """
-    from app.routes import auth, dashboard, vendors, projects, owners, operators, constructors, technologies, offtakers, clients, crm, reports, admin, contact_log, network, personnel
+    from app.routes import auth, dashboard, vendors, projects, owners, operators, constructors, technologies, offtakers, companies, clients, crm, reports, admin, contact_log, network, personnel
 
     app.register_blueprint(auth.bp)
     app.register_blueprint(dashboard.bp)
@@ -196,6 +196,7 @@ def register_blueprints(app):
     app.register_blueprint(owners.bp)
     app.register_blueprint(operators.bp)
     app.register_blueprint(constructors.bp)
+    app.register_blueprint(companies.bp)
     app.register_blueprint(technologies.bp)
     app.register_blueprint(offtakers.bp)
     app.register_blueprint(clients.bp)
