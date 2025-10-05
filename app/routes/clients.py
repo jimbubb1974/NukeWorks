@@ -39,6 +39,7 @@ from app.forms.client_relationships import (
 from flask_wtf import FlaskForm
 from app import db_session
 from app.utils.permissions import admin_required, ned_team_required
+from app.services.company_sync import sync_company_from_client
 
 bp = Blueprint('clients', __name__, url_prefix='/clients')
 
@@ -209,6 +210,8 @@ def create_client():
             )
 
             db_session.add(client)
+            db_session.flush()
+            sync_company_from_client(client, current_user.user_id)
             db_session.commit()
 
             flash(f'Client "{client.client_name}" created successfully', 'success')
@@ -263,6 +266,7 @@ def edit_client(client_id):
             client.modified_by = current_user.user_id
             client.modified_date = datetime.utcnow()
 
+            sync_company_from_client(client, current_user.user_id)
             db_session.commit()
 
             flash(f'Client "{client.client_name}" updated successfully', 'success')

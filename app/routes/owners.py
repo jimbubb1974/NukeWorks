@@ -31,6 +31,7 @@ from app.routes.relationship_utils import (
     get_project_choices,
     get_personnel_choices
 )
+from app.services.company_sync import sync_company_from_owner
 
 bp = Blueprint('owners', __name__, url_prefix='/owners')
 
@@ -84,6 +85,8 @@ def create_owner():
 
         try:
             db_session.add(owner)
+            db_session.flush()
+            sync_company_from_owner(owner, current_user.user_id)
             db_session.commit()
             flash('Owner/Developer created successfully.', 'success')
             return redirect(url_for('owners.view_owner', owner_id=owner.owner_id))
@@ -200,6 +203,7 @@ def edit_owner(owner_id):
         owner.modified_date = datetime.utcnow()
 
         try:
+            sync_company_from_owner(owner, current_user.user_id)
             db_session.commit()
             flash('Owner/Developer updated successfully.', 'success')
             return redirect(url_for('owners.view_owner', owner_id=owner.owner_id))
