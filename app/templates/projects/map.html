@@ -37,6 +37,16 @@
     font-style: italic;
 }
 
+.map-controls .card {
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.map-controls .form-label {
+    font-weight: 500;
+    color: #495057;
+}
+
 @media (max-width: 991.98px) {
     .projects-map-layout {
         flex-direction: column;
@@ -49,6 +59,10 @@
 
     #projectsMap {
         height: 60vh;
+    }
+    
+    .map-controls {
+        margin-bottom: 1rem !important;
     }
 }
 </style>
@@ -73,6 +87,26 @@
 
     <div class="projects-map-layout">
         <div class="projects-map-container">
+            <!-- Map Layer Control -->
+            <div class="map-controls mb-3">
+                <div class="card">
+                    <div class="card-body py-2">
+                        <div class="d-flex align-items-center">
+                            <label for="mapLayerSelect" class="form-label mb-0 me-2">
+                                <i class="bi bi-layers"></i> Map Background:
+                            </label>
+                            <select id="mapLayerSelect" class="form-select form-select-sm" style="max-width: 200px;">
+                                <option value="osm">🗺️ OpenStreetMap</option>
+                                <option value="satellite">🛰️ Satellite</option>
+                                <option value="terrain">🏔️ Terrain</option>
+                                <option value="roads">🛣️ Roads</option>
+                                <option value="dark">🌙 Dark Mode</option>
+                                <option value="light">☀️ Light Mode</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <div id="projectsMap" aria-label="Project locations map"></div>
         </div>
         <div id="projectInfoPanel" class="project-info-panel card">
@@ -134,10 +168,61 @@
         zoomControl: true,
     });
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 18,
-        attribution: '&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
-    }).addTo(map);
+    // Define available tile layers
+    const tileLayers = {
+        osm: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 18,
+            attribution: '&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
+        }),
+        satellite: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+            maxZoom: 18,
+            attribution: '&copy; <a href="https://www.esri.com/">Esri</a>'
+        }),
+        terrain: L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+            maxZoom: 17,
+            attribution: '&copy; <a href="https://opentopomap.org/">OpenTopoMap</a>'
+        }),
+        roads: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 18,
+            attribution: '&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
+        }),
+        dark: L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            maxZoom: 18,
+            attribution: '&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>'
+        }),
+        light: L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+            maxZoom: 18,
+            attribution: '&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>'
+        })
+    };
+
+    // Add default layer
+    let currentLayer = tileLayers.osm;
+    currentLayer.addTo(map);
+
+    // Layer switching functionality
+    const layerSelect = document.getElementById('mapLayerSelect');
+    
+    // Load saved layer preference
+    const savedLayer = localStorage.getItem('nukeworks_map_layer');
+    if (savedLayer && tileLayers[savedLayer]) {
+        layerSelect.value = savedLayer;
+        map.removeLayer(currentLayer);
+        currentLayer = tileLayers[savedLayer];
+        currentLayer.addTo(map);
+    }
+    
+    layerSelect.addEventListener('change', function() {
+        const selectedLayer = this.value;
+        if (tileLayers[selectedLayer]) {
+            map.removeLayer(currentLayer);
+            currentLayer = tileLayers[selectedLayer];
+            currentLayer.addTo(map);
+            
+            // Save preference
+            localStorage.setItem('nukeworks_map_layer', selectedLayer);
+        }
+    });
 
     if (projects.length) {
         const bounds = L.latLngBounds();

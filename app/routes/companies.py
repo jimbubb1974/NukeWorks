@@ -37,6 +37,50 @@ def _assignment_link(assignment: CompanyRoleAssignment) -> str | None:
         return None
 
 
+@bp.route('/create', methods=['GET', 'POST'])
+@login_required
+def create_company():
+    """Create a new company"""
+    if not _can_manage_companies(current_user):
+        flash('You do not have permission to create companies.', 'danger')
+        return redirect(url_for('companies.list_companies'))
+
+    form = CompanyForm()
+    
+    if form.validate_on_submit():
+        try:
+            company = Company(
+                company_name=form.company_name.data,
+                company_type=form.company_type.data or None,
+                sector=form.sector.data or None,
+                website=form.website.data or None,
+                headquarters_country=form.headquarters_country.data or None,
+                headquarters_region=form.headquarters_region.data or None,
+                is_mpr_client=bool(form.is_mpr_client.data),
+                is_internal=bool(form.is_internal.data),
+                notes=form.notes.data or None,
+                created_by=current_user.user_id,
+                modified_by=current_user.user_id,
+                created_date=datetime.utcnow(),
+                modified_date=datetime.utcnow()
+            )
+
+            db_session.add(company)
+            db_session.commit()
+            flash('Company created successfully.', 'success')
+            return redirect(url_for('companies.view_company', company_id=company.company_id))
+        except Exception as exc:
+            db_session.rollback()
+            flash(f'Error creating company: {exc}', 'danger')
+
+    return render_template(
+        'companies/form.html',
+        form=form,
+        company=None,
+        title='Create New Company'
+    )
+
+
 @bp.route('/')
 @login_required
 def list_companies():

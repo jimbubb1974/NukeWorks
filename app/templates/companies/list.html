@@ -6,19 +6,24 @@
 <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h2 class="mb-0"><i class="bi bi-building"></i> Companies</h2>
-        <form method="get" class="d-flex gap-2" role="search">
-            <select name="role" class="form-select form-select-sm" onchange="this.form.submit()">
-                <option value="">All Roles</option>
-                {% for role in roles %}
-                <option value="{{ role.role_code }}" {% if role.role_code == active_role %}selected{% endif %}>
-                    {{ role.role_label }} ({{ role_counts.get(role.role_code, 0) }})
-                </option>
-                {% endfor %}
-            </select>
-            {% if active_role %}
-            <a href="{{ url_for('companies.list_companies') }}" class="btn btn-outline-secondary btn-sm">Clear</a>
-            {% endif %}
-        </form>
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('companies.create_company') }}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Add Company
+            </a>
+            <form method="get" class="d-flex gap-2" role="search">
+                <select name="role" class="form-select form-select-sm" onchange="this.form.submit()">
+                    <option value="">All Roles</option>
+                    {% for role in roles %}
+                    <option value="{{ role.role_code }}" {% if role.role_code == active_role %}selected{% endif %}>
+                        {{ role.role_label }} ({{ role_counts.get(role.role_code, 0) }})
+                    </option>
+                    {% endfor %}
+                </select>
+                {% if active_role %}
+                <a href="{{ url_for('companies.list_companies') }}" class="btn btn-outline-secondary btn-sm">Clear</a>
+                {% endif %}
+            </form>
+        </div>
     </div>
 
     <!-- Statistics Cards -->
