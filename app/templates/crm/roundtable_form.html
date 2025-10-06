@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Add Roundtable Entry: {{ client.client_name }} - NukeWorks{% endblock %}
+{% block title %}Add Roundtable Entry: {{ company.company_name }} - NukeWorks{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
@@ -11,11 +11,11 @@
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item"><a href="{{ url_for('crm.dashboard') }}">CRM Dashboard</a></li>
                     <li class="breadcrumb-item"><a href="{{ url_for('crm.roundtable_meeting') }}">Roundtable Meeting</a></li>
-                    <li class="breadcrumb-item active">{{ client.client_name }}</li>
+                    <li class="breadcrumb-item active">{{ company.company_name }}</li>
                 </ol>
             </nav>
             <h2><i class="bi bi-clipboard-check"></i> Add Roundtable Entry</h2>
-            <h4 class="text-muted">{{ client.client_name }}</h4>
+            <h4 class="text-muted">{{ company.company_name }}</h4>
         </div>
     </div>
 
@@ -128,27 +128,28 @@
 
         <!-- Sidebar with Previous Entries and Help -->
         <div class="col-md-4">
-            <!-- Client Quick Info -->
+            <!-- Company Quick Info -->
             <div class="card mb-3">
                 <div class="card-header">
-                    <h6 class="mb-0"><i class="bi bi-info-circle"></i> Client Information</h6>
+                    <h6 class="mb-0"><i class="bi bi-info-circle"></i> Company Information</h6>
                 </div>
                 <div class="card-body">
+                    {% set profile = company.client_profile %}
                     <dl class="row mb-0">
                         <dt class="col-sm-5">Type:</dt>
-                        <dd class="col-sm-7">{{ client.client_type or '—' }}</dd>
+                        <dd class="col-sm-7">{{ company.company_type or '—' }}</dd>
 
                         <dt class="col-sm-5">Priority:</dt>
-                        <dd class="col-sm-7">{{ client.client_priority or '—' }}</dd>
+                        <dd class="col-sm-7">{{ profile.client_priority if profile else '—' }}</dd>
 
                         <dt class="col-sm-5">Status:</dt>
-                        <dd class="col-sm-7">{{ client.client_status or '—' }}</dd>
+                        <dd class="col-sm-7">{{ profile.client_status if profile else '—' }}</dd>
 
                         <dt class="col-sm-5">MPR POC:</dt>
-                        <dd class="col-sm-7">{{ client.mpr_primary_contact.full_name if client.mpr_primary_contact else '—' }}</dd>
+                        <dd class="col-sm-7">{{ profile.next_planned_contact_assigned_to if profile else '—' }}</dd>
                     </dl>
-                    <a href="{{ url_for('clients.view_client', client_id=client.client_id) }}" class="btn btn-sm btn-outline-secondary w-100 mt-2">
-                        <i class="bi bi-eye"></i> View Full Client Details
+                    <a href="{{ url_for('companies.view_company', company_id=company.company_id) }}" class="btn btn-sm btn-outline-secondary w-100 mt-2">
+                        <i class="bi bi-eye"></i> View Full Company Details
                     </a>
                 </div>
             </div>

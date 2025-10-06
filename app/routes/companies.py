@@ -66,6 +66,28 @@ def create_company():
             )
 
             db_session.add(company)
+            db_session.flush()  # Get the company_id
+
+            # Create ClientProfile if MPR client
+            if company.is_mpr_client:
+                from app.models import ClientProfile
+                client_profile = ClientProfile(
+                    company_id=company.company_id,
+                    client_priority=form.client_priority.data or None,
+                    client_status=form.client_status.data or None,
+                    relationship_strength=form.relationship_strength.data or None,
+                    relationship_notes=form.relationship_notes.data or None,
+                    last_contact_date=form.last_contact_date.data,
+                    last_contact_type=form.last_contact_type.data or None,
+                    next_planned_contact_date=form.next_planned_contact_date.data,
+                    next_planned_contact_type=form.next_planned_contact_type.data or None,
+                    created_by=current_user.user_id,
+                    modified_by=current_user.user_id,
+                    created_date=datetime.utcnow(),
+                    modified_date=datetime.utcnow()
+                )
+                db_session.add(client_profile)
+
             db_session.commit()
             flash('Company created successfully.', 'success')
             return redirect(url_for('companies.view_company', company_id=company.company_id))
@@ -170,10 +192,32 @@ def view_company(company_id):
     ).options(joinedload(CompanyRoleAssignment.role)).all()
     
     # Get external personnel linked to this company
-    from app.models import ExternalPersonnel
+    from app.models import ExternalPersonnel, PersonnelRelationship, InternalPersonnel
     personnel = db_session.query(ExternalPersonnel).filter_by(
         company_id=company_id
     ).order_by(ExternalPersonnel.full_name).all()
+    
+    # Get MPR connections for each external personnel
+    personnel_with_connections = []
+    for person in personnel:
+        # Get internal personnel relationships for this external person
+        relationships = db_session.query(PersonnelRelationship).filter_by(
+            external_personnel_id=person.personnel_id
+        ).options(joinedload(PersonnelRelationship.internal_personnel)).all()
+        
+        # Create connections with relationship info
+        mpr_connections = []
+        for rel in relationships:
+            mpr_connections.append({
+                'personnel': rel.internal_personnel,
+                'relationship_type': rel.relationship_type,
+                'is_primary': rel.relationship_type == 'Primary Contact' if rel.relationship_type else False
+            })
+        
+        personnel_with_connections.append({
+            'person': person,
+            'mpr_connections': mpr_connections
+        })
     
     # Get all external personnel for the dropdown (excluding those already linked)
     all_personnel = db_session.query(ExternalPersonnel).filter(
@@ -188,6 +232,7 @@ def view_company(company_id):
         company=company,
         role_assignments=role_assignments,
         personnel=personnel,
+        personnel_with_connections=personnel_with_connections,
         all_personnel=all_personnel,
         can_manage=can_manage,
         delete_form=delete_form
@@ -204,10 +249,23 @@ def edit_company(company_id):
         flash('You do not have permission to edit companies.', 'danger')
         return redirect(url_for('companies.view_company', company_id=company_id))
 
+    # Populate form with existing data including ClientProfile
     form = CompanyForm(obj=company)
+    
+    # Populate MPR client fields from ClientProfile if it exists
+    if company.client_profile:
+        form.client_priority.data = company.client_profile.client_priority
+        form.client_status.data = company.client_profile.client_status
+        form.relationship_strength.data = company.client_profile.relationship_strength
+        form.relationship_notes.data = company.client_profile.relationship_notes
+        form.last_contact_date.data = company.client_profile.last_contact_date
+        form.last_contact_type.data = company.client_profile.last_contact_type
+        form.next_planned_contact_date.data = company.client_profile.next_planned_contact_date
+        form.next_planned_contact_type.data = company.client_profile.next_planned_contact_type
     
     if form.validate_on_submit():
         try:
+            # Update basic company fields
             company.company_name = form.company_name.data
             company.company_type = form.company_type.data or None
             company.sector = form.sector.data or None
@@ -219,6 +277,31 @@ def edit_company(company_id):
             company.notes = form.notes.data or None
             company.modified_by = current_user.user_id
             company.modified_date = datetime.utcnow()
+
+            # Handle MPR client CRM data
+            if company.is_mpr_client:
+                # Create or update ClientProfile
+                from app.models import ClientProfile
+                client_profile = company.client_profile
+                if not client_profile:
+                    client_profile = ClientProfile(company_id=company.company_id)
+                    db_session.add(client_profile)
+                
+                # Update CRM fields
+                client_profile.client_priority = form.client_priority.data or None
+                client_profile.client_status = form.client_status.data or None
+                client_profile.relationship_strength = form.relationship_strength.data or None
+                client_profile.relationship_notes = form.relationship_notes.data or None
+                client_profile.last_contact_date = form.last_contact_date.data
+                client_profile.last_contact_type = form.last_contact_type.data or None
+                client_profile.next_planned_contact_date = form.next_planned_contact_date.data
+                client_profile.next_planned_contact_type = form.next_planned_contact_type.data or None
+                client_profile.modified_by = current_user.user_id
+                client_profile.modified_date = datetime.utcnow()
+            else:
+                # Remove ClientProfile if MPR client flag is turned off
+                if company.client_profile:
+                    db_session.delete(company.client_profile)
 
             db_session.commit()
             flash('Company updated successfully.', 'success')
@@ -336,3 +419,36 @@ def unlink_personnel_from_company(company_id, personnel_id):
         flash(f'Error unlinking personnel: {exc}', 'danger')
     
     return redirect(url_for('companies.view_company', company_id=company_id))
+
+
+@bp.route('/<int:company_id>/toggle-mpr', methods=['POST'])
+@login_required
+def toggle_mpr_client(company_id):
+    """Toggle MPR client status for a company"""
+    company = _get_company_or_404(company_id)
+    
+    if not _can_manage_companies(current_user):
+        return {'success': False, 'message': 'You do not have permission to modify companies.'}, 403
+    
+    try:
+        # Toggle the MPR client status
+        company.is_mpr_client = not company.is_mpr_client
+        company.modified_by = current_user.user_id
+        company.modified_date = datetime.utcnow()
+        
+        db_session.commit()
+        
+        status_text = 'Yes' if company.is_mpr_client else 'No'
+        badge_class = 'bg-success' if company.is_mpr_client else 'bg-secondary'
+        
+        return {
+            'success': True,
+            'is_mpr_client': company.is_mpr_client,
+            'status_text': status_text,
+            'badge_class': badge_class,
+            'message': f'{company.company_name} is now {"an" if company.is_mpr_client else "not an"} MPR client.'
+        }
+        
+    except Exception as exc:
+        db_session.rollback()
+        return {'success': False, 'message': f'Error updating MPR client status: {exc}'}, 500

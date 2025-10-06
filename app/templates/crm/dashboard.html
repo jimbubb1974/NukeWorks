@@ -74,67 +74,73 @@
         </div>
     </div>
 
-    <!-- All Clients Table -->
+    <!-- MPR Companies with CRM Data -->
     <div class="row mb-4">
         <div class="col-12">
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0"><i class="bi bi-people"></i> All Clients ({{ clients|length }})</h5>
-                    <a href="{{ url_for('clients.list_clients') }}" class="btn btn-sm btn-outline-primary">
-                        View Full Client List
+                    <h5 class="mb-0"><i class="bi bi-people"></i> MPR Clients ({{ mpr_companies|length }})</h5>
+                    <a href="{{ url_for('companies.list_companies') }}" class="btn btn-sm btn-outline-primary">
+                        View All Companies
                     </a>
                 </div>
                 <div class="card-body p-0">
-                    {% if clients %}
+                    {% if mpr_companies %}
                     <div class="table-responsive">
                         <table class="table table-hover mb-0">
                             <thead class="table-light">
                                 <tr>
-                                    <th>Client</th>
-                                    <th>Priority</th>
-                                    <th>Status</th>
-                                    <th>MPR POC</th>
-                                    <th>Next Contact</th>
+                                    <th>
+                                        <a href="{{ url_for('crm.dashboard', sort='company_name', order=('desc' if sort_by == 'company_name' and sort_order == 'asc' else 'asc'), priority=priority_filter, status=status_filter, poc=poc_filter) }}" class="text-decoration-none text-dark">
+                                            Company
+                                            {% if sort_by == 'company_name' %}
+                                                <i class="bi bi-arrow-{% if sort_order == 'asc' %}up{% else %}down{% endif %}"></i>
+                                            {% endif %}
+                                        </a>
+                                    </th>
+                                    <th>
+                                        <a href="{{ url_for('crm.dashboard', sort='priority', order=('desc' if sort_by == 'priority' and sort_order == 'asc' else 'asc'), priority=priority_filter, status=status_filter, poc=poc_filter) }}" class="text-decoration-none text-dark">
+                                            Priority
+                                            {% if sort_by == 'priority' %}
+                                                <i class="bi bi-arrow-{% if sort_order == 'asc' %}up{% else %}down{% endif %}"></i>
+                                            {% endif %}
+                                        </a>
+                                    </th>
                                     <th class="text-end">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {% for client in clients %}
+                                {% for company in mpr_companies %}
+                                {% set profile = company.client_profile %}
                                 <tr>
                                     <td>
-                                        <strong><a href="{{ url_for('clients.view_client', client_id=client.client_id) }}">{{ client.client_name }}</a></strong>
-                                        {% if client.client_type %}<br><small class="text-muted">{{ client.client_type }}</small>{% endif %}
+                                        <strong><a href="{{ url_for('companies.view_company', company_id=company.company_id) }}">{{ company.company_name }}</a></strong>
+                                        {% if company.company_type %}<br><small class="text-muted">{{ company.company_type }}</small>{% endif %}
+                                        {% if not profile %}
+                                        <br><small class="text-warning"><i class="bi bi-exclamation-triangle"></i> No CRM data yet</small>
+                                        {% endif %}
                                     </td>
                                     <td>
-                                        {% if client.client_priority %}
-                                            <span class="badge bg-{% if client.client_priority in ['Strategic', 'High'] %}danger{% elif client.client_priority == 'Medium' %}warning{% else %}secondary{% endif %}">
-                                                {{ client.client_priority }}
+                                        {% if profile and profile.client_priority %}
+                                            <span class="badge bg-{% if profile.client_priority in ['Strategic', 'High'] %}danger{% elif profile.client_priority == 'Medium' %}warning{% else %}secondary{% endif %}">
+                                                {{ profile.client_priority }}
                                             </span>
-                                        {% else %}—{% endif %}
-                                    </td>
-                                    <td>
-                                        {% if client.client_status %}
-                                            <span class="badge bg-{% if client.client_status == 'Active' %}success{% elif client.client_status == 'Warm' %}info{% else %}secondary{% endif %}">
-                                                {{ client.client_status }}
-                                            </span>
-                                        {% else %}—{% endif %}
-                                    </td>
-                                    <td>
-                                        {% if client.mpr_primary_contact %}
-                                            <a href="{{ url_for('crm.clients_by_poc', personnel_id=client.mpr_primary_poc) }}">
-                                                {{ client.mpr_primary_contact.full_name }}
-                                            </a>
-                                        {% else %}—{% endif %}
-                                    </td>
-                                    <td>
-                                        {% if client.next_planned_contact_date %}
-                                            {{ client.next_planned_contact_date.strftime('%Y-%m-%d') }}
-                                        {% else %}—{% endif %}
+                                        {% else %}
+                                            <span class="text-muted">—</span>
+                                        {% endif %}
                                     </td>
                                     <td class="text-end">
-                                        <a href="{{ url_for('clients.view_client', client_id=client.client_id) }}" class="btn btn-sm btn-outline-primary" title="View">
+                                        <a href="{{ url_for('companies.view_company', company_id=company.company_id) }}" class="btn btn-sm btn-outline-primary" title="View">
                                             <i class="bi bi-eye"></i>
                                         </a>
+                                        <a href="{{ url_for('companies.edit_company', company_id=company.company_id) }}" class="btn btn-sm btn-outline-secondary" title="Edit">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        {% if not profile %}
+                                        <span class="badge bg-warning ms-1" title="Add CRM data to track this client">
+                                            <i class="bi bi-plus-circle"></i> Add CRM
+                                        </span>
+                                        {% endif %}
                                     </td>
                                 </tr>
                                 {% endfor %}
@@ -143,7 +149,7 @@
                     </div>
                     {% else %}
                     <div class="p-3 text-muted">
-                        No clients match the current filters.
+                        No MPR clients match the current filters.
                     </div>
                     {% endif %}
                 </div>
@@ -165,14 +171,14 @@
                     {% if recent_roundtables %}
                     <div class="list-group">
                         {% for entry in recent_roundtables %}
-                        {% set client = roundtable_clients.get(entry.entity_id) %}
+                        {% set company = roundtable_companies.get(entry.entity_id) %}
                         <div class="list-group-item">
                             <div class="d-flex justify-content-between">
                                 <h6 class="mb-1">
-                                    {% if client %}
-                                    <a href="{{ url_for('clients.view_client', client_id=client.client_id) }}">{{ client.client_name }}</a>
+                                    {% if company %}
+                                    <a href="{{ url_for('companies.view_company', company_id=company.company_id) }}">{{ company.company_name }}</a>
                                     {% else %}
-                                    Unknown Client
+                                    Unknown Company
                                     {% endif %}
                                 </h6>
                                 <small>{{ entry.meeting_date.strftime('%B %d, %Y') }}</small>

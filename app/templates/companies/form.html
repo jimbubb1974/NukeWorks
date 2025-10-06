@@ -95,6 +95,81 @@
                         {% endif %}
                     </div>
 
+                    <!-- MPR Client CRM Fields (shown only when MPR Client is checked) -->
+                    <div id="mprClientFields" class="mt-4" style="display: none;">
+                        <hr>
+                        <h5 class="mb-3"><i class="bi bi-people-fill"></i> MPR Client CRM Data</h5>
+                        
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                {{ form.client_priority.label(class='form-label') }}
+                                {{ form.client_priority(class='form-select') }}
+                                {% if form.client_priority.errors %}
+                                    <div class="text-danger small">{{ form.client_priority.errors[0] }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.client_status.label(class='form-label') }}
+                                {{ form.client_status(class='form-select') }}
+                                {% if form.client_status.errors %}
+                                    <div class="text-danger small">{{ form.client_status.errors[0] }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mt-2">
+                            <div class="col-md-6">
+                                {{ form.relationship_strength.label(class='form-label') }}
+                                {{ form.relationship_strength(class='form-select') }}
+                                {% if form.relationship_strength.errors %}
+                                    <div class="text-danger small">{{ form.relationship_strength.errors[0] }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.last_contact_type.label(class='form-label') }}
+                                {{ form.last_contact_type(class='form-select') }}
+                                {% if form.last_contact_type.errors %}
+                                    <div class="text-danger small">{{ form.last_contact_type.errors[0] }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mt-2">
+                            <div class="col-md-6">
+                                {{ form.last_contact_date.label(class='form-label') }}
+                                {{ form.last_contact_date(class='form-control') }}
+                                {% if form.last_contact_date.errors %}
+                                    <div class="text-danger small">{{ form.last_contact_date.errors[0] }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.next_planned_contact_date.label(class='form-label') }}
+                                {{ form.next_planned_contact_date(class='form-control') }}
+                                {% if form.next_planned_contact_date.errors %}
+                                    <div class="text-danger small">{{ form.next_planned_contact_date.errors[0] }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mt-2">
+                            <div class="col-md-6">
+                                {{ form.next_planned_contact_type.label(class='form-label') }}
+                                {{ form.next_planned_contact_type(class='form-select') }}
+                                {% if form.next_planned_contact_type.errors %}
+                                    <div class="text-danger small">{{ form.next_planned_contact_type.errors[0] }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="mb-3 mt-3">
+                            {{ form.relationship_notes.label(class='form-label') }}
+                            {{ form.relationship_notes(class='form-control') }}
+                            {% if form.relationship_notes.errors %}
+                                <div class="text-danger small">{{ form.relationship_notes.errors[0] }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
                     <div class="d-flex justify-content-end gap-2">
                         <a href="{{ url_for('companies.list_companies') }}" class="btn btn-outline-secondary">Cancel</a>
                         {{ form.submit(class='btn btn-primary') }}
@@ -104,4 +179,28 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const mprClientSwitch = document.getElementById('mprClientSwitch');
+    const mprClientFields = document.getElementById('mprClientFields');
+    
+    // Function to toggle MPR client fields visibility
+    function toggleMprFields() {
+        if (mprClientSwitch.checked) {
+            mprClientFields.style.display = 'block';
+        } else {
+            mprClientFields.style.display = 'none';
+        }
+    }
+    
+    // Initial state
+    toggleMprFields();
+    
+    // Add event listener
+    mprClientSwitch.addEventListener('change', toggleMprFields);
+});
+</script>
 {% endblock %}

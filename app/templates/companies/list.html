@@ -2,6 +2,53 @@
 
 {% block title %}Companies - NukeWorks{% endblock %}
 
+{% block extra_css %}
+<style>
+.mpr-client-badge {
+    transition: all 0.2s ease;
+}
+
+.mpr-client-badge:hover {
+    transform: scale(1.05);
+    opacity: 0.8;
+}
+
+.cursor-pointer {
+    cursor: pointer !important;
+}
+
+.mpr-client-badge {
+    color: white !important;
+}
+
+.mpr-client-badge.bg-success {
+    background-color: #198754 !important;
+    color: white !important;
+}
+
+.mpr-client-badge.bg-secondary {
+    background-color: #6c757d !important;
+    color: white !important;
+}
+
+.mpr-client-badge.bg-warning {
+    background-color: #ffc107 !important;
+    color: #000 !important;
+}
+
+/* Override Bootstrap badge default colors */
+.badge.bg-secondary {
+    background-color: #6c757d !important;
+    color: white !important;
+}
+
+.badge.bg-success {
+    background-color: #198754 !important;
+    color: white !important;
+}
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center mb-3">
@@ -131,11 +178,18 @@
                                 {% endif %}
                             </td>
                             <td>
-                                {% if company.is_mpr_client %}
-                                <span class="badge bg-success">Yes</span>
-                                {% else %}
-                                <span class="badge bg-secondary">No</span>
-                                {% endif %}
+                                <span class="badge mpr-client-badge cursor-pointer {% if company.is_mpr_client %}bg-success{% else %}bg-secondary{% endif %}" 
+                                      data-company-id="{{ company.company_id }}"
+                                      data-is-mpr="{{ company.is_mpr_client|lower }}"
+                                      onclick="toggleMprClient({{ company.company_id }})"
+                                      style="cursor: pointer;"
+                                      title="Click to toggle MPR client status">
+                                    {% if company.is_mpr_client %}
+                                    <i class="bi bi-check-circle"></i> Yes
+                                    {% else %}
+                                    <i class="bi bi-x-circle"></i> No
+                                    {% endif %}
+                                </span>
                             </td>
                             <td class="text-end">
                                 <a href="{{ url_for('companies.view_company', company_id=company.company_id) }}" class="btn btn-sm btn-outline-primary" title="View">
@@ -159,4 +213,81 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function toggleMprClient(companyId) {
+    const badge = document.querySelector(`[data-company-id="${companyId}"]`);
+    const originalText = badge.innerHTML;
+    
+    // Show loading state
+    badge.innerHTML = '<i class="bi bi-hourglass-split"></i> Updating...';
+    badge.classList.add('bg-warning');
+    badge.classList.remove('bg-success', 'bg-secondary');
+    
+    // Make AJAX request
+    fetch(`/companies/${companyId}/toggle-mpr`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('meta[name=csrf-token]')?.getAttribute('content') || ''
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Update badge appearance
+            badge.classList.remove('bg-warning');
+            badge.classList.add(data.badge_class);
+            
+            // Update content
+            const icon = data.is_mpr_client ? 'bi-check-circle' : 'bi-x-circle';
+            badge.innerHTML = `<i class="bi ${icon}"></i> ${data.status_text}`;
+            
+            // Update data attribute
+            badge.setAttribute('data-is-mpr', data.is_mpr_client.toString());
+            
+            // Show success message
+            showToast(data.message, 'success');
+        } else {
+            // Restore original state on error
+            badge.innerHTML = originalText;
+            badge.classList.remove('bg-warning');
+            badge.classList.add(data.is_mpr_client ? 'bg-success' : 'bg-secondary');
+            
+            showToast(data.message || 'Error updating MPR client status', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        // Restore original state
+        badge.innerHTML = originalText;
+        badge.classList.remove('bg-warning');
+        badge.classList.add(badge.getAttribute('data-is-mpr') === 'true' ? 'bg-success' : 'bg-secondary');
+        
+        showToast('Network error. Please try again.', 'error');
+    });
+}
+
+function showToast(message, type) {
+    // Create toast element
+    const toast = document.createElement('div');
+    toast.className = `alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible fade show position-fixed`;
+    toast.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+    toast.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    document.body.appendChild(toast);
+    
+    // Auto-remove after 5 seconds
+    setTimeout(() => {
+        if (toast.parentNode) {
+            toast.parentNode.removeChild(toast);
+        }
+    }, 5000);
+}
+</script>
 {% endblock %}
