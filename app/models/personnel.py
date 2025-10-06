@@ -31,7 +31,6 @@ class Personnel(Base, TimestampMixin):
 
     # For external contacts - link to organization
     organization_id = Column(Integer)  # Generic ID (no FK constraint - polymorphic)
-    organization_type = Column(Text)  # Owner, Vendor, Constructor, Operator
 
     # Status and Notes
     is_active = Column(Boolean, default=True, nullable=False)
@@ -82,7 +81,6 @@ class Personnel(Base, TimestampMixin):
             'role': self.role,
             'personnel_type': self.personnel_type,
             'organization_id': self.organization_id,
-            'organization_type': self.organization_type,
             'is_active': self.is_active,
             'notes': self.notes,
             'created_date': self.created_date.isoformat() if self.created_date else None,

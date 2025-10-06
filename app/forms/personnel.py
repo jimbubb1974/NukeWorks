@@ -27,31 +27,14 @@ class PersonnelForm(FlaskForm):
         validators=[Optional(), Length(max=255)]
     )
 
-    personnel_type = SelectField(
-        'Personnel Type',
-        choices=[
-            ('Internal', 'Internal (MPR)'),
-            ('Client_Contact', 'Client Contact'),
-            ('Vendor_Contact', 'Vendor Contact'),
-            ('Constructor_Contact', 'Constructor Contact'),
-            ('Operator_Contact', 'Operator Contact'),
-            ('Other', 'Other'),
-        ],
-        validators=[DataRequired(message='Select a personnel type')]
-    )
+    # Removed personnel_type field - not needed with new schema
 
-    organization_type = SelectField(
-        'Organization Type',
-        choices=[
-            ('', 'None / Internal'),
-            ('Owner', 'Owner / Developer'),
-            ('Vendor', 'Technology Vendor'),
-            ('Operator', 'Operator'),
-            ('Constructor', 'Constructor'),
-            ('Offtaker', 'Off-taker'),
-            ('Client', 'Client'),
-            ('Other', 'Other'),
-        ],
+    # Removed organization_type field - relationships are managed through relationship logic
+
+    company_id = SelectField(
+        'Company',
+        coerce=int,
+        choices=[],
         validators=[Optional()]
     )
 

@@ -1,13 +1,16 @@
 """Unified company views."""
 from collections import defaultdict
 
-from flask import Blueprint, render_template, request, url_for
-from flask_login import login_required
+from flask import Blueprint, render_template, request, url_for, redirect, flash, abort
+from flask_login import login_required, current_user
 from sqlalchemy.orm import joinedload
 from werkzeug.routing import BuildError
+from datetime import datetime
 
 from app import db_session
 from app.models import Company, CompanyRole, CompanyRoleAssignment
+from app.forms.companies import CompanyForm
+from app.forms.relationships import ConfirmActionForm
 
 bp = Blueprint('companies', __name__, url_prefix='/companies')
 
@@ -95,3 +98,107 @@ def list_companies():
         role_counts=role_counts,
         total_companies=total_companies,
     )
+
+
+def _get_company_or_404(company_id: int) -> Company:
+    """Return company or abort with 404"""
+    company = db_session.get(Company, company_id)
+    if not company:
+        flash('Company not found', 'error')
+        abort(404)
+    return company
+
+
+def _can_manage_companies(user) -> bool:
+    """Check if user can manage companies"""
+    return bool(user and (user.is_admin or getattr(user, 'is_ned_team', False)))
+
+
+@bp.route('/<int:company_id>')
+@login_required
+def view_company(company_id):
+    """View company details"""
+    company = _get_company_or_404(company_id)
+    
+    # Get role assignments for this company
+    role_assignments = db_session.query(CompanyRoleAssignment).filter_by(
+        company_id=company_id
+    ).options(joinedload(CompanyRoleAssignment.role)).all()
+    
+    can_manage = _can_manage_companies(current_user)
+    delete_form = ConfirmActionForm()
+    
+    return render_template(
+        'companies/detail.html',
+        company=company,
+        role_assignments=role_assignments,
+        can_manage=can_manage,
+        delete_form=delete_form
+    )
+
+
+@bp.route('/<int:company_id>/edit', methods=['GET', 'POST'])
+@login_required
+def edit_company(company_id):
+    """Edit company details"""
+    company = _get_company_or_404(company_id)
+    
+    if not _can_manage_companies(current_user):
+        flash('You do not have permission to edit companies.', 'danger')
+        return redirect(url_for('companies.view_company', company_id=company_id))
+
+    form = CompanyForm(obj=company)
+    
+    if form.validate_on_submit():
+        try:
+            company.company_name = form.company_name.data
+            company.company_type = form.company_type.data or None
+            company.sector = form.sector.data or None
+            company.website = form.website.data or None
+            company.headquarters_country = form.headquarters_country.data or None
+            company.headquarters_region = form.headquarters_region.data or None
+            company.is_mpr_client = bool(form.is_mpr_client.data)
+            company.is_internal = bool(form.is_internal.data)
+            company.notes = form.notes.data or None
+            company.modified_by = current_user.user_id
+            company.modified_date = datetime.utcnow()
+
+            db_session.commit()
+            flash('Company updated successfully.', 'success')
+            return redirect(url_for('companies.view_company', company_id=company.company_id))
+        except Exception as exc:
+            db_session.rollback()
+            flash(f'Error updating company: {exc}', 'danger')
+
+    return render_template(
+        'companies/form.html',
+        form=form,
+        company=company,
+        title=f'Edit Company: {company.company_name}'
+    )
+
+
+@bp.route('/<int:company_id>/delete', methods=['POST'])
+@login_required
+def delete_company(company_id):
+    """Delete a company"""
+    company = _get_company_or_404(company_id)
+    
+    if not _can_manage_companies(current_user):
+        flash('You do not have permission to delete companies.', 'danger')
+        return redirect(url_for('companies.view_company', company_id=company_id))
+
+    form = ConfirmActionForm()
+    if not form.validate_on_submit():
+        flash('Action not confirmed.', 'warning')
+        return redirect(url_for('companies.view_company', company_id=company_id))
+
+    try:
+        db_session.delete(company)
+        db_session.commit()
+        flash('Company deleted successfully.', 'success')
+        return redirect(url_for('companies.list_companies'))
+    except Exception as exc:
+        db_session.rollback()
+        flash(f'Error deleting company: {exc}', 'danger')
+        return redirect(url_for('companies.view_company', company_id=company_id))

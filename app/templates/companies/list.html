@@ -98,7 +98,7 @@
                             <th>MPR Client</th>
                             <th>Internal</th>
                             <th>Created</th>
-                            <th class="text-end">Links</th>
+                            <th class="text-end">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -143,18 +143,15 @@
                             </td>
                             <td>{{ company.created_date.strftime('%Y-%m-%d') if company.created_date else '—' }}</td>
                             <td class="text-end">
-                                {% set links = assignments_map.get(company.company_id, []) %}
-                                {% if links %}
-                                    {% for link in links %}
-                                        {% if link.url %}
-                                        <a href="{{ link.url }}" class="btn btn-sm btn-outline-primary mb-1">{{ link.role_label }}</a>
-                                        {% else %}
-                                        <span class="badge bg-light text-dark border mb-1">{{ link.role_label }}</span>
-                                        {% endif %}
-                                    {% endfor %}
-                                {% else %}
-                                    <span class="text-muted">No linked records</span>
-                                {% endif %}
+                                <a href="{{ url_for('companies.view_company', company_id=company.company_id) }}" class="btn btn-sm btn-outline-primary" title="View">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <a href="{{ url_for('companies.edit_company', company_id=company.company_id) }}" class="btn btn-sm btn-outline-secondary" title="Edit">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <a href="{{ url_for('companies.delete_company', company_id=company.company_id) }}" class="btn btn-sm btn-outline-danger" title="Delete">
+                                    <i class="bi bi-trash"></i>
+                                </a>
                             </td>
                         </tr>
                         {% endfor %}

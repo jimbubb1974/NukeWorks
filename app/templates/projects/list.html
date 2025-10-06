@@ -37,8 +37,15 @@
                     <td>{{ project.location or 'N/A' }}</td>
                     <td>{{ project.project_status or 'N/A' }}</td>
                     <td>{% if project.target_cod %}{{ project.target_cod.strftime('%Y-%m-%d') }}{% else %}—{% endif %}</td>
-                    <td>
-                        <a href="{{ url_for('projects.view_project', project_id=project.project_id) }}" class="btn btn-sm btn-primary">View</a>
+                    <td class="text-end">
+                        <a href="{{ url_for('projects.view_project', project_id=project.project_id) }}" class="btn btn-sm btn-outline-primary" title="View">
+                            <i class="bi bi-eye"></i>
+                        </a>
+                        {% if can_manage %}
+                        <a href="{{ url_for('projects.edit_project', project_id=project.project_id) }}" class="btn btn-sm btn-outline-secondary" title="Edit">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                        {% endif %}
                     </td>
                 </tr>
                 {% endfor %}

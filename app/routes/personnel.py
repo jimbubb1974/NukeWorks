@@ -171,16 +171,14 @@ def list_personnel():
 @login_required
 def create_personnel():
     """Create a new personnel record."""
-    form = PersonnelForm()
+    from app.models import Company
+    
+    # Get company choices
+    companies = db_session.query(Company).order_by(Company.company_name).all()
+    company_choices = [(0, '-- Select Company --')] + [(company.company_id, company.company_name) for company in companies]
 
-    # Pre-populate personnel type if provided via querystring on initial load
-    default_type = request.args.get('personnel_type')
-    if request.method == 'GET' and default_type:
-        valid_types = {choice[0] for choice in form.personnel_type.choices}
-        if default_type in valid_types:
-            form.personnel_type.data = default_type
-            if default_type == 'Internal':
-                form.organization_type.data = ''
+    form = PersonnelForm()
+    form.company_id.choices = company_choices
 
     if form.validate_on_submit():
         person = Personnel(
@@ -188,8 +186,7 @@ def create_personnel():
             email=form.email.data or None,
             phone=form.phone.data or None,
             role=form.role.data or None,
-            personnel_type=form.personnel_type.data,
-            organization_type=form.organization_type.data or None,
+            organization_id=form.company_id.data if form.company_id.data else None,
             is_active=bool(form.is_active.data),
             notes=form.notes.data or None,
             created_by=current_user.user_id,
@@ -208,19 +205,30 @@ def create_personnel():
 @login_required
 def edit_personnel(personnel_id: int):
     """Edit a personnel record."""
+    from app.models import Company
+    
     person = db_session.get(Personnel, personnel_id)
     if not person:
         flash('Personnel record not found.', 'error')
         return redirect(url_for('personnel.list_personnel'))
 
+    # Get company choices
+    companies = db_session.query(Company).order_by(Company.company_name).all()
+    company_choices = [(0, '-- Select Company --')] + [(company.company_id, company.company_name) for company in companies]
+
     form = PersonnelForm(obj=person)
+    form.company_id.choices = company_choices
+    
+    # Set current company if person has organization_id
+    if person.organization_id:
+        form.company_id.data = person.organization_id
+
     if form.validate_on_submit():
         person.full_name = form.full_name.data
         person.email = form.email.data or None
         person.phone = form.phone.data or None
         person.role = form.role.data or None
-        person.personnel_type = form.personnel_type.data
-        person.organization_type = form.organization_type.data or None
+        person.organization_id = form.company_id.data if form.company_id.data else None
         person.is_active = bool(form.is_active.data)
         person.notes = form.notes.data or None
         person.modified_by = current_user.user_id

@@ -46,9 +46,16 @@
                         <td>{{ product.design_status or '—' }}</td>
                         <td>{{ product.mpr_project_ids or '—' }}</td>
                         <td class="text-end">
-                            <a href="{{ url_for('technologies.view_technology', product_id=product.product_id) }}" class="btn btn-sm btn-outline-primary">View</a>
+                            <a href="{{ url_for('technologies.view_technology', product_id=product.product_id) }}" class="btn btn-sm btn-outline-primary" title="View">
+                                <i class="bi bi-eye"></i>
+                            </a>
                             {% if can_manage %}
-                            <a href="{{ url_for('technologies.edit_technology', product_id=product.product_id) }}" class="btn btn-sm btn-outline-secondary">Edit</a>
+                            <a href="{{ url_for('technologies.edit_technology', product_id=product.product_id) }}" class="btn btn-sm btn-outline-secondary" title="Edit">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <a href="{{ url_for('technologies.delete_technology', product_id=product.product_id) }}" class="btn btn-sm btn-outline-danger" title="Delete">
+                                <i class="bi bi-trash"></i>
+                            </a>
                             {% endif %}
                         </td>
                     </tr>

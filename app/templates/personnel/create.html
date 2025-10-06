@@ -54,18 +54,11 @@
                     </div>
 
                     <div class="row g-3 mt-1">
-                        <div class="col-md-6">
-                            {{ form.personnel_type.label(class='form-label') }}
-                            {{ form.personnel_type(class='form-select') }}
-                            {% if form.personnel_type.errors %}
-                                <div class="text-danger small">{{ form.personnel_type.errors[0] }}</div>
-                            {% endif %}
-                        </div>
-                        <div class="col-md-6">
-                            {{ form.organization_type.label(class='form-label') }}
-                            {{ form.organization_type(class='form-select') }}
-                            {% if form.organization_type.errors %}
-                                <div class="text-danger small">{{ form.organization_type.errors[0] }}</div>
+                        <div class="col-md-12">
+                            {{ form.company_id.label(class='form-label') }}
+                            {{ form.company_id(class='form-select') }}
+                            {% if form.company_id.errors %}
+                                <div class="text-danger small">{{ form.company_id.errors[0] }}</div>
                             {% endif %}
                         </div>
                     </div>
