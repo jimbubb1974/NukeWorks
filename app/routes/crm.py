@@ -5,6 +5,7 @@ NED Team only - for roundtable meetings and client management
 from flask import Blueprint, render_template, request, redirect, url_for, flash, abort
 from flask_login import login_required, current_user
 from sqlalchemy import func, or_, and_, case
+from sqlalchemy.orm import joinedload
 from datetime import datetime, timedelta, date
 
 from app.models import (
@@ -37,8 +38,8 @@ def dashboard():
     priority_filter = request.args.get('priority', '')
     status_filter = request.args.get('status', '')
     poc_filter = request.args.get('poc', '')
-    sort_by = request.args.get('sort', 'company_name')
-    sort_order = request.args.get('order', 'asc')
+    sort_by = request.args.get('sort_by', 'company_name')
+    sort_order = request.args.get('sort_order', 'asc')
 
     # Get MPR clients from Company model (all MPR clients, with or without ClientProfile)
     query = db_session.query(Company).filter(
@@ -87,6 +88,47 @@ def dashboard():
     # Get all MPR companies (with optional profiles)
     mpr_companies = query.all()
 
+    # Get detailed data for each company
+    companies_with_details = []
+    for company in mpr_companies:
+        # Get external personnel for this company
+        from app.models import ExternalPersonnel, PersonnelRelationship, InternalPersonnel
+        external_personnel = db_session.query(ExternalPersonnel).filter_by(
+            company_id=company.company_id
+        ).order_by(ExternalPersonnel.full_name).all()
+        
+        # Get MPR connections for each external personnel
+        personnel_with_connections = []
+        for person in external_personnel:
+            relationships = db_session.query(PersonnelRelationship).filter_by(
+                external_personnel_id=person.personnel_id
+            ).options(joinedload(PersonnelRelationship.internal_personnel)).all()
+            
+            mpr_connections = []
+            for rel in relationships:
+                mpr_connections.append({
+                    'personnel': rel.internal_personnel,
+                    'relationship_type': rel.relationship_type,
+                    'is_primary': rel.relationship_type == 'Primary Contact' if rel.relationship_type else False
+                })
+            
+            personnel_with_connections.append({
+                'person': person,
+                'mpr_connections': mpr_connections
+            })
+        
+        # Get recent roundtable entries for this company
+        recent_roundtables = db_session.query(RoundtableHistory).filter(
+            RoundtableHistory.entity_type == 'Company',
+            RoundtableHistory.entity_id == company.company_id
+        ).order_by(RoundtableHistory.meeting_date.desc()).limit(3).all()
+        
+        companies_with_details.append({
+            'company': company,
+            'personnel_with_connections': personnel_with_connections,
+            'recent_roundtables': recent_roundtables
+        })
+
     # Get MPR personnel for filter dropdown
     mpr_personnel = db_session.query(Personnel).filter(
         Personnel.personnel_type == 'Internal',
@@ -120,6 +162,7 @@ def dashboard():
     return render_template(
         'crm/dashboard.html',
         mpr_companies=mpr_companies,
+        companies_with_details=companies_with_details,
         mpr_personnel=mpr_personnel,
         recent_roundtables=recent_roundtables,
         roundtable_companies=roundtable_companies,

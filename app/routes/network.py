@@ -93,12 +93,14 @@ def _get_project_relationships(project_id):
                 'id': rel.vendor.vendor_id,
                 'name': rel.vendor.vendor_name
             })
-            # Get all products from this vendor
-            for product in rel.vendor.products:
-                relationships['technologies'].append({
-                    'id': product.product_id,
-                    'name': product.product_name
-                })
+            # Get all products from this vendor's company
+            # Note: TechnologyVendor now links to Company, and products are linked to Company
+            if hasattr(rel.vendor, 'company') and rel.vendor.company:
+                for product in rel.vendor.company.products:
+                    relationships['technologies'].append({
+                        'id': product.product_id,
+                        'name': product.product_name
+                    })
 
     # Get operators
     operator_rels = db_session.query(ProjectOperatorRelationship).filter_by(project_id=project_id).all()

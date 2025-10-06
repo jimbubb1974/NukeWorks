@@ -140,33 +140,39 @@ def list_personnel():
 @bp.route('/create', methods=['GET', 'POST'])
 @login_required
 def create_personnel():
-    """Create a new personnel record."""
+    """Create a new external personnel record."""
     from app.models import Company
+    from app.forms.personnel import ExternalPersonnelForm
     
     # Get company choices
     companies = db_session.query(Company).order_by(Company.company_name).all()
-    company_choices = [(0, '-- Select Company --')] + [(company.company_id, company.company_name) for company in companies]
+    company_choices = [(company.company_id, company.company_name) for company in companies]
 
-    form = PersonnelForm()
+    form = ExternalPersonnelForm()
     form.company_id.choices = company_choices
 
     if form.validate_on_submit():
-        person = Personnel(
-            full_name=form.full_name.data,
-            email=form.email.data or None,
-            phone=form.phone.data or None,
-            role=form.role.data or None,
-            organization_id=form.company_id.data if form.company_id.data else None,
-            is_active=bool(form.is_active.data),
-            notes=form.notes.data or None,
-            created_by=current_user.user_id,
-            modified_by=current_user.user_id,
-        )
+        try:
+            person = ExternalPersonnel(
+                full_name=form.full_name.data,
+                email=form.email.data or None,
+                phone=form.phone.data or None,
+                role=form.role.data or None,
+                company_id=form.company_id.data,
+                contact_type=form.contact_type.data or None,
+                is_active=bool(form.is_active.data),
+                notes=form.notes.data or None,
+                created_by=current_user.user_id,
+                modified_by=current_user.user_id,
+            )
 
-        db_session.add(person)
-        db_session.commit()
-        flash('Personnel record created.', 'success')
-        return redirect(url_for('personnel.list_personnel'))
+            db_session.add(person)
+            db_session.commit()
+            flash('External personnel record created successfully.', 'success')
+            return redirect(url_for('personnel.list_personnel'))
+        except Exception as exc:
+            db_session.rollback()
+            flash(f'Error creating personnel record: {exc}', 'danger')
 
     return render_template('personnel/create.html', form=form)
 
@@ -178,16 +184,35 @@ def edit_personnel(personnel_id: int):
     from app.models import Company
     from app.forms.personnel import InternalPersonnelForm, ExternalPersonnelForm
     
-    # Try to find in internal personnel first
-    person = db_session.get(InternalPersonnel, personnel_id)
-    is_internal = person is not None
+    # Check if personnel_type is specified in query params to determine which table to check
+    personnel_type = request.args.get('type', '').lower()
     
-    if not is_internal:
-        # Try external personnel
+    person = None
+    is_internal = None
+    
+    if personnel_type == 'internal':
+        # Look in internal personnel only
+        person = db_session.get(InternalPersonnel, personnel_id)
+        is_internal = person is not None
+    elif personnel_type == 'external':
+        # Look in external personnel only
         person = db_session.get(ExternalPersonnel, personnel_id)
-        if not person:
-            flash('Personnel record not found.', 'error')
-            return redirect(url_for('personnel.list_personnel'))
+        is_internal = False
+    else:
+        # Try both tables - this is the problematic case with overlapping IDs
+        # First try internal
+        person = db_session.get(InternalPersonnel, personnel_id)
+        if person:
+            is_internal = True
+        else:
+            # Try external
+            person = db_session.get(ExternalPersonnel, personnel_id)
+            if person:
+                is_internal = False
+    
+    if not person:
+        flash('Personnel record not found.', 'error')
+        return redirect(url_for('personnel.list_personnel'))
     
     # Get company choices for external personnel
     companies = db_session.query(Company).order_by(Company.company_name).all()
@@ -269,7 +294,7 @@ def edit_personnel(personnel_id: int):
                 db_session.add(relationship)
                 db_session.commit()
                 flash('Relationship added successfully.', 'success')
-                return redirect(url_for('personnel.edit_personnel', personnel_id=personnel_id))
+                return redirect(url_for('personnel.edit_personnel', personnel_id=personnel_id, type='external'))
         except Exception as exc:
             db_session.rollback()
             flash(f'Error adding relationship: {exc}', 'danger')
@@ -289,7 +314,7 @@ def delete_personnel_relationship(personnel_id: int, relationship_id: int):
     relationship = db_session.get(PersonnelRelationship, relationship_id)
     if not relationship:
         flash('Relationship not found.', 'error')
-        return redirect(url_for('personnel.edit_personnel', personnel_id=personnel_id))
+        return redirect(url_for('personnel.edit_personnel', personnel_id=personnel_id, type='external'))
     
     try:
         db_session.delete(relationship)
@@ -299,7 +324,11 @@ def delete_personnel_relationship(personnel_id: int, relationship_id: int):
         db_session.rollback()
         flash(f'Error deleting relationship: {exc}', 'danger')
     
-    return redirect(url_for('personnel.edit_personnel', personnel_id=personnel_id))
+    # Determine if this is internal or external personnel based on the relationship
+    if relationship.internal_personnel_id == personnel_id:
+        return redirect(url_for('personnel.edit_personnel', personnel_id=personnel_id, type='internal'))
+    else:
+        return redirect(url_for('personnel.edit_personnel', personnel_id=personnel_id, type='external'))
 
 
 @bp.route('/<int:personnel_id>/clients', methods=['GET', 'POST'])
