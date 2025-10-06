@@ -115,8 +115,13 @@
                             <td>
                                 {% set roles = company.role_assignments %}
                                 {% if roles %}
+                                    {% set seen_roles = [] %}
                                     {% for assignment in roles %}
-                                    <span class="badge bg-primary me-1 mb-1">{{ assignment.role.role_label if assignment.role else assignment.role_id }}</span>
+                                        {% set role_label = assignment.role.role_label if assignment.role else assignment.role_id %}
+                                        {% if role_label not in seen_roles %}
+                                            {% set _ = seen_roles.append(role_label) %}
+                                            <span class="badge bg-primary me-1 mb-1">{{ role_label }}</span>
+                                        {% endif %}
                                     {% endfor %}
                                 {% else %}
                                     <span class="text-muted">—</span>
