@@ -21,6 +21,7 @@ from .project import Project
 from .personnel import Personnel
 from .internal_personnel import InternalPersonnel
 from .external_personnel import ExternalPersonnel
+from .personnel_relationships import PersonnelRelationship
 from .contact import ContactLog
 from .roundtable import RoundtableHistory
 from .confidential import ConfidentialFieldFlag

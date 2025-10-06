@@ -57,6 +57,14 @@ class ExternalPersonnel(Base, TimestampMixin):
     #     foreign_keys='ContactLog.contact_person_id',
     #     backref='contact_person'
     # )
+    
+    # Personnel relationships
+    internal_relationships = relationship(
+        'PersonnelRelationship',
+        foreign_keys='PersonnelRelationship.external_personnel_id',
+        back_populates='external_personnel',
+        cascade='all, delete-orphan'
+    )
 
     def __repr__(self):
         return f'<ExternalPersonnel {self.full_name}>'

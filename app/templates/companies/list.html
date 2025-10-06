@@ -96,8 +96,6 @@
                             <th>Type</th>
                             <th>Roles</th>
                             <th>MPR Client</th>
-                            <th>Internal</th>
-                            <th>Created</th>
                             <th class="text-end">Actions</th>
                         </tr>
                     </thead>
@@ -134,14 +132,6 @@
                                 <span class="badge bg-secondary">No</span>
                                 {% endif %}
                             </td>
-                            <td>
-                                {% if company.is_internal %}
-                                <span class="badge bg-info text-dark">Internal</span>
-                                {% else %}
-                                <span class="text-muted">—</span>
-                                {% endif %}
-                            </td>
-                            <td>{{ company.created_date.strftime('%Y-%m-%d') if company.created_date else '—' }}</td>
                             <td class="text-end">
                                 <a href="{{ url_for('companies.view_company', company_id=company.company_id) }}" class="btn btn-sm btn-outline-primary" title="View">
                                     <i class="bi bi-eye"></i>

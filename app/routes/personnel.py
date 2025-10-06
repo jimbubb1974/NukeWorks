@@ -9,6 +9,7 @@ from app.models import (
     Personnel,  # Keep for backward compatibility
     InternalPersonnel,
     ExternalPersonnel,
+    PersonnelRelationship,
     OwnerDeveloper,
     Project,
     Client,
@@ -19,7 +20,7 @@ from app.models import (
     Offtaker,
 )
 from app.models.relationships import PersonnelEntityRelationship, EntityTeamMember
-from app.forms.personnel import PersonnelForm, PersonnelClientLinkForm
+from app.forms.personnel import PersonnelForm, PersonnelClientLinkForm, PersonnelRelationshipForm
 from app.forms.relationships import ConfirmActionForm
 
 
@@ -190,10 +191,12 @@ def edit_personnel(personnel_id: int):
     
     # Get company choices for external personnel
     companies = db_session.query(Company).order_by(Company.company_name).all()
-    company_choices = [(0, '-- Select Company --')] + [(company.company_id, company.company_name) for company in companies]
+    company_choices = [(company.company_id, company.company_name) for company in companies]
 
     if is_internal:
         form = InternalPersonnelForm(obj=person)
+        relationship_form = None
+        relationships = []
     else:
         form = ExternalPersonnelForm(obj=person)
         form.company_id.choices = company_choices
@@ -203,6 +206,21 @@ def edit_personnel(personnel_id: int):
         # Force form to process request data for proper company_id binding
         if request.method == 'POST':
             form.company_id.process(request.form)
+        
+        # Get existing relationships for external personnel
+        relationships = db_session.query(PersonnelRelationship).filter_by(
+            external_personnel_id=personnel_id
+        ).options(
+            joinedload(PersonnelRelationship.internal_personnel)
+        ).all()
+        
+        # Create relationship form
+        relationship_form = PersonnelRelationshipForm()
+        # Get internal personnel choices
+        internal_personnel = db_session.query(InternalPersonnel).order_by(InternalPersonnel.full_name).all()
+        relationship_form.internal_personnel_id.choices = [
+            (ip.personnel_id, ip.full_name) for ip in internal_personnel
+        ]
 
     if form.validate_on_submit():
         person.full_name = form.full_name.data
@@ -217,8 +235,8 @@ def edit_personnel(personnel_id: int):
             person.department = form.department.data or None
         else:
             # Update external-specific fields
-            new_company_id = form.company_id.data if form.company_id.data and form.company_id.data != 0 else None
-            person.company_id = new_company_id
+            # Company is required for external personnel
+            person.company_id = form.company_id.data
             person.contact_type = form.contact_type.data or None
 
         try:
@@ -228,8 +246,60 @@ def edit_personnel(personnel_id: int):
         except Exception as exc:
             db_session.rollback()
             flash(f'Error updating personnel: {exc}', 'danger')
+    
+    # Handle relationship form submission for external personnel
+    if not is_internal and relationship_form and relationship_form.validate_on_submit():
+        try:
+            # Check if relationship already exists
+            existing = db_session.query(PersonnelRelationship).filter_by(
+                internal_personnel_id=relationship_form.internal_personnel_id.data,
+                external_personnel_id=personnel_id
+            ).first()
+            
+            if existing:
+                flash('This relationship already exists.', 'warning')
+            else:
+                # Create new relationship
+                relationship = PersonnelRelationship(
+                    internal_personnel_id=relationship_form.internal_personnel_id.data,
+                    external_personnel_id=personnel_id,
+                    relationship_type=relationship_form.relationship_type.data,
+                    notes=relationship_form.notes.data
+                )
+                db_session.add(relationship)
+                db_session.commit()
+                flash('Relationship added successfully.', 'success')
+                return redirect(url_for('personnel.edit_personnel', personnel_id=personnel_id))
+        except Exception as exc:
+            db_session.rollback()
+            flash(f'Error adding relationship: {exc}', 'danger')
 
-    return render_template('personnel/edit.html', form=form, person=person, is_internal=is_internal)
+    return render_template('personnel/edit.html', 
+                         form=form, 
+                         person=person, 
+                         is_internal=is_internal,
+                         relationship_form=relationship_form,
+                         relationships=relationships)
+
+
+@bp.route('/<int:personnel_id>/relationships/<int:relationship_id>/delete', methods=['POST'])
+@login_required
+def delete_personnel_relationship(personnel_id: int, relationship_id: int):
+    """Delete a personnel relationship."""
+    relationship = db_session.get(PersonnelRelationship, relationship_id)
+    if not relationship:
+        flash('Relationship not found.', 'error')
+        return redirect(url_for('personnel.edit_personnel', personnel_id=personnel_id))
+    
+    try:
+        db_session.delete(relationship)
+        db_session.commit()
+        flash('Relationship deleted successfully.', 'success')
+    except Exception as exc:
+        db_session.rollback()
+        flash(f'Error deleting relationship: {exc}', 'danger')
+    
+    return redirect(url_for('personnel.edit_personnel', personnel_id=personnel_id))
 
 
 @bp.route('/<int:personnel_id>/clients', methods=['GET', 'POST'])

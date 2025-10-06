@@ -148,7 +148,7 @@ class ExternalPersonnelForm(FlaskForm):
         'Company',
         coerce=int,
         choices=[],
-        validators=[Optional()]
+        validators=[DataRequired(message='Company is required for external personnel')]
     )
 
     contact_type = SelectField(
@@ -171,3 +171,35 @@ class ExternalPersonnelForm(FlaskForm):
     is_active = BooleanField('Active')
 
     submit = SubmitField('Save')
+
+
+class PersonnelRelationshipForm(FlaskForm):
+    """Form for creating personnel relationships between internal and external personnel."""
+
+    internal_personnel_id = SelectField(
+        'Internal Personnel',
+        coerce=int,
+        choices=[],
+        validators=[DataRequired(message='Select an internal person')]
+    )
+
+    relationship_type = SelectField(
+        'Relationship Type',
+        choices=[
+            ('Primary Contact', 'Primary Contact'),
+            ('Technical Contact', 'Technical Contact'),
+            ('Business Contact', 'Business Contact'),
+            ('Project Manager', 'Project Manager'),
+            ('Account Manager', 'Account Manager'),
+            ('Other', 'Other')
+        ],
+        validators=[Optional()]
+    )
+
+    notes = TextAreaField(
+        'Notes',
+        validators=[Optional(), Length(max=1000)],
+        render_kw={'rows': 3}
+    )
+
+    submit = SubmitField('Add Relationship')
