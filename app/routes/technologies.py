@@ -8,7 +8,7 @@ from sqlalchemy.orm import joinedload
 from app import db_session
 from app.forms.relationships import ConfirmActionForm
 from app.forms.technologies import TechnologyForm
-from app.models import Product, TechnologyVendor
+from app.models import Product, Company
 
 bp = Blueprint('technologies', __name__, url_prefix='/technologies')
 
@@ -16,7 +16,7 @@ bp = Blueprint('technologies', __name__, url_prefix='/technologies')
 def _get_product_or_404(product_id: int) -> Product:
     product = (
         db_session.query(Product)
-        .options(joinedload(Product.vendor))
+        .options(joinedload(Product.company))
         .filter_by(product_id=product_id)
         .first()
     )
@@ -30,11 +30,11 @@ def _can_manage(user) -> bool:
     return bool(user and (user.is_admin or getattr(user, 'is_ned_team', False)))
 
 
-def _vendor_choices(include_placeholder: bool = True):
-    vendors = db_session.query(TechnologyVendor).order_by(TechnologyVendor.vendor_name).all()
-    choices = [(vendor.vendor_id, vendor.vendor_name) for vendor in vendors]
+def _company_choices(include_placeholder: bool = True):
+    companies = db_session.query(Company).order_by(Company.company_name).all()
+    choices = [(company.company_id, company.company_name) for company in companies]
     if include_placeholder:
-        choices.insert(0, (0, '-- Select Vendor --'))
+        choices.insert(0, (0, '-- Select Company --'))
     return choices
 
 
@@ -43,7 +43,7 @@ def _vendor_choices(include_placeholder: bool = True):
 def list_technologies():
     products = (
         db_session.query(Product)
-        .options(joinedload(Product.vendor))
+        .options(joinedload(Product.company))
         .order_by(Product.product_name)
         .all()
     )
@@ -62,22 +62,22 @@ def create_technology():
         return redirect(url_for('technologies.list_technologies'))
 
     form = TechnologyForm()
-    form.vendor_id.choices = _vendor_choices()
+    form.company_id.choices = _company_choices()
 
-    preselected_vendor = request.args.get('vendor_id', type=int)
-    if not form.is_submitted() and preselected_vendor:
-        valid_ids = {choice[0] for choice in form.vendor_id.choices}
-        if preselected_vendor in valid_ids:
-            form.vendor_id.data = preselected_vendor
+    preselected_company = request.args.get('company_id', type=int)
+    if not form.is_submitted() and preselected_company:
+        valid_ids = {choice[0] for choice in form.company_id.choices}
+        if preselected_company in valid_ids:
+            form.company_id.data = preselected_company
 
     if form.validate_on_submit():
-        if form.vendor_id.data == 0:
-            flash('Please select a vendor.', 'warning')
+        if form.company_id.data == 0:
+            flash('Please select a company.', 'warning')
             return render_template('technologies/form.html', form=form, title='Create Technology', product=None)
 
         product = Product(
             product_name=form.product_name.data,
-            vendor_id=form.vendor_id.data,
+            company_id=form.company_id.data,
             reactor_type=form.reactor_type.data or None,
             generation=form.generation.data or None,
             thermal_capacity=form.gross_capacity_mwt.data or None,
@@ -129,19 +129,19 @@ def edit_technology(product_id):
         return redirect(url_for('technologies.view_technology', product_id=product_id))
 
     form = TechnologyForm(obj=product)
-    form.vendor_id.choices = _vendor_choices(include_placeholder=False)
+    form.company_id.choices = _company_choices(include_placeholder=False)
     if not form.is_submitted():
-        form.vendor_id.data = product.vendor_id
+        form.company_id.data = product.company_id
         form.gross_capacity_mwt.data = product.gross_capacity_mwt or product.thermal_capacity
         form.thermal_efficiency.data = product.thermal_efficiency
 
     if form.validate_on_submit():
-        if form.vendor_id.data == 0:
-            flash('Please select a vendor.', 'warning')
+        if form.company_id.data == 0:
+            flash('Please select a company.', 'warning')
             return render_template('technologies/form.html', form=form, title=f'Edit Technology: {product.product_name}', product=product)
 
         product.product_name = form.product_name.data
-        product.vendor_id = form.vendor_id.data
+        product.company_id = form.company_id.data
         product.reactor_type = form.reactor_type.data or None
         product.generation = form.generation.data or None
         product.gross_capacity_mwt = form.gross_capacity_mwt.data or None

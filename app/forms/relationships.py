@@ -51,13 +51,17 @@ class VendorProjectRelationshipForm(FlaskForm):
     submit = SubmitField('Add Project Relationship')
 
 
-class ProjectVendorRelationshipForm(FlaskForm):
-    """Associate a project with a vendor"""
+class ProjectCompanyRelationshipForm(FlaskForm):
+    """Associate a project with a company"""
 
-    vendor_id = SelectField('Vendor', coerce=int, validators=[DataRequired()])
+    company_id = SelectField('Company', coerce=int, validators=[DataRequired()])
+    role_type = SelectField('Role Type', coerce=str, validators=[DataRequired()], 
+                           choices=[('vendor', 'Vendor'), ('constructor', 'Constructor'), 
+                                   ('operator', 'Operator'), ('owner', 'Owner/Developer'),
+                                   ('offtaker', 'Offtaker')])
     notes = TextAreaField('Notes', validators=[Optional(), Length(max=2000)])
     is_confidential = BooleanField('Confidential')
-    submit = SubmitField('Add Vendor Relationship')
+    submit = SubmitField('Add Company Relationship')
 
 
 class ProjectConstructorRelationshipForm(FlaskForm):

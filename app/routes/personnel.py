@@ -6,7 +6,9 @@ from sqlalchemy.orm import joinedload
 
 from app import db_session
 from app.models import (
-    Personnel,
+    Personnel,  # Keep for backward compatibility
+    InternalPersonnel,
+    ExternalPersonnel,
     OwnerDeveloper,
     Project,
     Client,
@@ -38,32 +40,10 @@ def _unique_people(people):
     return unique
 
 
-def _gather_external_contacts_for_internal(person: Personnel) -> list[dict]:
-    linked_clients = set()
-    for attr in (
-        'clients_as_primary_poc',
-        'clients_as_secondary_poc',
-        'last_contacted_clients',
-        'assigned_next_client_contacts'
-    ):
-        linked_clients.update(getattr(person, attr, []) or [])
-
-    external_people = []
-    for client in linked_clients:
-        for rel in client.personnel_relationships:
-            ext = rel.person
-            if not ext or ext.personnel_type == 'Internal' or ext.personnel_id == person.personnel_id:
-                continue
-            external_people.append(ext)
-
-    external_people = _unique_people(external_people)
-    return [
-        {
-            'name': ext.full_name,
-            'url': url_for('personnel.edit_personnel', personnel_id=ext.personnel_id)
-        }
-        for ext in external_people
-    ]
+def _gather_external_contacts_for_internal(person: InternalPersonnel) -> list[dict]:
+    # Note: Internal personnel client relationships will be updated separately
+    # For now, return empty list since the old client relationships are not migrated
+    return []
 
 
 _ORG_ROUTE_MAP = {
@@ -75,65 +55,54 @@ _ORG_ROUTE_MAP = {
 }
 
 
-def _gather_company_links_for_external(person: Personnel) -> list[dict]:
+def _gather_company_links_for_external(person: ExternalPersonnel) -> list[dict]:
     links = []
-    org_type = person.organization_type
-    org_id = person.organization_id
-    if org_type and org_id:
-        route_info = _ORG_ROUTE_MAP.get(org_type)
-        if route_info:
-            endpoint, param_name, model, label_attr = route_info
-            entity = db_session.get(model, org_id)
-            if entity:
-                label = getattr(entity, label_attr, f"{org_type} #{org_id}")
-                links.append({'name': label, 'url': url_for(endpoint, **{param_name: org_id})})
-
-    if not links:
-        for rel in person.client_relationships:
-            if rel.client:
-                links.append({
-                    'name': rel.client.client_name,
-                    'url': url_for('clients.view_client', client_id=rel.client.client_id)
-                })
+    
+    # Check for direct company relationship
+    if person.company_id and person.company:
+        links.append({
+            'name': person.company.company_name,
+            'url': url_for('companies.view_company', company_id=person.company_id)
+        })
 
     return links
 
 
-def _query_personnel(search_term: str | None, include_internal: bool | None) -> list[Personnel]:
+def _query_personnel(search_term: str | None, include_internal: bool | None):
     """Return personnel filtered by optional search term and type."""
-    query = db_session.query(Personnel).options(
-        joinedload(Personnel.client_relationships).joinedload(ClientPersonnelRelationship.client),
-        joinedload(Personnel.clients_as_primary_poc)
-        .joinedload(Client.personnel_relationships)
-        .joinedload(ClientPersonnelRelationship.person),
-        joinedload(Personnel.clients_as_secondary_poc)
-        .joinedload(Client.personnel_relationships)
-        .joinedload(ClientPersonnelRelationship.person),
-        joinedload(Personnel.last_contacted_clients)
-        .joinedload(Client.personnel_relationships)
-        .joinedload(ClientPersonnelRelationship.person),
-        joinedload(Personnel.assigned_next_client_contacts)
-        .joinedload(Client.personnel_relationships)
-        .joinedload(ClientPersonnelRelationship.person),
-    )
-
     if include_internal is True:
-        query = query.filter(Personnel.personnel_type == 'Internal')
-    elif include_internal is False:
-        query = query.filter(Personnel.personnel_type != 'Internal')
-
-    if search_term:
-        like_term = f"%{search_term.strip()}%"
-        query = query.filter(
-            or_(
-                Personnel.full_name.ilike(like_term),
-                Personnel.email.ilike(like_term),
-                Personnel.role.ilike(like_term),
-                Personnel.personnel_type.ilike(like_term),
+        # Query internal personnel
+        query = db_session.query(InternalPersonnel)
+        if search_term:
+            like_term = f"%{search_term.strip()}%"
+            query = query.filter(
+                or_(
+                    InternalPersonnel.full_name.ilike(like_term),
+                    InternalPersonnel.email.ilike(like_term),
+                    InternalPersonnel.role.ilike(like_term),
+                )
             )
+        return query.order_by(InternalPersonnel.full_name).all()
+    
+    elif include_internal is False:
+        # Query external personnel
+        query = db_session.query(ExternalPersonnel).options(
+            joinedload(ExternalPersonnel.company)
         )
-
-    return query.order_by(Personnel.full_name).all()
+        if search_term:
+            like_term = f"%{search_term.strip()}%"
+            query = query.filter(
+                or_(
+                    ExternalPersonnel.full_name.ilike(like_term),
+                    ExternalPersonnel.email.ilike(like_term),
+                    ExternalPersonnel.role.ilike(like_term),
+                )
+            )
+        return query.order_by(ExternalPersonnel.full_name).all()
+    
+    else:
+        # Return empty list if neither internal nor external specified
+        return []
 
 
 @bp.route('/')
@@ -206,38 +175,61 @@ def create_personnel():
 def edit_personnel(personnel_id: int):
     """Edit a personnel record."""
     from app.models import Company
+    from app.forms.personnel import InternalPersonnelForm, ExternalPersonnelForm
     
-    person = db_session.get(Personnel, personnel_id)
-    if not person:
-        flash('Personnel record not found.', 'error')
-        return redirect(url_for('personnel.list_personnel'))
-
-    # Get company choices
+    # Try to find in internal personnel first
+    person = db_session.get(InternalPersonnel, personnel_id)
+    is_internal = person is not None
+    
+    if not is_internal:
+        # Try external personnel
+        person = db_session.get(ExternalPersonnel, personnel_id)
+        if not person:
+            flash('Personnel record not found.', 'error')
+            return redirect(url_for('personnel.list_personnel'))
+    
+    # Get company choices for external personnel
     companies = db_session.query(Company).order_by(Company.company_name).all()
     company_choices = [(0, '-- Select Company --')] + [(company.company_id, company.company_name) for company in companies]
 
-    form = PersonnelForm(obj=person)
-    form.company_id.choices = company_choices
-    
-    # Set current company if person has organization_id
-    if person.organization_id:
-        form.company_id.data = person.organization_id
+    if is_internal:
+        form = InternalPersonnelForm(obj=person)
+    else:
+        form = ExternalPersonnelForm(obj=person)
+        form.company_id.choices = company_choices
+        # Set current company if person has company_id
+        if person.company_id:
+            form.company_id.data = person.company_id
+        # Force form to process request data for proper company_id binding
+        if request.method == 'POST':
+            form.company_id.process(request.form)
 
     if form.validate_on_submit():
         person.full_name = form.full_name.data
         person.email = form.email.data or None
         person.phone = form.phone.data or None
         person.role = form.role.data or None
-        person.organization_id = form.company_id.data if form.company_id.data else None
         person.is_active = bool(form.is_active.data)
         person.notes = form.notes.data or None
-        person.modified_by = current_user.user_id
+        
+        if is_internal:
+            # Update internal-specific fields
+            person.department = form.department.data or None
+        else:
+            # Update external-specific fields
+            new_company_id = form.company_id.data if form.company_id.data and form.company_id.data != 0 else None
+            person.company_id = new_company_id
+            person.contact_type = form.contact_type.data or None
 
-        db_session.commit()
-        flash('Personnel record updated.', 'success')
-        return redirect(url_for('personnel.list_personnel'))
+        try:
+            db_session.commit()
+            flash(f'{person.full_name} updated successfully.', 'success')
+            return redirect(url_for('personnel.list_personnel'))
+        except Exception as exc:
+            db_session.rollback()
+            flash(f'Error updating personnel: {exc}', 'danger')
 
-    return render_template('personnel/edit.html', form=form, person=person)
+    return render_template('personnel/edit.html', form=form, person=person, is_internal=is_internal)
 
 
 @bp.route('/<int:personnel_id>/clients', methods=['GET', 'POST'])

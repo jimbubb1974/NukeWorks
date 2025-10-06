@@ -57,6 +57,18 @@ class Company(Base, TimestampMixin):
         cascade='all, delete-orphan'
     )
 
+    products = relationship(
+        'Product',
+        back_populates='company',
+        cascade='all, delete-orphan'
+    )
+    
+    external_personnel = relationship(
+        'ExternalPersonnel',
+        back_populates='company',
+        cascade='all, delete-orphan'
+    )
+
     def __repr__(self) -> str:  # pragma: no cover - simple repr
         return f'<Company {self.company_name}>'
 

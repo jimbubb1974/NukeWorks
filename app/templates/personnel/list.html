@@ -112,7 +112,7 @@
                         <tr>
                             <th>Name</th>
                             <th>Role</th>
-                            <th>Type</th>
+                            <th>Contact Type</th>
                             <th>Email</th>
                             <th>Company</th>
                             <th class="text-end">Actions</th>
@@ -124,24 +124,18 @@
                                 <tr>
                                     <td>{{ person.full_name }}</td>
                                     <td>{{ person.role or '-' }}</td>
-                                    <td>{{ person.personnel_type or '-' }}</td>
+                                    <td>{{ person.contact_type or '-' }}</td>
                                     <td>{% if person.email %}<a href="mailto:{{ person.email }}">{{ person.email }}</a>{% else %}-{% endif %}</td>
                                     <td>
-                                        {% set companies = external_company_links.get(person.personnel_id, []) %}
-                                        {% if companies %}
-                                            {% for company in companies %}
-                                                <a href="{{ company.url }}" class="badge bg-light text-dark border me-1 mb-1">{{ company.name }}</a>
-                                            {% endfor %}
+                                        {% if person.company %}
+                                            <a href="{{ url_for('companies.view_company', company_id=person.company_id) }}" class="badge bg-primary">{{ person.company.company_name }}</a>
                                         {% else %}
-                                            <span class="text-muted">None</span>
+                                            <span class="text-muted">No company</span>
                                         {% endif %}
                                     </td>
                                     <td class="text-end">
                                         <a href="{{ url_for('personnel.edit_personnel', personnel_id=person.personnel_id) }}" class="btn btn-sm btn-outline-primary me-1" title="Edit">
                                             <i class="bi bi-pencil"></i>
-                                        </a>
-                                        <a href="{{ url_for('personnel.manage_personnel_clients', personnel_id=person.personnel_id) }}" class="btn btn-sm btn-outline-secondary me-1" title="Manage client connections">
-                                            <i class="bi bi-diagram-3"></i>
                                         </a>
                                         {% if can_delete %}
                                         <form method="post" action="{{ url_for('personnel.delete_personnel', personnel_id=person.personnel_id) }}" class="d-inline">

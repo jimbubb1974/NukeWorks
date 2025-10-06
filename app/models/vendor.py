@@ -29,12 +29,8 @@ class TechnologyVendor(Base, TimestampMixin):
     )
 
     # Relationships (defined in 03_DATABASE_RELATIONSHIPS.md)
-    products = relationship(
-        'Product',
-        back_populates='vendor',
-        cascade='all, delete-orphan',
-        passive_deletes=True
-    )
+    # Note: Products now use the unified company system via CompanyRoleAssignment
+    # The old direct vendor->products relationship is deprecated
 
     supplier_relationships = relationship(
         'VendorSupplierRelationship',
@@ -96,7 +92,7 @@ class Product(Base, TimestampMixin):
 
     # Required Fields
     product_name = Column(Text, nullable=False)
-    vendor_id = Column(Integer, ForeignKey('technology_vendors.vendor_id'), nullable=False)
+    company_id = Column(Integer, ForeignKey('companies.company_id'), nullable=False)
 
     # Technical specifications (all optional per spec)
     reactor_type = Column(Text)  # PWR, BWR, SMR, Micro, etc.
@@ -115,12 +111,12 @@ class Product(Base, TimestampMixin):
 
     # Indexes (as specified in schema)
     __table_args__ = (
-        Index('idx_products_vendor', 'vendor_id'),
+        Index('idx_products_company', 'company_id'),
         Index('idx_products_type', 'reactor_type'),
     )
 
     # Relationships
-    vendor = relationship('TechnologyVendor', back_populates='products')
+    company = relationship('Company', back_populates='products')
 
     def __repr__(self):
         return f'<Product {self.product_name}>'
@@ -129,8 +125,8 @@ class Product(Base, TimestampMixin):
         return {
             'product_id': self.product_id,
             'product_name': self.product_name,
-            'vendor_id': self.vendor_id,
-            'vendor_name': self.vendor.vendor_name if self.vendor else None,
+            'company_id': self.company_id,
+            'company_name': self.company.company_name if self.company else None,
             'reactor_type': self.reactor_type,
             'generation': self.generation,
             'thermal_capacity': self.thermal_capacity,

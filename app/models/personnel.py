@@ -2,7 +2,7 @@
 Personnel model
 Matches 02_DATABASE_SCHEMA.md specification exactly
 """
-from sqlalchemy import Column, Integer, Text, Boolean, Index
+from sqlalchemy import Column, Integer, Text, Boolean, Index, ForeignKey
 from sqlalchemy.orm import relationship
 from .base import Base, TimestampMixin
 
@@ -31,6 +31,7 @@ class Personnel(Base, TimestampMixin):
 
     # For external contacts - link to organization
     organization_id = Column(Integer)  # Generic ID (no FK constraint - polymorphic)
+    company_id = Column(Integer, ForeignKey('companies.company_id'))  # Direct link to company
 
     # Status and Notes
     is_active = Column(Boolean, default=True, nullable=False)
@@ -45,6 +46,7 @@ class Personnel(Base, TimestampMixin):
     )
 
     # Relationships
+    company = relationship('Company')
     entity_relationships = relationship(
         'PersonnelEntityRelationship',
         back_populates='person',
@@ -81,6 +83,8 @@ class Personnel(Base, TimestampMixin):
             'role': self.role,
             'personnel_type': self.personnel_type,
             'organization_id': self.organization_id,
+            'company_id': self.company_id,
+            'company_name': self.company.company_name if self.company else None,
             'is_active': self.is_active,
             'notes': self.notes,
             'created_date': self.created_date.isoformat() if self.created_date else None,

@@ -118,25 +118,31 @@
     </div>
 
     <div class="row">
-        <!-- Vendors -->
-        <div class="col-lg-6">
+        <!-- Company Relationships -->
+        <div class="col-lg-8">
             <div class="card mb-4">
-                <div class="card-header"><h5 class="mb-0"><i class="bi bi-box"></i> Vendor Relationships ({{ vendor_relationships|length }})</h5></div>
+                <div class="card-header"><h5 class="mb-0"><i class="bi bi-building"></i> Company Relationships ({{ vendor_relationships|length + constructor_relationships|length + operator_relationships|length + owner_relationships|length + offtaker_relationships|length }})</h5></div>
                 <div class="card-body">
-                    {% if vendor_relationships %}
+                    {% set all_relationships = vendor_relationships + constructor_relationships + operator_relationships + owner_relationships + offtaker_relationships %}
+                    {% if all_relationships %}
                     <div class="table-responsive">
                         <table class="table table-sm align-middle">
                             <thead>
                                 <tr>
-                                    <th>Vendor</th>
+                                    <th>Company</th>
+                                    <th>Role</th>
                                     <th>Confidential</th>
+                                    <th>Notes</th>
                                     <th></th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {% for rel in vendor_relationships %}
+                                {% for rel in all_relationships %}
                                 <tr>
-                                    <td>{{ rel.vendor.vendor_name if rel.vendor else 'Unknown' }}</td>
+                                    <td>{{ rel.company.company_name if rel.company else 'Unknown' }}</td>
+                                    <td>
+                                        <span class="badge bg-primary">{{ rel.role.role_label if rel.role else 'Unknown Role' }}</span>
+                                    </td>
                                     <td>
                                         {% if rel.is_confidential %}
                                             <span class="badge bg-warning">Confidential</span>
@@ -144,251 +150,12 @@
                                             <span class="badge bg-secondary">Public</span>
                                         {% endif %}
                                     </td>
+                                    <td>{{ rel.notes or '—' }}</td>
                                     <td class="text-end">
                                         {% if can_manage_relationships %}
-                                        <form method="post" action="{{ url_for('projects.delete_project_vendor_relationship', project_id=project.project_id, relationship_id=rel.relationship_id) }}">
-                                            {{ delete_form.csrf_token }}
-                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Remove" data-confirm="delete" data-confirm-message="Remove this vendor relationship?"><i class="bi bi-x"></i></button>
-                                        </form>
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                    {% else %}
-                    <p class="text-muted mb-0">No vendors linked to this project.</p>
-                    {% endif %}
-
-                    {% if can_manage_relationships and vendor_form %}
-                    <div class="mt-3 text-end">
-                        <button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#projectVendorForm" aria-expanded="false" aria-controls="projectVendorForm">
-                            <i class="bi bi-plus-circle"></i> Add Vendor
-                        </button>
-                    </div>
-                    <div class="collapse mt-3" id="projectVendorForm">
-                        <form method="post" action="{{ url_for('projects.add_project_vendor_relationship', project_id=project.project_id) }}">
-                            {{ vendor_form.hidden_tag() }}
-                            <div class="row g-2">
-                                <div class="col-md-6">
-                                    {{ vendor_form.vendor_id.label(class="form-label") }}
-                                    {{ vendor_form.vendor_id(class="form-select") }}
-                                </div>
-                                <div class="col-md-6 d-flex align-items-end">
-                                    <div class="form-check">
-                                        {{ vendor_form.is_confidential(class="form-check-input") }}
-                                        {{ vendor_form.is_confidential.label(class="form-check-label") }}
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="mt-2">
-                                {{ vendor_form.notes.label(class="form-label") }}
-                                {{ vendor_form.notes(class="form-control", rows="2") }}
-                            </div>
-                            <div class="mt-3 text-end">
-                                <button type="submit" class="btn btn-primary">Add Vendor</button>
-                            </div>
-                        </form>
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-
-        <!-- Constructors -->
-        <div class="col-lg-6">
-            <div class="card mb-4">
-                <div class="card-header"><h5 class="mb-0"><i class="bi bi-building"></i> Constructor Partnerships ({{ constructor_relationships|length }})</h5></div>
-                <div class="card-body">
-                    {% if constructor_relationships %}
-                    <div class="table-responsive">
-                        <table class="table table-sm align-middle">
-                            <thead>
-                                <tr>
-                                    <th>Constructor</th>
-                                    <th>Confidential</th>
-                                    <th></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for rel in constructor_relationships %}
-                                <tr>
-                                    <td>{{ rel.constructor.company_name if rel.constructor else 'Unknown' }}</td>
-                                    <td>
-                                        {% if rel.is_confidential %}
-                                            <span class="badge bg-warning">Confidential</span>
-                                        {% else %}
-                                            <span class="badge bg-secondary">Public</span>
-                                        {% endif %}
-                                    </td>
-                                    <td class="text-end">
-                                        {% if can_manage_relationships %}
-                                        <form method="post" action="{{ url_for('projects.delete_project_constructor_relationship', project_id=project.project_id, relationship_id=rel.relationship_id) }}">
-                                            {{ delete_form.csrf_token }}
-                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Remove" data-confirm="delete" data-confirm-message="Remove this constructor relationship?"><i class="bi bi-x"></i></button>
-                                        </form>
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                    {% else %}
-                    <p class="text-muted mb-0">No constructor relationships recorded.</p>
-                    {% endif %}
-
-                    {% if can_manage_relationships and constructor_form %}
-                    <div class="mt-3 text-end">
-                        <button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#projectConstructorForm" aria-expanded="false" aria-controls="projectConstructorForm">
-                            <i class="bi bi-plus-circle"></i> Add Constructor
-                        </button>
-                    </div>
-                    <div class="collapse mt-3" id="projectConstructorForm">
-                        <form method="post" action="{{ url_for('projects.add_project_constructor_relationship', project_id=project.project_id) }}">
-                            {{ constructor_form.hidden_tag() }}
-                            <div class="row g-2">
-                                <div class="col-md-6">
-                                    {{ constructor_form.constructor_id.label(class="form-label") }}
-                                    {{ constructor_form.constructor_id(class="form-select") }}
-                                </div>
-                                <div class="col-md-6 d-flex align-items-end">
-                                    <div class="form-check">
-                                        {{ constructor_form.is_confidential(class="form-check-input") }}
-                                        {{ constructor_form.is_confidential.label(class="form-check-label") }}
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="mt-2">
-                                {{ constructor_form.notes.label(class="form-label") }}
-                                {{ constructor_form.notes(class="form-control", rows="2") }}
-                            </div>
-                            <div class="mt-3 text-end">
-                                <button type="submit" class="btn btn-primary">Add Constructor</button>
-                            </div>
-                        </form>
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="row">
-        <!-- Operators -->
-        <div class="col-lg-6">
-            <div class="card mb-4">
-                <div class="card-header"><h5 class="mb-0"><i class="bi bi-speedometer"></i> Operator Relationships ({{ operator_relationships|length }})</h5></div>
-                <div class="card-body">
-                    {% if operator_relationships %}
-                    <div class="table-responsive">
-                        <table class="table table-sm align-middle">
-                            <thead>
-                                <tr>
-                                    <th>Operator</th>
-                                    <th>Confidential</th>
-                                    <th></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for rel in operator_relationships %}
-                                <tr>
-                                    <td>{{ rel.operator.company_name if rel.operator else 'Unknown' }}</td>
-                                    <td>
-                                        {% if rel.is_confidential %}
-                                            <span class="badge bg-warning">Confidential</span>
-                                        {% else %}
-                                            <span class="badge bg-secondary">Public</span>
-                                        {% endif %}
-                                    </td>
-                                    <td class="text-end">
-                                        {% if can_manage_relationships %}
-                                        <form method="post" action="{{ url_for('projects.delete_project_operator_relationship', project_id=project.project_id, relationship_id=rel.relationship_id) }}">
-                                            {{ delete_form.csrf_token }}
-                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Remove" data-confirm="delete" data-confirm-message="Remove this operator relationship?"><i class="bi bi-x"></i></button>
-                                        </form>
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                    {% else %}
-                    <p class="text-muted mb-0">No operators assigned to this project.</p>
-                    {% endif %}
-
-                    {% if can_manage_relationships and operator_form %}
-                    <div class="mt-3 text-end">
-                        <button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#projectOperatorForm" aria-expanded="false" aria-controls="projectOperatorForm">
-                            <i class="bi bi-plus-circle"></i> Add Operator
-                        </button>
-                    </div>
-                    <div class="collapse mt-3" id="projectOperatorForm">
-                        <form method="post" action="{{ url_for('projects.add_project_operator_relationship', project_id=project.project_id) }}">
-                            {{ operator_form.hidden_tag() }}
-                            <div class="row g-2">
-                                <div class="col-md-6">
-                                    {{ operator_form.operator_id.label(class="form-label") }}
-                                    {{ operator_form.operator_id(class="form-select") }}
-                                </div>
-                                <div class="col-md-6 d-flex align-items-end">
-                                    <div class="form-check">
-                                        {{ operator_form.is_confidential(class="form-check-input") }}
-                                        {{ operator_form.is_confidential.label(class="form-check-label") }}
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="mt-2">
-                                {{ operator_form.notes.label(class="form-label") }}
-                                {{ operator_form.notes(class="form-control", rows="2") }}
-                            </div>
-                            <div class="mt-3 text-end">
-                                <button type="submit" class="btn btn-primary">Add Operator</button>
-                            </div>
-                        </form>
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-
-        <!-- Off-takers -->
-        <div class="col-lg-6">
-            <div class="card mb-4">
-                <div class="card-header"><h5 class="mb-0"><i class="bi bi-people"></i> Energy Off-takers ({{ offtaker_relationships|length }})</h5></div>
-                <div class="card-body">
-                    {% if offtaker_relationships %}
-                    <div class="table-responsive">
-                        <table class="table table-sm align-middle">
-                            <thead>
-                                <tr>
-                                    <th>Off-taker</th>
-                                    <th>Agreement</th>
-                                    <th>Volume</th>
-                                    <th>Confidential</th>
-                                    <th></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for rel in offtaker_relationships %}
-                                <tr>
-                                    <td>{{ rel.offtaker.organization_name if rel.offtaker else 'Unknown' }}</td>
-                                    <td>{{ rel.agreement_type or '—' }}</td>
-                                    <td>{{ rel.contracted_volume or '—' }}</td>
-                                    <td>
-                                        {% if rel.is_confidential %}
-                                            <span class="badge bg-warning">Confidential</span>
-                                        {% else %}
-                                            <span class="badge bg-secondary">Public</span>
-                                        {% endif %}
-                                    </td>
-                                    <td class="text-end">
-                                        {% if can_manage_relationships %}
-                                        <form method="post" action="{{ url_for('projects.delete_project_offtaker_relationship', project_id=project.project_id, relationship_id=rel.relationship_id) }}">
+                                        <form method="post" action="{{ url_for('projects.delete_project_company_relationship', project_id=project.project_id, assignment_id=rel.assignment_id) }}">
                                             {{ delete_form.hidden_tag() }}
-                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Remove" data-confirm="delete" data-confirm-message="Remove this owner relationship?"><i class="bi bi-x"></i></button>
+                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Remove" data-confirm="delete" data-confirm-message="Remove this company relationship?"><i class="bi bi-x"></i></button>
                                         </form>
                                         {% endif %}
                                     </td>
@@ -398,46 +165,40 @@
                         </table>
                     </div>
                     {% else %}
-                    <p class="text-muted mb-0">No off-taker relationships recorded.</p>
+                    <p class="text-muted mb-0">No company relationships recorded.</p>
                     {% endif %}
 
-                    {% if can_manage_relationships and offtaker_form %}
+                    {% if can_manage_relationships and company_form %}
                     <div class="mt-3 text-end">
-                        <button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#projectOfftakerForm" aria-expanded="false" aria-controls="projectOfftakerForm">
-                            <i class="bi bi-plus-circle"></i> Add Off-taker
+                        <button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#projectCompanyForm" aria-expanded="false" aria-controls="projectCompanyForm">
+                            <i class="bi bi-plus-circle"></i> Add Company
                         </button>
                     </div>
-                    <div class="collapse mt-3" id="projectOfftakerForm">
-                        <form method="post" action="{{ url_for('projects.add_project_offtaker_relationship', project_id=project.project_id) }}">
-                            {{ offtaker_form.hidden_tag() }}
+                    <div class="collapse mt-3" id="projectCompanyForm">
+                        <form method="post" action="{{ url_for('projects.add_project_company_relationship', project_id=project.project_id) }}">
+                            {{ company_form.hidden_tag() }}
                             <div class="row g-2">
-                                <div class="col-md-6">
-                                    {{ offtaker_form.offtaker_id.label(class="form-label") }}
-                                    {{ offtaker_form.offtaker_id(class="form-select") }}
+                                <div class="col-md-4">
+                                    {{ company_form.company_id.label(class="form-label") }}
+                                    {{ company_form.company_id(class="form-select") }}
                                 </div>
-                                <div class="col-md-6">
-                                    {{ offtaker_form.agreement_type.label(class="form-label") }}
-                                    {{ offtaker_form.agreement_type(class="form-control") }}
+                                <div class="col-md-4">
+                                    {{ company_form.role_type.label(class="form-label") }}
+                                    {{ company_form.role_type(class="form-select") }}
                                 </div>
-                            </div>
-                            <div class="row g-2 mt-2">
-                                <div class="col-md-6">
-                                    {{ offtaker_form.contracted_volume.label(class="form-label") }}
-                                    {{ offtaker_form.contracted_volume(class="form-control") }}
-                                </div>
-                                <div class="col-md-6 d-flex align-items-end">
+                                <div class="col-md-4 d-flex align-items-end">
                                     <div class="form-check">
-                                        {{ offtaker_form.is_confidential(class="form-check-input") }}
-                                        {{ offtaker_form.is_confidential.label(class="form-check-label") }}
+                                        {{ company_form.is_confidential(class="form-check-input") }}
+                                        {{ company_form.is_confidential.label(class="form-check-label") }}
                                     </div>
                                 </div>
                             </div>
                             <div class="mt-2">
-                                {{ offtaker_form.notes.label(class="form-label") }}
-                                {{ offtaker_form.notes(class="form-control", rows='2') }}
+                                {{ company_form.notes.label(class="form-label") }}
+                                {{ company_form.notes(class="form-control", rows="2") }}
                             </div>
                             <div class="mt-3 text-end">
-                                <button type="submit" class="btn btn-primary">Add Off-taker</button>
+                                <button type="submit" class="btn btn-primary">Add Company</button>
                             </div>
                         </form>
                     </div>
@@ -446,83 +207,6 @@
             </div>
         </div>
 
-        <!-- Owners -->
-        <div class="col-lg-6">
-            <div class="card mb-4">
-                <div class="card-header"><h5 class="mb-0"><i class="bi bi-person-badge"></i> Owner / Developer Relationships ({{ owner_relationships|length }})</h5></div>
-                <div class="card-body">
-                    {% if owner_relationships %}
-                    <div class="table-responsive">
-                        <table class="table table-sm align-middle">
-                            <thead>
-                                <tr>
-                                    <th>Owner</th>
-                                    <th>Confidential</th>
-                                    <th></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for rel in owner_relationships %}
-                                <tr>
-                                    <td>{{ rel.owner.company_name if rel.owner else 'Unknown' }}</td>
-                                    <td>
-                                        {% if rel.is_confidential %}
-                                            <span class="badge bg-warning">Confidential</span>
-                                        {% else %}
-                                            <span class="badge bg-secondary">Public</span>
-                                        {% endif %}
-                                    </td>
-                                    <td class="text-end">
-                                        {% if can_manage_relationships %}
-                                        <form method="post" action="{{ url_for('projects.delete_project_owner_relationship', project_id=project.project_id, relationship_id=rel.relationship_id) }}">
-                                            {{ delete_form.csrf_token }}
-                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Remove" data-confirm="delete" data-confirm-message="Remove this off-taker relationship?"><i class="bi bi-x"></i></button>
-                                        </form>
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                    {% else %}
-                    <p class="text-muted mb-0">No owner relationships recorded.</p>
-                    {% endif %}
-
-                    {% if can_manage_relationships and owner_form %}
-                    <div class="mt-3 text-end">
-                        <button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#projectOwnerForm" aria-expanded="false" aria-controls="projectOwnerForm">
-                            <i class="bi bi-plus-circle"></i> Add Owner
-                        </button>
-                    </div>
-                    <div class="collapse mt-3" id="projectOwnerForm">
-                        <form method="post" action="{{ url_for('projects.add_project_owner_relationship', project_id=project.project_id) }}">
-                            {{ owner_form.hidden_tag() }}
-                            <div class="row g-2">
-                                <div class="col-md-6">
-                                    {{ owner_form.owner_id.label(class="form-label") }}
-                                    {{ owner_form.owner_id(class="form-select") }}
-                                </div>
-                                <div class="col-md-6 d-flex align-items-end">
-                                    <div class="form-check">
-                                        {{ owner_form.is_confidential(class="form-check-input") }}
-                                        {{ owner_form.is_confidential.label(class="form-check-label") }}
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="mt-2">
-                                {{ owner_form.notes.label(class="form-label") }}
-                                {{ owner_form.notes(class="form-control", rows="2") }}
-                            </div>
-                            <div class="mt-3 text-end">
-                                <button type="submit" class="btn btn-primary">Add Owner</button>
-                            </div>
-                        </form>
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
     </div>
 
     <div class="row">

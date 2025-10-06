@@ -125,6 +125,17 @@ def view_company(company_id):
         company_id=company_id
     ).options(joinedload(CompanyRoleAssignment.role)).all()
     
+    # Get external personnel linked to this company
+    from app.models import ExternalPersonnel
+    personnel = db_session.query(ExternalPersonnel).filter_by(
+        company_id=company_id
+    ).order_by(ExternalPersonnel.full_name).all()
+    
+    # Get all external personnel for the dropdown (excluding those already linked)
+    all_personnel = db_session.query(ExternalPersonnel).filter(
+        ExternalPersonnel.company_id != company_id
+    ).order_by(ExternalPersonnel.full_name).all()
+    
     can_manage = _can_manage_companies(current_user)
     delete_form = ConfirmActionForm()
     
@@ -132,6 +143,8 @@ def view_company(company_id):
         'companies/detail.html',
         company=company,
         role_assignments=role_assignments,
+        personnel=personnel,
+        all_personnel=all_personnel,
         can_manage=can_manage,
         delete_form=delete_form
     )
@@ -202,3 +215,80 @@ def delete_company(company_id):
         db_session.rollback()
         flash(f'Error deleting company: {exc}', 'danger')
         return redirect(url_for('companies.view_company', company_id=company_id))
+
+
+@bp.route('/<int:company_id>/personnel', methods=['POST'])
+@login_required
+def link_personnel_to_company(company_id):
+    """Link personnel to a company"""
+    company = _get_company_or_404(company_id)
+    
+    if not _can_manage_companies(current_user):
+        flash('You do not have permission to manage company personnel.', 'danger')
+        return redirect(url_for('companies.view_company', company_id=company_id))
+    
+    personnel_id = request.form.get('personnel_id')
+    if not personnel_id:
+        flash('Please select a person to link.', 'warning')
+        return redirect(url_for('companies.view_company', company_id=company_id))
+    
+    try:
+        from app.models import ExternalPersonnel
+        personnel = db_session.query(ExternalPersonnel).filter_by(personnel_id=personnel_id).first()
+        if not personnel:
+            flash('Person not found.', 'error')
+            return redirect(url_for('companies.view_company', company_id=company_id))
+        
+        # Check if already linked
+        if personnel.company_id == company_id:
+            flash(f'{personnel.full_name} is already linked to this company.', 'warning')
+            return redirect(url_for('companies.view_company', company_id=company_id))
+        
+        # Link the personnel to the company
+        personnel.company_id = company_id
+        db_session.commit()
+        flash(f'{personnel.full_name} linked to {company.company_name} successfully.', 'success')
+        
+    except Exception as exc:
+        db_session.rollback()
+        flash(f'Error linking personnel: {exc}', 'danger')
+    
+    return redirect(url_for('companies.view_company', company_id=company_id))
+
+
+@bp.route('/<int:company_id>/personnel/<int:personnel_id>/unlink', methods=['POST'])
+@login_required
+def unlink_personnel_from_company(company_id, personnel_id):
+    """Unlink personnel from a company"""
+    company = _get_company_or_404(company_id)
+    
+    if not _can_manage_companies(current_user):
+        flash('You do not have permission to manage company personnel.', 'danger')
+        return redirect(url_for('companies.view_company', company_id=company_id))
+    
+    form = ConfirmActionForm()
+    if not form.validate_on_submit():
+        flash('Action not confirmed.', 'warning')
+        return redirect(url_for('companies.view_company', company_id=company_id))
+    
+    try:
+        from app.models import ExternalPersonnel
+        personnel = db_session.query(ExternalPersonnel).filter_by(
+            personnel_id=personnel_id,
+            company_id=company_id
+        ).first()
+        
+        if not personnel:
+            flash('Person not found or not linked to this company.', 'error')
+            return redirect(url_for('companies.view_company', company_id=company_id))
+        
+        # Unlink the personnel from the company
+        personnel.company_id = None
+        db_session.commit()
+        flash(f'{personnel.full_name} unlinked from {company.company_name} successfully.', 'success')
+        
+    except Exception as exc:
+        db_session.rollback()
+        flash(f'Error unlinking personnel: {exc}', 'danger')
+    
+    return redirect(url_for('companies.view_company', company_id=company_id))

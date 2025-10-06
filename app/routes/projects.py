@@ -2,23 +2,18 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, abort, request
 from flask_login import login_required, current_user
 from datetime import datetime
+from sqlalchemy.orm import joinedload
 
 from app.models import (
     Project,
-    ProjectVendorRelationship,
-    ProjectConstructorRelationship,
-    ProjectOperatorRelationship,
-    ProjectOwnerRelationship,
-    ProjectOfftakerRelationship,
+    Company,
+    CompanyRole,
+    CompanyRoleAssignment,
     PersonnelEntityRelationship,
     EntityTeamMember
 )
 from app.forms.relationships import (
-    ProjectVendorRelationshipForm,
-    ProjectConstructorRelationshipForm,
-    ProjectOperatorRelationshipForm,
-    ProjectOwnerLinkForm,
-    ProjectOfftakerRelationshipForm,
+    ProjectCompanyRelationshipForm,
     PersonnelEntityRelationshipForm,
     EntityTeamMemberForm,
     TeamAssignmentToggleForm,
@@ -59,12 +54,19 @@ def _can_manage_relationships(user) -> bool:
     return bool(user and (user.is_admin or getattr(user, 'is_ned_team', False)))
 
 
+def _get_company_choices():
+    """Get all companies for relationship forms"""
+    companies = db_session.query(Company).order_by(Company.company_name).all()
+    return [(company.company_id, company.company_name) for company in companies]
+
+
 @bp.route('/')
 @login_required
 def list_projects():
     """List all projects"""
     projects = db_session.query(Project).order_by(Project.project_name).all()
-    return render_template('projects/list.html', projects=projects, can_manage=_can_manage_relationships(current_user))
+    delete_form = ConfirmActionForm()
+    return render_template('projects/list.html', projects=projects, can_manage=_can_manage_relationships(current_user), delete_form=delete_form)
 
 
 @bp.route('/map')
@@ -139,11 +141,18 @@ def view_project(project_id):
     """View project details"""
     project = _get_project_or_404(project_id)
 
-    vendor_relationships = filter_relationships(current_user, project.vendor_relationships)
-    constructor_relationships = filter_relationships(current_user, project.constructor_relationships)
-    operator_relationships = filter_relationships(current_user, project.operator_relationships)
-    owner_relationships = filter_relationships(current_user, project.owner_relationships)
-    offtaker_relationships = filter_relationships(current_user, project.offtaker_relationships)
+    # Get company relationships for this project
+    company_relationships = db_session.query(CompanyRoleAssignment).filter_by(
+        context_type='Project',
+        context_id=project.project_id
+    ).options(joinedload(CompanyRoleAssignment.company), joinedload(CompanyRoleAssignment.role)).all()
+    
+    # Group relationships by role type
+    vendor_relationships = [r for r in company_relationships if r.role and r.role.role_code == 'vendor']
+    constructor_relationships = [r for r in company_relationships if r.role and r.role.role_code == 'constructor']
+    operator_relationships = [r for r in company_relationships if r.role and r.role.role_code == 'operator']
+    owner_relationships = [r for r in company_relationships if r.role and r.role.role_code == 'owner']
+    offtaker_relationships = [r for r in company_relationships if r.role and r.role.role_code == 'offtaker']
     personnel_relationships = filter_relationships(
         current_user,
         db_session.query(PersonnelEntityRelationship).filter_by(entity_type='Project', entity_id=project.project_id)
@@ -156,22 +165,10 @@ def view_project(project_id):
 
     can_manage = _can_manage_relationships(current_user)
 
-    vendor_form = constructor_form = operator_form = owner_form = offtaker_form = personnel_form = team_form = None
+    company_form = personnel_form = team_form = None
     if can_manage:
-        vendor_form = ProjectVendorRelationshipForm()
-        vendor_form.vendor_id.choices = get_vendor_choices()
-
-        constructor_form = ProjectConstructorRelationshipForm()
-        constructor_form.constructor_id.choices = get_constructor_choices()
-
-        operator_form = ProjectOperatorRelationshipForm()
-        operator_form.operator_id.choices = get_operator_choices()
-
-        owner_form = ProjectOwnerLinkForm()
-        owner_form.owner_id.choices = get_owner_choices()
-
-        offtaker_form = ProjectOfftakerRelationshipForm()
-        offtaker_form.offtaker_id.choices = get_offtaker_choices()
+        company_form = ProjectCompanyRelationshipForm()
+        company_form.company_id.choices = _get_company_choices()
 
         personnel_form = PersonnelEntityRelationshipForm()
         personnel_form.personnel_id.choices = get_personnel_choices()
@@ -186,19 +183,15 @@ def view_project(project_id):
         constructor_relationships=constructor_relationships,
         operator_relationships=operator_relationships,
         owner_relationships=owner_relationships,
+        offtaker_relationships=offtaker_relationships,
         personnel_relationships=personnel_relationships,
         team_assignments=team_assignments,
-        vendor_form=vendor_form,
-        constructor_form=constructor_form,
-        operator_form=operator_form,
-        owner_form=owner_form,
-        offtaker_form=offtaker_form,
+        company_form=company_form,
         personnel_form=personnel_form,
         team_form=team_form,
         toggle_form=TeamAssignmentToggleForm(),
         delete_form=ConfirmActionForm(),
-        can_manage_relationships=can_manage,
-        offtaker_relationships=offtaker_relationships
+        can_manage_relationships=can_manage
     )
 
 
@@ -247,6 +240,32 @@ def edit_project(project_id):
         project=project,
         title=f'Edit Project: {project.project_name}'
     )
+
+
+@bp.route('/<int:project_id>/delete', methods=['POST'])
+@login_required
+def delete_project(project_id):
+    """Delete a project"""
+    project = _get_project_or_404(project_id)
+    
+    if not _can_manage_relationships(current_user):
+        flash('You do not have permission to delete projects.', 'danger')
+        return redirect(url_for('projects.view_project', project_id=project_id))
+
+    form = ConfirmActionForm()
+    if not form.validate_on_submit():
+        flash('Action not confirmed.', 'warning')
+        return redirect(url_for('projects.view_project', project_id=project_id))
+
+    try:
+        db_session.delete(project)
+        db_session.commit()
+        flash('Project deleted successfully.', 'success')
+        return redirect(url_for('projects.list_projects'))
+    except Exception as exc:
+        db_session.rollback()
+        flash(f'Error deleting project: {exc}', 'danger')
+        return redirect(url_for('projects.view_project', project_id=project_id))
 
 
 @bp.route('/<int:project_id>/relationships/vendors', methods=['POST'])
@@ -837,4 +856,104 @@ def toggle_project_team_assignment(project_id, assignment_id):
     else:
         flash('Action not confirmed.', 'warning')
 
+    return redirect(url_for('projects.view_project', project_id=project_id))
+
+
+@bp.route('/<int:project_id>/relationships/companies', methods=['POST'])
+@login_required
+def add_project_company_relationship(project_id):
+    """Add a company relationship to a project"""
+    project = _get_project_or_404(project_id)
+    
+    if not _can_manage_relationships(current_user):
+        flash('You do not have permission to manage project relationships.', 'danger')
+        return redirect(url_for('projects.view_project', project_id=project_id))
+
+    form = ProjectCompanyRelationshipForm()
+    form.company_id.choices = _get_company_choices()
+    
+    if form.validate_on_submit():
+        try:
+            # Check if this company already has this role for this project
+            existing_relationship = db_session.query(CompanyRoleAssignment).filter_by(
+                company_id=form.company_id.data,
+                context_type='Project',
+                context_id=project.project_id
+            ).join(CompanyRole).filter(CompanyRole.role_code == form.role_type.data).first()
+            
+            if existing_relationship:
+                company_name = db_session.query(Company).filter_by(company_id=form.company_id.data).first().company_name
+                flash(f'{company_name} already has a {form.role_type.data} role for this project.', 'warning')
+                return redirect(url_for('projects.view_project', project_id=project_id))
+            
+            # Get or create the role
+            role = db_session.query(CompanyRole).filter_by(role_code=form.role_type.data).first()
+            if not role:
+                role = CompanyRole(
+                    role_code=form.role_type.data,
+                    role_label=form.role_type.data.title(),
+                    description=f"Role for {form.role_type.data} relationships"
+                )
+                db_session.add(role)
+                db_session.flush()  # Get the role_id
+            
+            # Create the relationship
+            relationship = CompanyRoleAssignment(
+                company_id=form.company_id.data,
+                role_id=role.role_id,
+                context_type='Project',
+                context_id=project.project_id,
+                notes=form.notes.data or None,
+                is_confidential=bool(form.is_confidential.data),
+                created_by=current_user.user_id,
+                modified_by=current_user.user_id
+            )
+            
+            db_session.add(relationship)
+            db_session.commit()
+            
+            flash(f'Company relationship added successfully.', 'success')
+        except Exception as exc:
+            db_session.rollback()
+            flash(f'Error adding company relationship: {exc}', 'danger')
+    else:
+        flash('Please correct the form errors.', 'warning')
+    
+    return redirect(url_for('projects.view_project', project_id=project_id))
+
+
+@bp.route('/<int:project_id>/relationships/companies/<int:assignment_id>/delete', methods=['POST'])
+@login_required
+def delete_project_company_relationship(project_id, assignment_id):
+    """Delete a company relationship from a project"""
+    project = _get_project_or_404(project_id)
+    
+    if not _can_manage_relationships(current_user):
+        flash('You do not have permission to manage project relationships.', 'danger')
+        return redirect(url_for('projects.view_project', project_id=project_id))
+
+    form = ConfirmActionForm()
+    if not form.validate_on_submit():
+        flash('Action not confirmed.', 'warning')
+        return redirect(url_for('projects.view_project', project_id=project_id))
+
+    try:
+        # Find the relationship
+        relationship = db_session.query(CompanyRoleAssignment).filter_by(
+            assignment_id=assignment_id,
+            context_type='Project',
+            context_id=project.project_id
+        ).first()
+        
+        if not relationship:
+            flash('Company relationship not found.', 'error')
+            return redirect(url_for('projects.view_project', project_id=project_id))
+        
+        db_session.delete(relationship)
+        db_session.commit()
+        flash('Company relationship removed successfully.', 'success')
+    except Exception as exc:
+        db_session.rollback()
+        flash(f'Error removing company relationship: {exc}', 'danger')
+    
     return redirect(url_for('projects.view_project', project_id=project_id))

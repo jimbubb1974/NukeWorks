@@ -13,10 +13,10 @@ class TechnologyForm(FlaskForm):
         render_kw={'placeholder': 'e.g., AP1000, eVinci'}
     )
 
-    vendor_id = SelectField(
-        'Vendor',
+    company_id = SelectField(
+        'Company',
         coerce=int,
-        validators=[DataRequired(message='Select a vendor.')]
+        validators=[DataRequired(message='Select a company.')]
     )
 
     reactor_type = StringField(

@@ -19,6 +19,8 @@ from .operator import Operator
 from .offtaker import Offtaker
 from .project import Project
 from .personnel import Personnel
+from .internal_personnel import InternalPersonnel
+from .external_personnel import ExternalPersonnel
 from .contact import ContactLog
 from .roundtable import RoundtableHistory
 from .confidential import ConfidentialFieldFlag
