@@ -40,6 +40,10 @@ class User(Base, UserMixin):
     last_login = Column(DateTime)
     is_active = Column(Boolean, default=True, nullable=False)
 
+    # Database selection preferences (per-user session DB selection)
+    last_db_path = Column(String(500))
+    last_db_display_name = Column(String(200))
+
     # Indexes (as specified in schema)
     __table_args__ = (
         Index('idx_users_username', 'username', unique=True),

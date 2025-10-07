@@ -19,16 +19,39 @@ _scheduler_stop = threading.Event()
 
 
 def _get_database_path():
+    """
+    Get path to currently selected database
+    Uses per-session database if available
+    """
+    from flask import g
+
+    # Check if per-session database path is set (from db selection middleware)
+    if hasattr(g, 'selected_db_path') and g.selected_db_path:
+        return g.selected_db_path
+
+    # Fallback to config default
     config = current_app.config
     return config['SQLALCHEMY_DATABASE_URI'].replace('sqlite:///', '')
 
 
 def _snapshot_dir():
-    configured = get_system_setting('snapshot_dir', '', typed=False)
-    if configured:
-        path = configured if os.path.isabs(configured) else os.path.join(current_app.root_path, configured)
+    """
+    Get snapshot directory for currently selected database
+    Uses per-DB snapshots based on g.snapshot_dir if available
+    """
+    from flask import g
+
+    # Check if per-DB snapshot directory is set (from db selection middleware)
+    if hasattr(g, 'snapshot_dir') and g.snapshot_dir:
+        path = g.snapshot_dir
     else:
-        path = os.path.join(current_app.root_path, 'snapshots')
+        # Fallback to configured or default directory
+        configured = get_system_setting('snapshot_dir', '', typed=False)
+        if configured:
+            path = configured if os.path.isabs(configured) else os.path.join(current_app.root_path, configured)
+        else:
+            path = os.path.join(current_app.root_path, 'snapshots')
+
     os.makedirs(path, exist_ok=True)
     return path
 

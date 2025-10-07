@@ -1,71 +1,77 @@
-{% extends "base.html" %}
-
-{% block title %}Technologies - NukeWorks{% endblock %}
-
-{% block content %}
+{% extends "base.html" %} {% block title %}Technologies - NukeWorks{% endblock
+%} {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="mb-0"><i class="bi bi-cpu"></i> Technologies</h2>
-    {% if can_manage %}
-    <a href="{{ url_for('technologies.create_technology') }}" class="btn btn-primary">
-        <i class="bi bi-plus-circle"></i> New Technology
-    </a>
-    {% endif %}
+  <h2 class="mb-0"><i class="bi bi-cpu"></i> Technologies</h2>
+  {% if can_manage %}
+  <a
+    href="{{ url_for('technologies.create_technology') }}"
+    class="btn btn-primary"
+  >
+    <i class="bi bi-plus-circle"></i> New Technology
+  </a>
+  {% endif %}
 </div>
 
 <div class="card">
-    <div class="card-body">
-        {% if products %}
-        <div class="table-responsive">
-            <table class="table table-hover align-middle">
-                <thead>
-                    <tr>
-                        <th>Model</th>
-                        <th>Vendor</th>
-                        <th>Reactor Type</th>
-                        <th>Generation</th>
-                        <th>Gross Capacity (MWt)</th>
-                        <th>Efficiency (%)</th>
-                        <th>Fuel Type</th>
-                        <th>Fuel Enrichment</th>
-                        <th>Status</th>
-                        <th>MPR Project IDs</th>
-                        <th class="text-end">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for product in products %}
-                    <tr>
-                        <td>{{ product.product_name }}</td>
-                        <td>{{ product.vendor.vendor_name if product.vendor else '—' }}</td>
-                        <td>{{ product.reactor_type or '—' }}</td>
-                        <td>{{ product.generation or '—' }}</td>
-                        <td>{{ product.gross_capacity_mwt or '—' }}</td>
-                        <td>{% if product.thermal_efficiency is not none %}{{ product.thermal_efficiency }}%{% else %}—{% endif %}</td>
-                        <td>{{ product.fuel_type or '—' }}</td>
-                        <td>{{ product.fuel_enrichment or '—' }}</td>
-                        <td>{{ product.design_status or '—' }}</td>
-                        <td>{{ product.mpr_project_ids or '—' }}</td>
-                        <td class="text-end">
-                            <a href="{{ url_for('technologies.view_technology', product_id=product.product_id) }}" class="btn btn-sm btn-outline-primary" title="View">
-                                <i class="bi bi-eye"></i>
-                            </a>
-                            {% if can_manage %}
-                            <a href="{{ url_for('technologies.edit_technology', product_id=product.product_id) }}" class="btn btn-sm btn-outline-secondary" title="Edit">
-                                <i class="bi bi-pencil"></i>
-                            </a>
-                            <a href="{{ url_for('technologies.delete_technology', product_id=product.product_id) }}" class="btn btn-sm btn-outline-danger" title="Delete">
-                                <i class="bi bi-trash"></i>
-                            </a>
-                            {% endif %}
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        {% else %}
-        <p class="text-muted mb-0">No technologies recorded yet.</p>
-        {% endif %}
+  <div class="card-body">
+    {% if products %}
+    <div class="table-responsive">
+      <table class="table table-hover align-middle">
+        <thead>
+          <tr>
+            <th>Model</th>
+            <th>Vendor</th>
+            <th>Reactor Type</th>
+            <th>Generation</th>
+            <th>Gross Capacity (MWt)</th>
+            <th>Fuel Type</th>
+            <th>Status</th>
+            <th class="text-end" style="width: 200px">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for product in products %}
+          <tr>
+            <td>{{ product.product_name }}</td>
+            <td>{{ product.vendor.vendor_name if product.vendor else '—' }}</td>
+            <td>{{ product.reactor_type or '—' }}</td>
+            <td>{{ product.generation or '—' }}</td>
+            <td>{{ product.gross_capacity_mwt or '—' }}</td>
+            <td>{{ product.fuel_type or '—' }}</td>
+            <td>{{ product.design_status or '—' }}</td>
+            <td class="text-end" style="width: 200px; white-space: nowrap">
+              <a
+                href="{{ url_for('technologies.view_technology', product_id=product.product_id) }}"
+                class="btn btn-sm btn-outline-primary"
+                title="View"
+              >
+                <i class="bi bi-eye"></i>
+              </a>
+              {% if can_manage %}
+              <a
+                href="{{ url_for('technologies.edit_technology', product_id=product.product_id) }}"
+                class="btn btn-sm btn-outline-secondary"
+                title="Edit"
+              >
+                <i class="bi bi-pencil"></i>
+              </a>
+              <a
+                href="{{ url_for('technologies.delete_technology', product_id=product.product_id) }}"
+                class="btn btn-sm btn-outline-danger"
+                title="Delete"
+              >
+                <i class="bi bi-trash"></i>
+              </a>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
     </div>
+    {% else %}
+    <p class="text-muted mb-0">No technologies recorded yet.</p>
+    {% endif %}
+  </div>
 </div>
 {% endblock %}

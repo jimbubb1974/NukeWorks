@@ -754,3 +754,56 @@ def system_settings():
         return redirect(url_for('admin.system_settings', section=section))
 
     return render_template('admin/settings.html', section=section, form=form)
+
+
+@bp.route('/engines')
+@login_required
+@admin_required
+def engine_cache():
+    """Show cached database engines"""
+    from app import get_engine_cache_info
+    import os
+    from datetime import datetime
+
+    cache_info = get_engine_cache_info()
+
+    engines = []
+    for db_path, info in cache_info.items():
+        engine = info['engine']
+
+        # Get file size and mod time
+        file_size = os.path.getsize(db_path) if os.path.exists(db_path) else 0
+        mod_time = datetime.fromtimestamp(os.path.getmtime(db_path)) if os.path.exists(db_path) else None
+
+        engines.append({
+            'path': db_path,
+            'file_size': file_size,
+            'modified': mod_time,
+            'pool_size': engine.pool.size() if hasattr(engine.pool, 'size') else 'N/A',
+            'exists': os.path.exists(db_path)
+        })
+
+    return render_template('admin/engine_cache.html', engines=engines)
+
+
+@bp.route('/engines/dispose', methods=['POST'])
+@login_required
+@admin_required
+def dispose_engine_cache():
+    """Dispose a specific engine from cache"""
+    from app import dispose_engine
+
+    db_path = request.form.get('db_path', '').strip()
+
+    if not db_path:
+        flash('No database path specified', 'warning')
+        return redirect(url_for('admin.engine_cache'))
+
+    success = dispose_engine(db_path)
+
+    if success:
+        flash(f'Engine disposed successfully: {db_path}', 'success')
+    else:
+        flash(f'Engine not found in cache: {db_path}', 'warning')
+
+    return redirect(url_for('admin.engine_cache'))

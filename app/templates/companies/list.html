@@ -145,10 +145,9 @@
                     <thead class="table-light">
                         <tr>
                             <th>Company</th>
-                            <th>Type</th>
                             <th>Roles</th>
                             <th>MPR Client</th>
-                            <th class="text-end">Actions</th>
+                            <th class="text-end" style="width: 180px;">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -161,7 +160,6 @@
                                 <div class="small text-muted">{{ company.notes[:120] }}{% if company.notes|length > 120 %}…{% endif %}</div>
                                 {% endif %}
                             </td>
-                            <td>{{ company.company_type or '—' }}</td>
                             <td>
                                 {% set roles = company.role_assignments %}
                                 {% if roles %}
@@ -191,7 +189,7 @@
                                     {% endif %}
                                 </span>
                             </td>
-                            <td class="text-end">
+                            <td class="text-end" style="width: 180px; white-space: nowrap;">
                                 <a href="{{ url_for('companies.view_company', company_id=company.company_id) }}" class="btn btn-sm btn-outline-primary" title="View">
                                     <i class="bi bi-eye"></i>
                                 </a>

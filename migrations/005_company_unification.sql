@@ -193,4 +193,8 @@ CREATE INDEX IF NOT EXISTS idx_internal_external_internal ON internal_external_l
 CREATE INDEX IF NOT EXISTS idx_internal_external_external ON internal_external_links(external_person_id);
 CREATE INDEX IF NOT EXISTS idx_internal_external_company ON internal_external_links(company_id);
 
+-- Update schema version
+INSERT INTO schema_version (version, applied_date, applied_by, description)
+VALUES (5, datetime('now'), 'system', 'Introduce unified company schema and supporting relationship tables');
+
 COMMIT;

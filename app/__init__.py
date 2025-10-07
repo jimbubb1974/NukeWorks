@@ -2,16 +2,21 @@
 NukeWorks Flask Application Factory
 """
 import os
-from flask import Flask
+from flask import Flask, g, session
 from flask_login import LoginManager
 from sqlalchemy import create_engine, event, text
 from sqlalchemy.orm import scoped_session, sessionmaker
+from werkzeug.local import LocalProxy
 from config import get_config
+import logging
 
+logger = logging.getLogger(__name__)
 
 # Global objects
 login_manager = LoginManager()
-db_session = None
+db_session = None  # Will be replaced with LocalProxy after create_app
+_engine_cache = {}  # Cache of {absolute_db_path: (engine, scoped_session)}
+_default_db_session = None  # Fallback for initial setup
 
 
 def create_app(config_name=None):
@@ -59,10 +64,11 @@ def create_app(config_name=None):
     # Register template filters
     register_template_filters(app)
 
-    # Start background scheduler for automated snapshots (disabled during tests)
-    from app.services.snapshots import start_snapshot_scheduler
+    # Register before_request handler for database selection
+    register_db_selector_middleware(app)
 
-    start_snapshot_scheduler(app)
+    # Note: Automated snapshot scheduler is DISABLED for per-DB selection feature
+    # Only manual snapshots are supported
 
     # Context processors
     @app.context_processor
@@ -82,6 +88,121 @@ def create_app(config_name=None):
     return app
 
 
+def get_or_create_engine_session(db_path, app=None):
+    """
+    Get or create engine and scoped_session for a database path
+    Uses cache to avoid recreating engines
+
+    Args:
+        db_path: Absolute path to database file
+        app: Flask application (for config)
+
+    Returns:
+        tuple: (engine, scoped_session)
+    """
+    global _engine_cache
+
+    abs_path = os.path.abspath(db_path)
+
+    # Return cached if exists
+    if abs_path in _engine_cache:
+        return _engine_cache[abs_path]
+
+    # Get config from app or use defaults
+    if app:
+        engine_options = app.config.get('SQLALCHEMY_ENGINE_OPTIONS', {})
+        echo = app.config.get('SQLALCHEMY_ECHO', False)
+        timeout = int(engine_options.get('connect_args', {}).get('timeout', 30) * 1000)
+    else:
+        engine_options = {
+            'connect_args': {'timeout': 30.0, 'check_same_thread': False},
+            'pool_pre_ping': True
+        }
+        echo = False
+        timeout = 30000
+
+    # Create engine
+    engine = create_engine(
+        f'sqlite:///{abs_path}',
+        **engine_options,
+        echo=echo
+    )
+
+    # Set SQLite pragmas
+    @event.listens_for(engine, "connect")
+    def set_sqlite_pragma(dbapi_conn, connection_record):
+        """Set SQLite PRAGMAs for optimization"""
+        cursor = dbapi_conn.cursor()
+        cursor.execute("PRAGMA journal_mode=WAL")
+        cursor.execute("PRAGMA foreign_keys=ON")
+        cursor.execute(f"PRAGMA busy_timeout={timeout}")
+        cursor.close()
+
+    # Create scoped session
+    session_factory = sessionmaker(bind=engine)
+    scoped_sess = scoped_session(session_factory)
+
+    # Cache it
+    _engine_cache[abs_path] = (engine, scoped_sess)
+
+    logger.info(f"Created new engine for database: {abs_path}")
+
+    return engine, scoped_sess
+
+
+def dispose_engine(db_path):
+    """
+    Dispose engine for a specific database path
+    Releases file locks and frees memory
+
+    Args:
+        db_path: Absolute path to database file
+
+    Returns:
+        bool: True if disposed, False if not found
+    """
+    global _engine_cache
+
+    abs_path = os.path.abspath(db_path)
+
+    if abs_path in _engine_cache:
+        engine, scoped_sess = _engine_cache[abs_path]
+        scoped_sess.remove()
+        engine.dispose()
+        del _engine_cache[abs_path]
+        logger.info(f"Disposed engine for database: {abs_path}")
+        return True
+
+    return False
+
+
+def get_engine_cache_info():
+    """
+    Get information about cached engines
+
+    Returns:
+        dict: {db_path: {'engine': engine, 'session': scoped_session}}
+    """
+    return {path: {'engine': eng, 'session': sess} for path, (eng, sess) in _engine_cache.items()}
+
+
+def get_db_session():
+    """
+    Get database session for current request
+    Returns per-session DB if selected, otherwise default
+
+    Returns:
+        scoped_session: Database session
+    """
+    # Check if request context has a specific DB session
+    if hasattr(g, 'db_session') and g.db_session is not None:
+        return g.db_session
+
+    # Fall back to default
+    global _default_db_session
+    return _default_db_session
+
+
 def init_db(app):
     """
     Initialize database connection with SQLite optimizations
@@ -89,33 +210,17 @@ def init_db(app):
     Args:
         app: Flask application
     """
-    global db_session
+    global db_session, _default_db_session
 
-    # Create SQLAlchemy engine
-    engine = create_engine(
-        app.config['SQLALCHEMY_DATABASE_URI'],
-        **app.config.get('SQLALCHEMY_ENGINE_OPTIONS', {}),
-        echo=app.config.get('SQLALCHEMY_ECHO', False)
-    )
+    # Create default engine and session (for initial setup)
+    db_path = app.config['DATABASE_PATH']
+    engine, default_session = get_or_create_engine_session(db_path, app)
 
-    # Enable WAL mode for better concurrency
-    @event.listens_for(engine, "connect")
-    def set_sqlite_pragma(dbapi_conn, connection_record):
-        """Set SQLite PRAGMAs for optimization"""
-        cursor = dbapi_conn.cursor()
-        cursor.execute("PRAGMA journal_mode=WAL")
-        cursor.execute("PRAGMA foreign_keys=ON")
-        cursor.execute(f"PRAGMA busy_timeout={int(app.config.get('SQLALCHEMY_ENGINE_OPTIONS', {}).get('connect_args', {}).get('timeout', 30) * 1000)}")
-        cursor.close()
-
-    # Create scoped session
-    session_factory = sessionmaker(bind=engine)
-    db_session = scoped_session(session_factory)
+    _default_db_session = default_session
 
     # Attach audit logging listeners before the session is used
     from app.services.audit import init_audit_logging
-
-    init_audit_logging(db_session)
+    init_audit_logging(default_session)
 
     # Import models to register them
     from app import models
@@ -123,16 +228,22 @@ def init_db(app):
     # Create all tables if they don't exist
     models.Base.metadata.create_all(engine)
     _ensure_product_columns(engine)
-    _ensure_product_columns(engine)
 
-    # Store db_session in app for easy access
-    app.db_session = db_session
+    # Store default db_session in app for easy access
+    app.db_session = default_session
+
+    # Replace global db_session with LocalProxy
+    db_session = LocalProxy(get_db_session)
 
     # Teardown context
     @app.teardown_appcontext
     def shutdown_session(exception=None):
         """Remove database session at the end of request"""
-        db_session.remove()
+        # Remove per-request session if it exists
+        if hasattr(g, 'db_session') and g.db_session is not None:
+            g.db_session.remove()
+        # Also remove default session
+        _default_db_session.remove()
 
 
 def _ensure_product_columns(engine):
@@ -187,8 +298,9 @@ def register_blueprints(app):
     Args:
         app: Flask application
     """
-    from app.routes import auth, dashboard, vendors, projects, owners, operators, constructors, technologies, offtakers, companies, clients, crm, reports, admin, contact_log, network, personnel
+    from app.routes import auth, dashboard, vendors, projects, owners, operators, constructors, technologies, offtakers, companies, clients, crm, reports, admin, contact_log, network, personnel, db_select
 
+    app.register_blueprint(db_select.bp)
     app.register_blueprint(auth.bp)
     app.register_blueprint(dashboard.bp)
     app.register_blueprint(vendors.bp)
@@ -285,11 +397,11 @@ def register_commands(app):
         click.echo(f'Required schema version: {required}')
 
         if current == required:
-            click.echo('✓ Database is up to date')
+            click.echo('[OK] Database is up to date')
         elif current > required:
-            click.echo('⚠ Database is newer than application')
+            click.echo('[WARNING] Database is newer than application')
         else:
-            click.echo(f'⚠ Database needs update ({required - current} migration(s) pending)')
+            click.echo(f'[WARNING] Database needs update ({required - current} migration(s) pending)')
 
     @app.cli.command()
     def apply_migrations():
@@ -300,9 +412,9 @@ def register_commands(app):
         success = check_and_apply_migrations(db_path, interactive=True)
 
         if success:
-            click.echo('✓ Migrations completed successfully')
+            click.echo('[SUCCESS] Migrations completed successfully')
         else:
-            click.echo('✗ Migration failed or cancelled')
+            click.echo('[ERROR] Migration failed or cancelled')
 
     @app.cli.command()
     def migration_history():
@@ -320,6 +432,58 @@ def register_commands(app):
             click.echo(f"Version {migration['version']:3d}: {migration['description']}")
             click.echo(f"             Applied: {migration['applied_date']} by {migration['applied_by']}")
             click.echo()
+
+
+def register_db_selector_middleware(app):
+    """
+    Register before_request handler for database selection
+
+    Args:
+        app: Flask application
+    """
+    from flask import request, redirect, url_for
+
+    @app.before_request
+    def handle_db_selection():
+        """
+        Ensure database is selected before any request
+        Resolve session-specific database to g.db_session
+        """
+        # Skip for static files
+        if request.endpoint and request.endpoint.startswith('static'):
+            return
+
+        # Skip for db_select routes
+        if request.endpoint and request.endpoint.startswith('db_select.'):
+            return
+
+        # Check if database is selected in session
+        selected_db_path = session.get('selected_db_path')
+
+        if not selected_db_path:
+            # No database selected - redirect to selector
+            return redirect(url_for('db_select.select_database'))
+
+        # Database is selected - set up per-request session
+        abs_path = os.path.abspath(selected_db_path)
+
+        # Get or create engine/session for this database
+        try:
+            engine, db_sess = get_or_create_engine_session(abs_path, app)
+            g.db_session = db_sess
+            g.selected_db_path = abs_path
+
+            # Also set snapshot directory for this database
+            from app.utils.db_helpers import get_snapshot_dir_for_db
+            g.snapshot_dir = get_snapshot_dir_for_db(abs_path)
+
+        except Exception as e:
+            logger.error(f"Failed to initialize database session: {e}")
+            # Clear invalid selection and redirect to selector
+            session.pop('selected_db_path', None)
+            from flask import flash
+            flash(f'Failed to open selected database: {str(e)}', 'danger')
+            return redirect(url_for('db_select.select_database'))
 
 
 def register_template_filters(app):

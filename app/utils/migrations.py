@@ -25,7 +25,7 @@ class ValidationError(Exception):
 
 # Application version and required schema version
 APPLICATION_VERSION = "1.0.0"
-APPLICATION_REQUIRED_SCHEMA_VERSION = 4
+APPLICATION_REQUIRED_SCHEMA_VERSION = 6  # Updated for database selection feature
 
 
 def get_migrations_directory():
@@ -342,14 +342,14 @@ def check_and_apply_migrations(db_path, interactive=True):
             # Apply migrations
             backup_path = apply_migrations(db_path, pending_migrations)
 
-            print(f"\n✓ Database updated successfully!")
+            print(f"\n[SUCCESS] Database updated successfully!")
             print(f"  Backup location: {backup_path}")
 
             return True
 
     except Exception as e:
         logger.error(f"Migration check failed: {str(e)}")
-        print(f"\n✗ Migration error: {str(e)}")
+        print(f"\n[ERROR] Migration error: {str(e)}")
         return False
 
 

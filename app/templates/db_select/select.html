@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+
+{% block title %}Select Database - NukeWorks{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-10 col-lg-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0"><i class="bi bi-database"></i> Select Database</h3>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">
+                        Choose which database to use for this session. You can switch databases at any time.
+                    </p>
+
+                    <form method="POST" action="{{ url_for('db_select.select_database_post') }}">
+                        <!-- Suggested Default -->
+                        {% if suggested_default %}
+                        <div class="alert alert-info">
+                            <i class="bi bi-star-fill"></i> <strong>Suggested:</strong>
+                            {{ suggested_default }}
+                            <button type="button" class="btn btn-sm btn-outline-primary float-end" onclick="document.getElementById('db_path').value='{{ suggested_default }}'">
+                                Use This
+                            </button>
+                        </div>
+                        {% endif %}
+
+                        <!-- Scanned Databases -->
+                        {% if scanned_databases %}
+                        <div class="mb-4">
+                            <h5>Available Databases</h5>
+                            <div class="list-group">
+                                {% for db in scanned_databases %}
+                                <label class="list-group-item list-group-item-action">
+                                    <div class="d-flex w-100 justify-content-between align-items-center">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="db_path" id="db_{{ loop.index }}" value="{{ db.path }}" {% if current_selection == db.path %}checked{% endif %}>
+                                            <label class="form-check-label" for="db_{{ loop.index }}">
+                                                <strong>{{ db.display_name }}</strong>
+                                                <br>
+                                                <small class="text-muted">{{ db.path }}</small>
+                                            </label>
+                                        </div>
+                                        <span class="badge bg-secondary">{{ db.label }}</span>
+                                    </div>
+                                </label>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% else %}
+                        <div class="alert alert-warning">
+                            <i class="bi bi-exclamation-triangle"></i> No databases found in <code>databases/</code> directory.
+                        </div>
+                        {% endif %}
+
+                        <!-- Recent Databases -->
+                        {% if recent_databases %}
+                        <div class="mb-4">
+                            <h5>Recent Databases</h5>
+                            <div class="list-group">
+                                {% for db in recent_databases %}
+                                <label class="list-group-item list-group-item-action">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="db_path" id="recent_{{ loop.index }}" value="{{ db.path }}" {% if current_selection == db.path %}checked{% endif %}>
+                                        <label class="form-check-label" for="recent_{{ loop.index }}">
+                                            <strong>{{ db.display_name }}</strong>
+                                            <br>
+                                            <small class="text-muted">{{ db.path }}</small>
+                                        </label>
+                                    </div>
+                                </label>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <!-- Manual Entry -->
+                        <div class="mb-4">
+                            <h5>Or Enter Path Manually</h5>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-folder"></i></span>
+                                <input type="text" class="form-control" id="db_path" name="db_path" placeholder="C:\path\to\database.sqlite or \\network\path\database.sqlite" value="{{ current_selection or '' }}">
+                            </div>
+                            <small class="form-text text-muted">
+                                Enter absolute path to a .sqlite database file. UNC paths are supported.
+                            </small>
+                        </div>
+
+                        <!-- Custom Display Name -->
+                        <div class="mb-4">
+                            <label for="custom_name" class="form-label">Custom Display Name (Optional)</label>
+                            <input type="text" class="form-control" id="custom_name" name="custom_name" placeholder="e.g., Production Database">
+                            <small class="form-text text-muted">
+                                Set a friendly name for this database. This will be saved in the database file.
+                            </small>
+                        </div>
+
+                        <!-- Buttons -->
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-between">
+                            <button type="submit" formaction="{{ url_for('db_select.refresh_database_list') }}" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-clockwise"></i> Refresh List
+                            </button>
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="bi bi-check-circle"></i> Continue
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            {% if current_user.is_authenticated %}
+            <div class="text-center mt-3">
+                <a href="{{ url_for('dashboard.index') }}" class="text-muted">
+                    <i class="bi bi-arrow-left"></i> Back to Dashboard
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Allow radio buttons to be selected when clicking anywhere on the list item
+document.querySelectorAll('.list-group-item').forEach(item => {
+    item.addEventListener('click', function(e) {
+        if (e.target.type !== 'radio') {
+            const radio = this.querySelector('input[type="radio"]');
+            if (radio) {
+                radio.checked = true;
+                // Also update the manual text input
+                document.getElementById('db_path').value = radio.value;
+            }
+        }
+    });
+});
+
+// Update manual text input when radio is selected
+document.querySelectorAll('input[type="radio"][name="db_path"]').forEach(radio => {
+    radio.addEventListener('change', function() {
+        document.getElementById('db_path').value = this.value;
+    });
+});
+</script>
+{% endblock %}
