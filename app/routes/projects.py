@@ -46,6 +46,71 @@ def _get_company_choices():
     return [(company.company_id, company.company_name) for company in companies]
 
 
+def _process_relationship_assignments(project: Project, form_data, user_id: int):
+    """Process relationship assignments from the project form.
+
+    Handles vendor, owner, operator, constructor, and offtaker relationships
+    by creating CompanyRoleAssignment records.
+    """
+    # Mapping of form field names to role codes
+    relationship_mapping = {
+        'vendor': 'vendor',
+        'owner': 'developer',
+        'operator': 'operator',
+        'constructor': 'constructor',
+        'offtaker': 'offtaker'
+    }
+
+    # Get all role IDs upfront
+    roles = db_session.query(CompanyRole).all()
+    role_id_map = {role.role_code: role.role_id for role in roles}
+
+    # Delete existing relationships for this project
+    db_session.query(CompanyRoleAssignment).filter_by(
+        context_type='Project',
+        context_id=project.project_id
+    ).delete()
+
+    # Process each relationship type
+    for rel_type, role_code in relationship_mapping.items():
+        entity_ids = form_data.getlist(f'{rel_type}_entity_id[]')
+        confidential_flags = form_data.getlist(f'{rel_type}_confidential[]')
+        notes_list = form_data.getlist(f'{rel_type}_notes[]')
+
+        role_id = role_id_map.get(role_code)
+        if not role_id:
+            continue
+
+        # Process each relationship in the list
+        for idx, entity_id in enumerate(entity_ids):
+            if not entity_id or entity_id == '':
+                continue
+
+            try:
+                company_id = int(entity_id)
+            except (ValueError, TypeError):
+                continue
+
+            # Get confidential flag for this index
+            is_confidential = idx < len(confidential_flags)
+
+            # Get notes for this index
+            notes = notes_list[idx] if idx < len(notes_list) else None
+
+            # Create the assignment
+            assignment = CompanyRoleAssignment(
+                company_id=company_id,
+                role_id=role_id,
+                context_type='Project',
+                context_id=project.project_id,
+                is_confidential=is_confidential,
+                notes=notes or None,
+                created_by=user_id,
+                modified_by=user_id
+            )
+            db_session.add(assignment)
+
+
 @bp.route('/')
 @login_required
 def list_projects():
@@ -111,6 +176,11 @@ def create_project():
 
         try:
             db_session.add(project)
+            db_session.flush()  # Flush to get project_id
+
+            # Process relationship assignments
+            _process_relationship_assignments(project, request.form, current_user.user_id)
+
             db_session.commit()
             flash('Project created successfully.', 'success')
             return redirect(url_for('projects.view_project', project_id=project.project_id))
@@ -140,7 +210,7 @@ def view_project(project_id):
     vendor_relationships = [r for r in company_relationships if r.role and r.role.role_code == 'vendor']
     constructor_relationships = [r for r in company_relationships if r.role and r.role.role_code == 'constructor']
     operator_relationships = [r for r in company_relationships if r.role and r.role.role_code == 'operator']
-    owner_relationships = [r for r in company_relationships if r.role and r.role.role_code == 'owner']
+    owner_relationships = [r for r in company_relationships if r.role and r.role.role_code in ('owner', 'developer')]
     offtaker_relationships = [r for r in company_relationships if r.role and r.role.role_code == 'offtaker']
     personnel_relationships = filter_relationships(
         current_user,
@@ -214,6 +284,9 @@ def edit_project(project_id):
             project.notes = form.notes.data or None
             project.modified_by = current_user.user_id
             project.modified_date = datetime.utcnow()
+
+            # Process relationship assignments
+            _process_relationship_assignments(project, request.form, current_user.user_id)
 
             db_session.commit()
 
