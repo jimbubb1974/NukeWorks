@@ -162,6 +162,211 @@
                             {% endif %}
                         </div>
 
+                        <!-- Relationship Management Sections -->
+                        <hr class="my-4">
+                        <h5><i class="bi bi-diagram-3"></i> Project Relationships</h5>
+                        <p class="text-muted">Manage connections to vendors, owners, operators, constructors, and offtakers. Mark relationships as confidential to restrict visibility.</p>
+
+                        <!-- Technology Vendors -->
+                        <div class="mb-4">
+                            <h6><i class="bi bi-box-seam"></i> Technology Vendors</h6>
+                            <div id="vendor-relationships">
+                                {% for vendor_rel in project.vendor_relationships if project %}
+                                <div class="row g-2 mb-2 vendor-row">
+                                    <div class="col-md-4">
+                                        <select name="vendor_entity_id[]" class="form-select">
+                                            <option value="">Select Vendor</option>
+                                            {% for company in companies %}
+                                            <option value="{{ company.company_id }}" {% if vendor_rel.company_id == company.company_id %}selected{% endif %}>
+                                                {{ company.company_name }}
+                                            </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <div class="form-check">
+                                            <input type="checkbox" name="vendor_confidential[]" class="form-check-input" 
+                                                   {% if vendor_rel.is_confidential %}checked{% endif %}>
+                                            <label class="form-check-label">Confidential</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <input type="text" name="vendor_notes[]" class="form-control" 
+                                               placeholder="Relationship notes" value="{{ vendor_rel.notes or '' }}">
+                                    </div>
+                                    <div class="col-md-2">
+                                        <button type="button" class="btn btn-outline-danger btn-sm remove-vendor">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            <button type="button" class="btn btn-outline-primary btn-sm" id="add-vendor">
+                                <i class="bi bi-plus"></i> Add Vendor
+                            </button>
+                        </div>
+
+                        <!-- Owners/Developers -->
+                        <div class="mb-4">
+                            <h6><i class="bi bi-building-gear"></i> Owners/Developers</h6>
+                            <div id="owner-relationships">
+                                {% for owner_rel in project.owner_relationships if project %}
+                                <div class="row g-2 mb-2 owner-row">
+                                    <div class="col-md-4">
+                                        <select name="owner_entity_id[]" class="form-select">
+                                            <option value="">Select Owner</option>
+                                            {% for company in companies %}
+                                            <option value="{{ company.company_id }}" {% if owner_rel.company_id == company.company_id %}selected{% endif %}>
+                                                {{ company.company_name }}
+                                            </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <div class="form-check">
+                                            <input type="checkbox" name="owner_confidential[]" class="form-check-input" 
+                                                   {% if owner_rel.is_confidential %}checked{% endif %}>
+                                            <label class="form-check-label">Confidential</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <input type="text" name="owner_notes[]" class="form-control" 
+                                               placeholder="Relationship notes" value="{{ owner_rel.notes or '' }}">
+                                    </div>
+                                    <div class="col-md-2">
+                                        <button type="button" class="btn btn-outline-danger btn-sm remove-owner">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            <button type="button" class="btn btn-outline-primary btn-sm" id="add-owner">
+                                <i class="bi bi-plus"></i> Add Owner
+                            </button>
+                        </div>
+
+                        <!-- Operators -->
+                        <div class="mb-4">
+                            <h6><i class="bi bi-gear"></i> Operators</h6>
+                            <div id="operator-relationships">
+                                {% for operator_rel in project.operator_relationships if project %}
+                                <div class="row g-2 mb-2 operator-row">
+                                    <div class="col-md-4">
+                                        <select name="operator_entity_id[]" class="form-select">
+                                            <option value="">Select Operator</option>
+                                            {% for company in companies %}
+                                            <option value="{{ company.company_id }}" {% if operator_rel.company_id == company.company_id %}selected{% endif %}>
+                                                {{ company.company_name }}
+                                            </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <div class="form-check">
+                                            <input type="checkbox" name="operator_confidential[]" class="form-check-input" 
+                                                   {% if operator_rel.is_confidential %}checked{% endif %}>
+                                            <label class="form-check-label">Confidential</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <input type="text" name="operator_notes[]" class="form-control" 
+                                               placeholder="Relationship notes" value="{{ operator_rel.notes or '' }}">
+                                    </div>
+                                    <div class="col-md-2">
+                                        <button type="button" class="btn btn-outline-danger btn-sm remove-operator">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            <button type="button" class="btn btn-outline-primary btn-sm" id="add-operator">
+                                <i class="bi bi-plus"></i> Add Operator
+                            </button>
+                        </div>
+
+                        <!-- Constructors -->
+                        <div class="mb-4">
+                            <h6><i class="bi bi-hammer"></i> Constructors</h6>
+                            <div id="constructor-relationships">
+                                {% for constructor_rel in project.constructor_relationships if project %}
+                                <div class="row g-2 mb-2 constructor-row">
+                                    <div class="col-md-4">
+                                        <select name="constructor_entity_id[]" class="form-select">
+                                            <option value="">Select Constructor</option>
+                                            {% for company in companies %}
+                                            <option value="{{ company.company_id }}" {% if constructor_rel.company_id == company.company_id %}selected{% endif %}>
+                                                {{ company.company_name }}
+                                            </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <div class="form-check">
+                                            <input type="checkbox" name="constructor_confidential[]" class="form-check-input" 
+                                                   {% if constructor_rel.is_confidential %}checked{% endif %}>
+                                            <label class="form-check-label">Confidential</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <input type="text" name="constructor_notes[]" class="form-control" 
+                                               placeholder="Relationship notes" value="{{ constructor_rel.notes or '' }}">
+                                    </div>
+                                    <div class="col-md-2">
+                                        <button type="button" class="btn btn-outline-danger btn-sm remove-constructor">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            <button type="button" class="btn btn-outline-primary btn-sm" id="add-constructor">
+                                <i class="bi bi-plus"></i> Add Constructor
+                            </button>
+                        </div>
+
+                        <!-- Offtakers -->
+                        <div class="mb-4">
+                            <h6><i class="bi bi-lightning"></i> Offtakers</h6>
+                            <div id="offtaker-relationships">
+                                {% for offtaker_rel in project.offtaker_relationships if project %}
+                                <div class="row g-2 mb-2 offtaker-row">
+                                    <div class="col-md-4">
+                                        <select name="offtaker_entity_id[]" class="form-select">
+                                            <option value="">Select Offtaker</option>
+                                            {% for company in companies %}
+                                            <option value="{{ company.company_id }}" {% if offtaker_rel.company_id == company.company_id %}selected{% endif %}>
+                                                {{ company.company_name }}
+                                            </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <div class="form-check">
+                                            <input type="checkbox" name="offtaker_confidential[]" class="form-check-input" 
+                                                   {% if offtaker_rel.is_confidential %}checked{% endif %}>
+                                            <label class="form-check-label">Confidential</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <input type="text" name="offtaker_notes[]" class="form-control" 
+                                               placeholder="Relationship notes" value="{{ offtaker_rel.notes or '' }}">
+                                    </div>
+                                    <div class="col-md-2">
+                                        <button type="button" class="btn btn-outline-danger btn-sm remove-offtaker">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            <button type="button" class="btn btn-outline-primary btn-sm" id="add-offtaker">
+                                <i class="bi bi-plus"></i> Add Offtaker
+                            </button>
+                        </div>
+
                         <div class="d-flex justify-content-between">
                             <a href="{% if project %}{{ url_for('projects.view_project', project_id=project.project_id) }}{% else %}{{ url_for('projects.list_projects') }}{% endif %}" class="btn btn-secondary">
                                 <i class="bi bi-x-circle"></i> Cancel
@@ -199,4 +404,102 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Relationship management JavaScript
+    const relationshipTypes = ['vendor', 'owner', 'operator', 'constructor', 'offtaker'];
+    
+    relationshipTypes.forEach(type => {
+        const container = document.getElementById(`${type}-relationships`);
+        const addButton = document.getElementById(`add-${type}`);
+        
+        // Add new relationship row
+        addButton.addEventListener('click', function() {
+            const newRow = createRelationshipRow(type);
+            container.appendChild(newRow);
+        });
+        
+        // Remove relationship row (delegated event listener)
+        container.addEventListener('click', function(e) {
+            if (e.target.classList.contains(`remove-${type}`) || e.target.closest(`.remove-${type}`)) {
+                e.target.closest(`.${type}-row`).remove();
+            }
+        });
+    });
+    
+    function createRelationshipRow(type) {
+        const row = document.createElement('div');
+        row.className = `row g-2 mb-2 ${type}-row`;
+        
+        // Get options for the select dropdown
+        const selectOptions = getSelectOptions(type);
+        
+        row.innerHTML = `
+            <div class="col-md-4">
+                <select name="${type}_entity_id[]" class="form-select">
+                    <option value="">Select ${type.charAt(0).toUpperCase() + type.slice(1)}</option>
+                    ${selectOptions}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <div class="form-check">
+                    <input type="checkbox" name="${type}_confidential[]" class="form-check-input">
+                    <label class="form-check-label">Confidential</label>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <input type="text" name="${type}_notes[]" class="form-control" placeholder="Relationship notes">
+            </div>
+            <div class="col-md-2">
+                <button type="button" class="btn btn-outline-danger btn-sm remove-${type}">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </div>
+        `;
+        
+        return row;
+    }
+    
+    function getSelectOptions(type) {
+        // Get companies from the server-provided data
+        {% if companies %}
+        const companies = [
+            {% for company in companies %}
+            { id: {{ company.company_id }}, name: {{ company.company_name|tojson }} }{% if not loop.last %},{% endif %}
+            {% endfor %}
+        ];
+
+        return companies.map(company =>
+            `<option value="${company.id}">${company.name}</option>`
+        ).join('');
+        {% else %}
+        return '';
+        {% endif %}
+    }
+    
+    // Handle form submission to include relationship data
+    const form = document.querySelector('form');
+    form.addEventListener('submit', function(e) {
+        // Ensure all relationship data is properly formatted
+        relationshipTypes.forEach(type => {
+            const entitySelects = document.querySelectorAll(`select[name="${type}_entity_id[]"]`);
+            const confidentialCheckboxes = document.querySelectorAll(`input[name="${type}_confidential[]"]`);
+            const notesInputs = document.querySelectorAll(`input[name="${type}_notes[]"]`);
+            
+            // Remove empty rows (where no entity is selected)
+            entitySelects.forEach((select, index) => {
+                if (!select.value) {
+                    const row = select.closest(`.${type}-row`);
+                    if (row) {
+                        row.remove();
+                    }
+                }
+            });
+        });
+    });
+});
+</script>
 {% endblock %}

@@ -22,22 +22,8 @@ from app.forms.relationships import (
 from app.forms.projects import ProjectForm
 from app import db_session
 from app.utils.permissions import filter_relationships
-from app.services.company_sync import (
-    sync_personnel_affiliation,
-    sync_project_vendor_relationship,
-    sync_project_constructor_relationship,
-    sync_project_operator_relationship,
-    sync_project_owner_relationship,
-    sync_project_offtaker_relationship,
-)
-from app.routes.relationship_utils import (
-    get_vendor_choices,
-    get_constructor_choices,
-    get_operator_choices,
-    get_owner_choices,
-    get_offtaker_choices,
-    get_personnel_choices
-)
+from app.services.company_sync import sync_personnel_affiliation
+from app.routes.relationship_utils import get_personnel_choices
 
 bp = Blueprint('projects', __name__, url_prefix='/projects')
 
@@ -132,7 +118,10 @@ def create_project():
             db_session.rollback()
             flash(f'Error creating project: {exc}', 'danger')
 
-    return render_template('projects/form.html', form=form, project=None, title='Create Project')
+    # Get all companies for relationship dropdowns
+    companies = db_session.query(Company).order_by(Company.company_name).all()
+
+    return render_template('projects/form.html', form=form, project=None, title='Create Project', companies=companies)
 
 
 @bp.route('/<int:project_id>')
@@ -212,6 +201,7 @@ def edit_project(project_id):
 
     if form.validate_on_submit():
         try:
+            # Update basic project fields
             project.project_name = form.project_name.data
             project.location = form.location.data or None
             project.project_status = form.project_status.data or None
@@ -222,7 +212,6 @@ def edit_project(project_id):
             project.latitude = float(form.latitude.data) if form.latitude.data is not None else None
             project.longitude = float(form.longitude.data) if form.longitude.data is not None else None
             project.notes = form.notes.data or None
-
             project.modified_by = current_user.user_id
             project.modified_date = datetime.utcnow()
 
@@ -234,11 +223,15 @@ def edit_project(project_id):
             db_session.rollback()
             flash(f'Error updating project: {exc}', 'danger')
 
+    # Get all companies for relationship dropdowns
+    companies = db_session.query(Company).order_by(Company.company_name).all()
+
     return render_template(
         'projects/form.html',
         form=form,
         project=project,
-        title=f'Edit Project: {project.project_name}'
+        title=f'Edit Project: {project.project_name}',
+        companies=companies
     )
 
 
@@ -266,427 +259,6 @@ def delete_project(project_id):
         db_session.rollback()
         flash(f'Error deleting project: {exc}', 'danger')
         return redirect(url_for('projects.view_project', project_id=project_id))
-
-
-@bp.route('/<int:project_id>/relationships/vendors', methods=['POST'])
-@login_required
-def add_project_vendor_relationship(project_id):
-    project = _get_project_or_404(project_id)
-
-    if not _can_manage_relationships(current_user):
-        flash('You do not have permission to modify relationships.', 'danger')
-        return redirect(url_for('projects.view_project', project_id=project_id))
-
-    form = ProjectVendorRelationshipForm()
-    form.vendor_id.choices = get_vendor_choices()
-
-    if form.validate_on_submit():
-        vendor_id = form.vendor_id.data
-        if vendor_id == 0:
-            flash('Please select a vendor.', 'warning')
-            return redirect(url_for('projects.view_project', project_id=project_id))
-
-        existing = db_session.query(ProjectVendorRelationship).filter_by(
-            project_id=project.project_id,
-            vendor_id=vendor_id
-        ).first()
-
-        if existing:
-            flash('Vendor relationship already exists.', 'info')
-            return redirect(url_for('projects.view_project', project_id=project_id))
-
-        relationship = ProjectVendorRelationship(
-            project_id=project.project_id,
-            vendor_id=vendor_id,
-            notes=form.notes.data or None,
-            is_confidential=form.is_confidential.data,
-            created_by=current_user.user_id,
-            modified_by=current_user.user_id
-        )
-
-        try:
-            db_session.add(relationship)
-            db_session.flush()
-
-            # Sync to unified company schema
-            sync_project_vendor_relationship(relationship, current_user.user_id)
-
-            db_session.commit()
-            flash('Vendor relationship added.', 'success')
-        except Exception as exc:  # pragma: no cover
-            db_session.rollback()
-            flash(f'Error adding vendor relationship: {exc}', 'danger')
-    else:
-        flash('Unable to add vendor relationship. Please check the form inputs.', 'danger')
-
-    return redirect(url_for('projects.view_project', project_id=project_id))
-
-
-@bp.route('/<int:project_id>/relationships/vendors/<int:relationship_id>/delete', methods=['POST'])
-@login_required
-def delete_project_vendor_relationship(project_id, relationship_id):
-    _get_project_or_404(project_id)
-
-    if not _can_manage_relationships(current_user):
-        flash('You do not have permission to modify relationships.', 'danger')
-        return redirect(url_for('projects.view_project', project_id=project_id))
-
-    form = ConfirmActionForm()
-
-    if form.validate_on_submit():
-        relationship = db_session.get(ProjectVendorRelationship, relationship_id)
-        if not relationship or relationship.project_id != project_id:
-            flash('Relationship not found.', 'error')
-            return redirect(url_for('projects.view_project', project_id=project_id))
-
-        try:
-            db_session.delete(relationship)
-            db_session.commit()
-            flash('Vendor relationship removed.', 'success')
-        except Exception as exc:  # pragma: no cover
-            db_session.rollback()
-            flash(f'Error removing vendor relationship: {exc}', 'danger')
-    else:
-        flash('Action not confirmed.', 'warning')
-
-    return redirect(url_for('projects.view_project', project_id=project_id))
-
-
-@bp.route('/<int:project_id>/relationships/constructors', methods=['POST'])
-@login_required
-def add_project_constructor_relationship(project_id):
-    project = _get_project_or_404(project_id)
-
-    if not _can_manage_relationships(current_user):
-        flash('You do not have permission to modify relationships.', 'danger')
-        return redirect(url_for('projects.view_project', project_id=project_id))
-
-    form = ProjectConstructorRelationshipForm()
-    form.constructor_id.choices = get_constructor_choices()
-
-    if form.validate_on_submit():
-        constructor_id = form.constructor_id.data
-        if constructor_id == 0:
-            flash('Please select a constructor.', 'warning')
-            return redirect(url_for('projects.view_project', project_id=project_id))
-
-        existing = db_session.query(ProjectConstructorRelationship).filter_by(
-            project_id=project.project_id,
-            constructor_id=constructor_id
-        ).first()
-
-        if existing:
-            flash('Constructor relationship already exists.', 'info')
-            return redirect(url_for('projects.view_project', project_id=project_id))
-
-        relationship = ProjectConstructorRelationship(
-            project_id=project.project_id,
-            constructor_id=constructor_id,
-            notes=form.notes.data or None,
-            is_confidential=form.is_confidential.data,
-            created_by=current_user.user_id,
-            modified_by=current_user.user_id
-        )
-
-        try:
-            db_session.add(relationship)
-            db_session.flush()
-
-            # Sync to unified company schema
-            sync_project_constructor_relationship(relationship, current_user.user_id)
-
-            db_session.commit()
-            flash('Constructor relationship added.', 'success')
-        except Exception as exc:  # pragma: no cover
-            db_session.rollback()
-            flash(f'Error adding constructor relationship: {exc}', 'danger')
-    else:
-        flash('Unable to add constructor relationship. Please check the form inputs.', 'danger')
-
-    return redirect(url_for('projects.view_project', project_id=project_id))
-
-
-@bp.route('/<int:project_id>/relationships/constructors/<int:relationship_id>/delete', methods=['POST'])
-@login_required
-def delete_project_constructor_relationship(project_id, relationship_id):
-    _get_project_or_404(project_id)
-
-    if not _can_manage_relationships(current_user):
-        flash('You do not have permission to modify relationships.', 'danger')
-        return redirect(url_for('projects.view_project', project_id=project_id))
-
-    form = ConfirmActionForm()
-
-    if form.validate_on_submit():
-        relationship = db_session.get(ProjectConstructorRelationship, relationship_id)
-        if not relationship or relationship.project_id != project_id:
-            flash('Relationship not found.', 'error')
-            return redirect(url_for('projects.view_project', project_id=project_id))
-
-        try:
-            db_session.delete(relationship)
-            db_session.commit()
-            flash('Constructor relationship removed.', 'success')
-        except Exception as exc:  # pragma: no cover
-            db_session.rollback()
-            flash(f'Error removing constructor relationship: {exc}', 'danger')
-    else:
-        flash('Action not confirmed.', 'warning')
-
-    return redirect(url_for('projects.view_project', project_id=project_id))
-
-
-@bp.route('/<int:project_id>/relationships/operators', methods=['POST'])
-@login_required
-def add_project_operator_relationship(project_id):
-    project = _get_project_or_404(project_id)
-
-    if not _can_manage_relationships(current_user):
-        flash('You do not have permission to modify relationships.', 'danger')
-        return redirect(url_for('projects.view_project', project_id=project_id))
-
-    form = ProjectOperatorRelationshipForm()
-    form.operator_id.choices = get_operator_choices()
-
-    if form.validate_on_submit():
-        operator_id = form.operator_id.data
-        if operator_id == 0:
-            flash('Please select an operator.', 'warning')
-            return redirect(url_for('projects.view_project', project_id=project_id))
-
-        existing = db_session.query(ProjectOperatorRelationship).filter_by(
-            project_id=project.project_id,
-            operator_id=operator_id
-        ).first()
-
-        if existing:
-            flash('Operator relationship already exists.', 'info')
-            return redirect(url_for('projects.view_project', project_id=project_id))
-
-        relationship = ProjectOperatorRelationship(
-            project_id=project.project_id,
-            operator_id=operator_id,
-            notes=form.notes.data or None,
-            is_confidential=form.is_confidential.data,
-            created_by=current_user.user_id,
-            modified_by=current_user.user_id
-        )
-
-        try:
-            db_session.add(relationship)
-            db_session.flush()
-
-            # Sync to unified company schema
-            sync_project_operator_relationship(relationship, current_user.user_id)
-
-            db_session.commit()
-            flash('Operator relationship added.', 'success')
-        except Exception as exc:  # pragma: no cover
-            db_session.rollback()
-            flash(f'Error adding operator relationship: {exc}', 'danger')
-    else:
-        flash('Unable to add operator relationship. Please check the form inputs.', 'danger')
-
-    return redirect(url_for('projects.view_project', project_id=project_id))
-
-
-@bp.route('/<int:project_id>/relationships/operators/<int:relationship_id>/delete', methods=['POST'])
-@login_required
-def delete_project_operator_relationship(project_id, relationship_id):
-    _get_project_or_404(project_id)
-
-    if not _can_manage_relationships(current_user):
-        flash('You do not have permission to modify relationships.', 'danger')
-        return redirect(url_for('projects.view_project', project_id=project_id))
-
-    form = ConfirmActionForm()
-
-    if form.validate_on_submit():
-        relationship = db_session.get(ProjectOperatorRelationship, relationship_id)
-        if not relationship or relationship.project_id != project_id:
-            flash('Relationship not found.', 'error')
-            return redirect(url_for('projects.view_project', project_id=project_id))
-
-        try:
-            db_session.delete(relationship)
-            db_session.commit()
-            flash('Operator relationship removed.', 'success')
-        except Exception as exc:  # pragma: no cover
-            db_session.rollback()
-            flash(f'Error removing operator relationship: {exc}', 'danger')
-    else:
-        flash('Action not confirmed.', 'warning')
-
-    return redirect(url_for('projects.view_project', project_id=project_id))
-
-
-@bp.route('/<int:project_id>/relationships/offtakers', methods=['POST'])
-@login_required
-def add_project_offtaker_relationship(project_id):
-    project = _get_project_or_404(project_id)
-
-    if not _can_manage_relationships(current_user):
-        flash('You do not have permission to modify relationships.', 'danger')
-        return redirect(url_for('projects.view_project', project_id=project_id))
-
-    form = ProjectOfftakerRelationshipForm()
-    form.offtaker_id.choices = get_offtaker_choices()
-
-    if form.validate_on_submit():
-        offtaker_id = form.offtaker_id.data
-        if offtaker_id == 0:
-            flash('Please select an off-taker.', 'warning')
-            return redirect(url_for('projects.view_project', project_id=project_id))
-
-        existing = db_session.query(ProjectOfftakerRelationship).filter_by(
-            project_id=project.project_id,
-            offtaker_id=offtaker_id
-        ).first()
-
-        if existing:
-            flash('Off-taker relationship already exists.', 'info')
-            return redirect(url_for('projects.view_project', project_id=project_id))
-
-        relationship = ProjectOfftakerRelationship(
-            project_id=project.project_id,
-            offtaker_id=offtaker_id,
-            agreement_type=form.agreement_type.data or None,
-            contracted_volume=form.contracted_volume.data or None,
-            notes=form.notes.data or None,
-            is_confidential=form.is_confidential.data,
-            created_by=current_user.user_id,
-            modified_by=current_user.user_id
-        )
-
-        try:
-            db_session.add(relationship)
-            db_session.flush()
-
-            # Sync to unified company schema
-            sync_project_offtaker_relationship(relationship, current_user.user_id)
-
-            db_session.commit()
-            flash('Off-taker relationship added.', 'success')
-        except Exception as exc:  # pragma: no cover
-            db_session.rollback()
-            flash(f'Error adding off-taker relationship: {exc}', 'danger')
-
-    return redirect(url_for('projects.view_project', project_id=project_id))
-
-
-@bp.route('/<int:project_id>/relationships/offtakers/<int:relationship_id>/delete', methods=['POST'])
-@login_required
-def delete_project_offtaker_relationship(project_id, relationship_id):
-    project = _get_project_or_404(project_id)
-
-    if not _can_manage_relationships(current_user):
-        flash('You do not have permission to modify relationships.', 'danger')
-        return redirect(url_for('projects.view_project', project_id=project_id))
-
-    relationship = db_session.get(ProjectOfftakerRelationship, relationship_id)
-
-    if not relationship or relationship.project_id != project.project_id:
-        flash('Off-taker relationship not found.', 'error')
-        return redirect(url_for('projects.view_project', project_id=project_id))
-
-    form = ConfirmActionForm()
-    if form.validate_on_submit():
-        try:
-            db_session.delete(relationship)
-            db_session.commit()
-            flash('Off-taker relationship removed.', 'success')
-        except Exception as exc:  # pragma: no cover
-            db_session.rollback()
-            flash(f'Error removing off-taker relationship: {exc}', 'danger')
-    else:
-        flash('Action not confirmed.', 'warning')
-
-    return redirect(url_for('projects.view_project', project_id=project_id))
-
-
-
-@bp.route('/<int:project_id>/relationships/owners', methods=['POST'])
-@login_required
-def add_project_owner_relationship(project_id):
-    project = _get_project_or_404(project_id)
-
-    if not _can_manage_relationships(current_user):
-        flash('You do not have permission to modify relationships.', 'danger')
-        return redirect(url_for('projects.view_project', project_id=project_id))
-
-    form = ProjectOwnerLinkForm()
-    form.owner_id.choices = get_owner_choices()
-
-    if form.validate_on_submit():
-        owner_id = form.owner_id.data
-        if owner_id == 0:
-            flash('Please select an owner.', 'warning')
-            return redirect(url_for('projects.view_project', project_id=project_id))
-
-        existing = db_session.query(ProjectOwnerRelationship).filter_by(
-            project_id=project.project_id,
-            owner_id=owner_id
-        ).first()
-
-        if existing:
-            flash('Owner relationship already exists.', 'info')
-            return redirect(url_for('projects.view_project', project_id=project_id))
-
-        relationship = ProjectOwnerRelationship(
-            project_id=project.project_id,
-            owner_id=owner_id,
-            notes=form.notes.data or None,
-            is_confidential=form.is_confidential.data,
-            created_by=current_user.user_id,
-            modified_by=current_user.user_id
-        )
-
-        try:
-            db_session.add(relationship)
-            db_session.flush()
-
-            # Sync to unified company schema
-            sync_project_owner_relationship(relationship, current_user.user_id)
-
-            db_session.commit()
-            flash('Owner relationship added.', 'success')
-        except Exception as exc:  # pragma: no cover
-            db_session.rollback()
-            flash(f'Error adding owner relationship: {exc}', 'danger')
-    else:
-        flash('Unable to add owner relationship. Please check the form inputs.', 'danger')
-
-    return redirect(url_for('projects.view_project', project_id=project_id))
-
-
-@bp.route('/<int:project_id>/relationships/owners/<int:relationship_id>/delete', methods=['POST'])
-@login_required
-def delete_project_owner_relationship(project_id, relationship_id):
-    _get_project_or_404(project_id)
-
-    if not _can_manage_relationships(current_user):
-        flash('You do not have permission to modify relationships.', 'danger')
-        return redirect(url_for('projects.view_project', project_id=project_id))
-
-    form = ConfirmActionForm()
-
-    if form.validate_on_submit():
-        relationship = db_session.get(ProjectOwnerRelationship, relationship_id)
-        if not relationship or relationship.project_id != project_id:
-            flash('Relationship not found.', 'error')
-            return redirect(url_for('projects.view_project', project_id=project_id))
-
-        try:
-            db_session.delete(relationship)
-            db_session.commit()
-            flash('Owner relationship removed.', 'success')
-        except Exception as exc:  # pragma: no cover
-            db_session.rollback()
-            flash(f'Error removing owner relationship: {exc}', 'danger')
-    else:
-        flash('Action not confirmed.', 'warning')
-
-    return redirect(url_for('projects.view_project', project_id=project_id))
 
 
 @bp.route('/<int:project_id>/relationships/personnel', methods=['POST'])
