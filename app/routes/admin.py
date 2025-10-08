@@ -60,15 +60,53 @@ def _parse_timestamp(value: str | None):
         return None
 
 
+def _format_company_role_label(rel):
+    """Format label for company role assignment showing actual entity name."""
+    if not rel:
+        return 'Unknown Relationship'
+
+    company_name = rel.company.company_name if rel.company else 'Company'
+    role_label = rel.role.role_label if rel.role else 'Role'
+
+    # Get the actual entity name based on context
+    context_name = 'Unknown'
+    if rel.context_type == 'Project' and rel.context_id:
+        project = db_session.get(Project, rel.context_id)
+        context_name = f"Project: {project.project_name}" if project else f"Project #{rel.context_id}"
+    elif rel.context_type == 'Company' and rel.context_id:
+        company = db_session.get(Company, rel.context_id)
+        context_name = f"Company: {company.company_name}" if company else f"Company #{rel.context_id}"
+    elif rel.context_type:
+        context_name = f"{rel.context_type} #{rel.context_id}" if rel.context_id else rel.context_type
+
+    return f"{company_name} ({role_label}) → {context_name}"
+
+
+def _format_personnel_entity_label(rel):
+    """Format label for personnel-entity relationship showing actual entity name."""
+    if not rel:
+        return 'Unknown Relationship'
+
+    personnel_name = rel.personnel.full_name if rel.personnel else 'Personnel'
+    role = rel.role_at_entity or 'N/A'
+
+    # Get the actual entity name
+    entity_name = 'Unknown'
+    if rel.entity_type == 'Project' and rel.entity_id:
+        project = db_session.get(Project, rel.entity_id)
+        entity_name = f"Project: {project.project_name}" if project else f"Project #{rel.entity_id}"
+    elif rel.entity_type == 'Company' and rel.entity_id:
+        company = db_session.get(Company, rel.entity_id)
+        entity_name = f"Company: {company.company_name}" if company else f"Company #{rel.entity_id}"
+    elif rel.entity_type:
+        entity_name = f"{rel.entity_type} #{rel.entity_id}" if rel.entity_id else rel.entity_type
+
+    return f"{personnel_name} ↔ {entity_name} (Role: {role})"
+
+
 RELATIONSHIP_CONFIG = {
-    'company_role_assignment': (
-        CompanyRoleAssignment,
-        lambda rel: f"{rel.company.company_name if rel and rel.company else 'Company'} ({rel.role.role_label if rel and rel.role else 'Role'}) → {rel.context_type if rel else 'Context'}",
-    ),
-    'personnel_entity': (
-        PersonnelEntityRelationship,
-        lambda rel: f"{rel.personnel.full_name if rel and rel.personnel else 'Personnel'} ↔ {rel.entity_type if rel else 'Entity'} (Role: {rel.role_at_entity or 'N/A'})",
-    ),
+    'company_role_assignment': (CompanyRoleAssignment, _format_company_role_label),
+    'personnel_entity': (PersonnelEntityRelationship, _format_personnel_entity_label),
 }
 
 
