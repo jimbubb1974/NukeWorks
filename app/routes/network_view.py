@@ -9,17 +9,10 @@ from collections import defaultdict
 
 from app.models import (
     Project,
-    OwnerDeveloper,
-    TechnologyVendor,
-    Technology,
-    Operator,
-    Personnel,
-    Offtaker,
-    ProjectOwnerRelationship,
-    ProjectVendorRelationship,
-    ProjectOperatorRelationship,
-    ProjectPersonnelRelationship,
-    ProjectOfftakerRelationship
+    Company,
+    CompanyRole,
+    CompanyRoleAssignment,
+    Product,
 )
 from app import db_session
 
@@ -29,64 +22,61 @@ bp = Blueprint('network', __name__, url_prefix='/network')
 # Define available columns/entities
 AVAILABLE_COLUMNS = {
     'project': {'label': 'Project', 'model': Project, 'field': 'project_name'},
-    'owner': {'label': 'Owner/Developer', 'model': OwnerDeveloper, 'field': 'company_name'},
-    'vendor': {'label': 'Technology Vendor', 'model': TechnologyVendor, 'field': 'vendor_name'},
-    'technology': {'label': 'Technology', 'model': Technology, 'field': 'technology_name'},
-    'operator': {'label': 'Operator', 'model': Operator, 'field': 'company_name'},
-    'offtaker': {'label': 'Offtaker', 'model': Offtaker, 'field': 'organization_name'},
+    'owner': {'label': 'Owner/Developer', 'role_code': 'developer'},
+    'vendor': {'label': 'Technology Vendor', 'role_code': 'vendor'},
+    'technology': {'label': 'Technology/Product', 'model': Product, 'field': 'product_name'},
+    'operator': {'label': 'Operator', 'role_code': 'operator'},
+    'offtaker': {'label': 'Offtaker', 'role_code': 'offtaker'},
+    'constructor': {'label': 'Constructor', 'role_code': 'constructor'},
 }
 
 
 def _get_project_relationships(project_id):
-    """Get all relationships for a project"""
+    """Get all relationships for a project using unified schema"""
     relationships = {
         'owners': [],
         'vendors': [],
         'technologies': [],
         'operators': [],
-        'offtakers': []
+        'offtakers': [],
+        'constructors': []
     }
 
-    # Get owners
-    owner_rels = db_session.query(ProjectOwnerRelationship).filter_by(project_id=project_id).all()
-    for rel in owner_rels:
-        if rel.owner:
-            relationships['owners'].append({
-                'id': rel.owner.owner_id,
-                'name': rel.owner.company_name
-            })
+    # Get all company role assignments for this project
+    assignments = db_session.query(CompanyRoleAssignment).filter_by(
+        context_type='Project',
+        context_id=project_id
+    ).all()
 
-    # Get vendors and technologies
-    vendor_rels = db_session.query(ProjectVendorRelationship).filter_by(project_id=project_id).all()
-    for rel in vendor_rels:
-        if rel.vendor:
-            relationships['vendors'].append({
-                'id': rel.vendor.vendor_id,
-                'name': rel.vendor.vendor_name
-            })
-        if rel.technology:
-            relationships['technologies'].append({
-                'id': rel.technology.technology_id,
-                'name': rel.technology.technology_name
-            })
+    for assignment in assignments:
+        company = db_session.get(Company, assignment.company_id)
+        role = db_session.get(CompanyRole, assignment.role_id)
 
-    # Get operators
-    operator_rels = db_session.query(ProjectOperatorRelationship).filter_by(project_id=project_id).all()
-    for rel in operator_rels:
-        if rel.operator:
-            relationships['operators'].append({
-                'id': rel.operator.operator_id,
-                'name': rel.operator.company_name
-            })
+        if not company or not role:
+            continue
 
-    # Get offtakers
-    offtaker_rels = db_session.query(ProjectOfftakerRelationship).filter_by(project_id=project_id).all()
-    for rel in offtaker_rels:
-        if rel.offtaker:
-            relationships['offtakers'].append({
-                'id': rel.offtaker.offtaker_id,
-                'name': rel.offtaker.organization_name
-            })
+        company_info = {
+            'id': company.company_id,
+            'name': company.company_name
+        }
+
+        # Map role to relationship category
+        if role.role_code in ['developer', 'owner']:
+            relationships['owners'].append(company_info)
+        elif role.role_code == 'vendor':
+            relationships['vendors'].append(company_info)
+            # Get products from this vendor
+            for product in company.products:
+                relationships['technologies'].append({
+                    'id': product.product_id,
+                    'name': product.product_name
+                })
+        elif role.role_code == 'operator':
+            relationships['operators'].append(company_info)
+        elif role.role_code == 'offtaker':
+            relationships['offtakers'].append(company_info)
+        elif role.role_code == 'constructor':
+            relationships['constructors'].append(company_info)
 
     return relationships
 
@@ -156,59 +146,40 @@ def _build_grouped_data(group_by, selected_columns):
             grouped_data[group_key]['items'].append(item)
 
     # Now add entities without relationships as empty groups
-    if group_by == 'owner':
-        # Get all owners that don't have any projects
-        all_owners = db_session.query(AVAILABLE_COLUMNS['owner']['model']).all()
-        for owner in all_owners:
-            group_key = f"owner_{owner.owner_id}"
-            if group_key not in grouped_data:
-                grouped_data[group_key] = {
-                    'group_id': owner.owner_id,
-                    'group_name': owner.company_name,
-                    'items': []
-                }
-    elif group_by == 'vendor':
-        # Get all vendors that don't have any projects
-        all_vendors = db_session.query(AVAILABLE_COLUMNS['vendor']['model']).all()
-        for vendor in all_vendors:
-            group_key = f"vendor_{vendor.vendor_id}"
-            if group_key not in grouped_data:
-                grouped_data[group_key] = {
-                    'group_id': vendor.vendor_id,
-                    'group_name': vendor.vendor_name,
-                    'items': []
-                }
-    elif group_by == 'operator':
-        # Get all operators that don't have any projects
-        all_operators = db_session.query(AVAILABLE_COLUMNS['operator']['model']).all()
-        for operator in all_operators:
-            group_key = f"operator_{operator.operator_id}"
-            if group_key not in grouped_data:
-                grouped_data[group_key] = {
-                    'group_id': operator.operator_id,
-                    'group_name': operator.company_name,
-                    'items': []
-                }
-    elif group_by == 'offtaker':
-        # Get all offtakers that don't have any projects
-        all_offtakers = db_session.query(AVAILABLE_COLUMNS['offtaker']['model']).all()
-        for offtaker in all_offtakers:
-            group_key = f"offtaker_{offtaker.offtaker_id}"
-            if group_key not in grouped_data:
-                grouped_data[group_key] = {
-                    'group_id': offtaker.offtaker_id,
-                    'group_name': offtaker.organization_name,
-                    'items': []
-                }
+    if group_by in ['owner', 'vendor', 'operator', 'offtaker', 'constructor']:
+        # Get all companies with this role
+        role_code = AVAILABLE_COLUMNS[group_by]['role_code']
+        role = db_session.query(CompanyRole).filter_by(role_code=role_code).first()
+
+        if role:
+            # Get all companies with this role
+            company_ids = db_session.query(CompanyRoleAssignment.company_id).filter_by(
+                role_id=role.role_id
+            ).distinct().all()
+            company_ids = [cid[0] for cid in company_ids]
+
+            companies = db_session.query(Company).filter(
+                Company.company_id.in_(company_ids)
+            ).all() if company_ids else []
+
+            for company in companies:
+                group_key = f"{group_by}_{company.company_id}"
+                if group_key not in grouped_data:
+                    grouped_data[group_key] = {
+                        'group_id': company.company_id,
+                        'group_name': company.company_name,
+                        'items': []
+                    }
+
     elif group_by == 'technology':
         # Get all technologies that don't have any projects
-        all_technologies = db_session.query(AVAILABLE_COLUMNS['technology']['model']).all()
+        all_technologies = db_session.query(Product).all()
         for technology in all_technologies:
-            group_key = f"technology_{technology.technology_id}"
+            group_key = f"technology_{technology.product_id}"
             if group_key not in grouped_data:
                 grouped_data[group_key] = {
-                    'group_id': technology.technology_id,
-                    'group_name': technology.technology_name,
+                    'group_id': technology.product_id,
+                    'group_name': technology.product_name,
                     'items': []
                 }
 

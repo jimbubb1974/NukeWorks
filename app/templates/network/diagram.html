@@ -17,64 +17,22 @@
                     <div class="mb-3">
                         <h6 class="text-uppercase text-muted">Entities</h6>
                         <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="entity-vendor" name="entity_types" value="vendor" checked>
-                            <label class="form-check-label" for="entity-vendor">Technology Vendors</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="entity-owner" name="entity_types" value="owner" checked>
-                            <label class="form-check-label" for="entity-owner">Owners &amp; Developers</label>
+                            <input class="form-check-input" type="checkbox" id="entity-company" name="entity_types" value="company" checked>
+                            <label class="form-check-label" for="entity-company">Companies (all types)</label>
                         </div>
                         <div class="form-check">
                             <input class="form-check-input" type="checkbox" id="entity-project" name="entity_types" value="project" checked>
                             <label class="form-check-label" for="entity-project">Projects</label>
                         </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="entity-constructor" name="entity_types" value="constructor" checked>
-                            <label class="form-check-label" for="entity-constructor">Constructors</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="entity-operator" name="entity_types" value="operator" checked>
-                            <label class="form-check-label" for="entity-operator">Operators</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="entity-offtaker" name="entity_types" value="offtaker" checked>
-                            <label class="form-check-label" for="entity-offtaker">Energy Off-takers</label>
-                        </div>
+                        <p class="form-text small text-muted mb-0">Companies include vendors, owners, developers, operators, constructors, and off-takers.</p>
                     </div>
                     <div class="mb-3">
                         <h6 class="text-uppercase text-muted">Relationships</h6>
                         <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="rel-owner-vendor" name="relationship_types" value="owner_vendor" checked>
-                            <label class="form-check-label" for="rel-owner-vendor">Owner ↔ Vendor</label>
+                            <input class="form-check-input" type="checkbox" id="rel-project-company" name="relationship_types" value="project_company" checked>
+                            <label class="form-check-label" for="rel-project-company">Project ↔ Company (all roles)</label>
                         </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="rel-project-vendor" name="relationship_types" value="project_vendor" checked>
-                            <label class="form-check-label" for="rel-project-vendor">Project ↔ Vendor</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="rel-project-owner" name="relationship_types" value="project_owner" checked>
-                            <label class="form-check-label" for="rel-project-owner">Project ↔ Owner</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="rel-project-constructor" name="relationship_types" value="project_constructor" checked>
-                            <label class="form-check-label" for="rel-project-constructor">Project ↔ Constructor</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="rel-project-operator" name="relationship_types" value="project_operator" checked>
-                            <label class="form-check-label" for="rel-project-operator">Project ↔ Operator</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="rel-vendor-supplier" name="relationship_types" value="vendor_supplier" checked>
-                            <label class="form-check-label" for="rel-vendor-supplier">Vendor Supplier</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="rel-vendor-constructor" name="relationship_types" value="vendor_constructor" checked>
-                            <label class="form-check-label" for="rel-vendor-constructor">Vendor Preferred Constructor</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="rel-project-offtaker" name="relationship_types" value="project_offtaker" checked>
-                            <label class="form-check-label" for="rel-project-offtaker">Project ↔ Off-taker</label>
-                        </div>
+                        <p class="form-text small text-muted mb-0">Shows all project-company relationships including vendors, owners, operators, constructors, and off-takers.</p>
                     </div>
                     <button type="submit" class="btn btn-primary btn-sm w-100">Apply Filters</button>
                 </form>
@@ -124,42 +82,19 @@
             <div class="card-header">Legend</div>
             <div class="card-body">
                 <div class="legend-item">
-                    <span class="legend-node vendor"></span>
-                    <span>Technology Vendor</span>
-                </div>
-                <div class="legend-item">
-                    <span class="legend-node owner"></span>
-                    <span>Owner / Developer</span>
+                    <span class="legend-node company"></span>
+                    <span>Company</span>
                 </div>
                 <div class="legend-item">
                     <span class="legend-node project"></span>
                     <span>Project</span>
                 </div>
-                <div class="legend-item">
-                    <span class="legend-node constructor"></span>
-                    <span>Constructor</span>
-                </div>
-                <div class="legend-item">
-                    <span class="legend-node operator"></span>
-                    <span>Operator</span>
-                </div>
-                <div class="legend-item">
-                    <span class="legend-node offtaker"></span>
-                    <span>Off-taker</span>
-                </div>
                 <hr>
                 <div class="legend-item">
                     <span class="legend-edge solid"></span>
-                    <span>Relationship</span>
+                    <span>Company Role on Project</span>
                 </div>
-                <div class="legend-item">
-                    <span class="legend-edge dashed"></span>
-                    <span>MOU</span>
-                </div>
-                <div class="legend-item">
-                    <span class="legend-edge arrow"></span>
-                    <span>Supplier Direction</span>
-                </div>
+                <p class="form-text small text-muted mb-0 mt-2">Edge labels show the company's role (Vendor, Owner, Operator, Constructor, Off-taker)</p>
             </div>
         </div>
     </div>

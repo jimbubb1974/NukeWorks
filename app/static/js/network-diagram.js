@@ -82,8 +82,8 @@
         edgesDataSet: null,
         nodeIndex: new Map(),
         currentFilters: {
-            entity_types: ['vendor', 'owner', 'project', 'constructor', 'operator', 'offtaker'],
-            relationship_types: ['owner_vendor', 'project_vendor', 'project_owner', 'project_constructor', 'project_operator', 'vendor_supplier', 'vendor_constructor', 'project_offtaker'],
+            entity_types: ['company', 'project'],
+            relationship_types: ['project_company'],
             focus_entity: null,
             depth: 'all'
         },
