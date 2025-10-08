@@ -27,6 +27,14 @@
                         <p class="form-text small text-muted mb-0">Companies include vendors, owners, developers, operators, constructors, and off-takers.</p>
                     </div>
                     <div class="mb-3">
+                        <h6 class="text-uppercase text-muted">Display Options</h6>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="hide-unconnected-companies" name="hide_unconnected_companies" value="1">
+                            <label class="form-check-label" for="hide-unconnected-companies">Hide companies without project connections</label>
+                        </div>
+                        <p class="form-text small text-muted mb-0">Only show companies that are linked to at least one project.</p>
+                    </div>
+                    <div class="mb-3">
                         <h6 class="text-uppercase text-muted">Relationships</h6>
                         <div class="form-check">
                             <input class="form-check-input" type="checkbox" id="rel-project-company" name="relationship_types" value="project_company" checked>

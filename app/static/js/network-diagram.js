@@ -84,6 +84,7 @@
         currentFilters: {
             entity_types: ['company', 'project'],
             relationship_types: ['project_company'],
+            hide_unconnected_companies: false,
             focus_entity: null,
             depth: 'all'
         },
@@ -186,6 +187,7 @@
             }
             const entityInputs = this.filterForm.querySelectorAll('input[name="entity_types"]');
             const relationshipInputs = this.filterForm.querySelectorAll('input[name="relationship_types"]');
+            const hideUnconnectedInput = this.filterForm.querySelector('input[name="hide_unconnected_companies"]');
 
             const selectedEntities = Array.from(entityInputs).filter((input) => input.checked).map((input) => input.value);
             const selectedRelationships = Array.from(relationshipInputs).filter((input) => input.checked).map((input) => input.value);
@@ -196,6 +198,9 @@
             if (selectedRelationships.length > 0) {
                 this.currentFilters.relationship_types = selectedRelationships;
             }
+            if (hideUnconnectedInput) {
+                this.currentFilters.hide_unconnected_companies = hideUnconnectedInput.checked;
+            }
         },
 
         updateFiltersFromForm() {
@@ -204,6 +209,7 @@
             }
             const entityInputs = this.filterForm.querySelectorAll('input[name="entity_types"]');
             const relationshipInputs = this.filterForm.querySelectorAll('input[name="relationship_types"]');
+            const hideUnconnectedInput = this.filterForm.querySelector('input[name="hide_unconnected_companies"]');
 
             const selectedEntities = Array.from(entityInputs).filter((input) => input.checked).map((input) => input.value);
             const selectedRelationships = Array.from(relationshipInputs).filter((input) => input.checked).map((input) => input.value);
@@ -219,6 +225,9 @@
 
             this.currentFilters.entity_types = selectedEntities;
             this.currentFilters.relationship_types = selectedRelationships;
+            if (hideUnconnectedInput) {
+                this.currentFilters.hide_unconnected_companies = hideUnconnectedInput.checked;
+            }
 
             // Clear focus if it conflicts with new filters
             if (this.currentFilters.focus_entity && !this.currentFilters.entity_types.includes(this.currentFilters.focus_entity.type)) {
@@ -281,22 +290,52 @@
 
         updateData(data) {
             this.nodeIndex.clear();
-            data.nodes.forEach((node) => {
+
+            // Filter out unconnected companies if the option is enabled
+            let filteredNodes = data.nodes;
+            let filteredEdges = data.edges;
+
+            if (this.currentFilters.hide_unconnected_companies) {
+                // Build a set of company IDs that have connections to projects
+                const connectedCompanyIds = new Set();
+                data.edges.forEach((edge) => {
+                    // Extract company node IDs from edges (format: "company_123")
+                    if (edge.from && edge.from.startsWith('company_')) {
+                        connectedCompanyIds.add(edge.from);
+                    }
+                    if (edge.to && edge.to.startsWith('company_')) {
+                        connectedCompanyIds.add(edge.to);
+                    }
+                });
+
+                // Filter nodes to keep only: projects + connected companies
+                filteredNodes = data.nodes.filter((node) => {
+                    if (node.group === 'project') {
+                        return true; // Always keep projects
+                    }
+                    if (node.group === 'company') {
+                        return connectedCompanyIds.has(node.id); // Only keep connected companies
+                    }
+                    return true; // Keep other node types
+                });
+            }
+
+            filteredNodes.forEach((node) => {
                 this.nodeIndex.set(node.id, node);
             });
 
             if (!this.nodesDataSet || !this.edgesDataSet) {
-                this.nodesDataSet = new vis.DataSet(data.nodes);
-                this.edgesDataSet = new vis.DataSet(data.edges);
+                this.nodesDataSet = new vis.DataSet(filteredNodes);
+                this.edgesDataSet = new vis.DataSet(filteredEdges);
                 this.createNetwork();
             } else {
                 this.nodesDataSet.clear();
                 this.edgesDataSet.clear();
-                if (data.nodes.length > 0) {
-                    this.nodesDataSet.add(data.nodes);
+                if (filteredNodes.length > 0) {
+                    this.nodesDataSet.add(filteredNodes);
                 }
-                if (data.edges.length > 0) {
-                    this.edgesDataSet.add(data.edges);
+                if (filteredEdges.length > 0) {
+                    this.edgesDataSet.add(filteredEdges);
                 }
             }
 
