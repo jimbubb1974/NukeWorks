@@ -131,7 +131,6 @@
                         <tr>
                             <th>Relationship</th>
                             <th>Type</th>
-                            <th>Notes</th>
                             <th>Status</th>
                             <th class="text-end">Actions</th>
                         </tr>
@@ -141,24 +140,27 @@
                         <tr>
                             <td>{{ rel.label }}</td>
                             <td class="text-capitalize">{{ rel.type.replace('_', ' ') }}</td>
-                            <td>{{ rel.notes or '—' }}</td>
                             <td>
                                 {% if rel.is_confidential %}
                                 <span class="badge bg-warning text-dark">Confidential</span>
                                 {% else %}
-                                <span class="badge bg-secondary">Public</span>
+                                <span class="badge bg-success text-white">Public</span>
                                 {% endif %}
                             </td>
                             <td class="text-end">
                                 <form method="post" action="{{ url_for('admin.set_relationship_confidential', rel_type=rel.type, relationship_id=rel.id, view=view) }}" class="d-inline">
                                     {{ relationship_toggle_form.hidden_tag() }}
-                                    <input type="hidden" name="value" value="1">
-                                    <button type="submit" class="btn btn-sm btn-outline-primary" {% if rel.is_confidential %}disabled{% endif %}>Make Confidential</button>
-                                </form>
-                                <form method="post" action="{{ url_for('admin.set_relationship_confidential', rel_type=rel.type, relationship_id=rel.id, view=view) }}" class="d-inline">
-                                    {{ relationship_toggle_form.hidden_tag() }}
+                                    {% if rel.is_confidential %}
                                     <input type="hidden" name="value" value="0">
-                                    <button type="submit" class="btn btn-sm btn-outline-secondary" {% if not rel.is_confidential %}disabled{% endif %}>Make Public</button>
+                                    <button type="submit" class="btn btn-sm btn-success" title="Click to make public">
+                                        <i class="bi bi-unlock"></i> Make Public
+                                    </button>
+                                    {% else %}
+                                    <input type="hidden" name="value" value="1">
+                                    <button type="submit" class="btn btn-sm btn-warning" title="Click to make confidential">
+                                        <i class="bi bi-lock"></i> Make Confidential
+                                    </button>
+                                    {% endif %}
                                 </form>
                             </td>
                         </tr>
