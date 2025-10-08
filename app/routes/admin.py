@@ -14,15 +14,9 @@ from app.models import (
     ConfidentialFieldFlag,
     ContactLog,
     Project,
-    OwnerDeveloper,
-    TechnologyVendor,
-    VendorSupplierRelationship,
-    OwnerVendorRelationship,
-    ProjectVendorRelationship,
-    ProjectConstructorRelationship,
-    ProjectOperatorRelationship,
-    ProjectOwnerRelationship,
-    VendorPreferredConstructor,
+    Company,
+    CompanyRoleAssignment,
+    PersonnelEntityRelationship,
     DatabaseSnapshot,
     AuditLog,
 )
@@ -67,33 +61,13 @@ def _parse_timestamp(value: str | None):
 
 
 RELATIONSHIP_CONFIG = {
-    'vendor_supplier': (
-        VendorSupplierRelationship,
-        lambda rel: f"{rel.vendor.vendor_name if rel and rel.vendor else 'Vendor'} ↔ {rel.supplier.vendor_name if rel and rel.supplier else 'Supplier'}",
+    'company_role_assignment': (
+        CompanyRoleAssignment,
+        lambda rel: f"{rel.company.company_name if rel and rel.company else 'Company'} ({rel.role.role_label if rel and rel.role else 'Role'}) → {rel.context_type if rel else 'Context'}",
     ),
-    'owner_vendor': (
-        OwnerVendorRelationship,
-        lambda rel: f"{rel.owner.company_name if rel and rel.owner else 'Owner'} ↔ {rel.vendor.vendor_name if rel and rel.vendor else 'Vendor'}",
-    ),
-    'project_vendor': (
-        ProjectVendorRelationship,
-        lambda rel: f"{rel.project.project_name if rel and rel.project else 'Project'} ↔ {rel.vendor.vendor_name if rel and rel.vendor else 'Vendor'}",
-    ),
-    'project_constructor': (
-        ProjectConstructorRelationship,
-        lambda rel: f"{rel.project.project_name if rel and rel.project else 'Project'} ↔ {rel.constructor.company_name if rel and rel.constructor else 'Constructor'}",
-    ),
-    'project_operator': (
-        ProjectOperatorRelationship,
-        lambda rel: f"{rel.project.project_name if rel and rel.project else 'Project'} ↔ {rel.operator.company_name if rel and rel.operator else 'Operator'}",
-    ),
-    'project_owner': (
-        ProjectOwnerRelationship,
-        lambda rel: f"{rel.project.project_name if rel and rel.project else 'Project'} ↔ {rel.owner.company_name if rel and rel.owner else 'Owner'}",
-    ),
-    'vendor_preferred_constructor': (
-        VendorPreferredConstructor,
-        lambda rel: f"{rel.vendor.vendor_name if rel and rel.vendor else 'Vendor'} ↔ {rel.constructor.company_name if rel and rel.constructor else 'Constructor'}",
+    'personnel_entity': (
+        PersonnelEntityRelationship,
+        lambda rel: f"{rel.personnel.full_name if rel and rel.personnel else 'Personnel'} ↔ {rel.entity_type if rel else 'Entity'} (Role: {rel.role_at_entity or 'N/A'})",
     ),
 }
 
@@ -143,28 +117,64 @@ def _resolve_field_display(flag: ConfidentialFieldFlag):
         obj = db_session.get(Project, record_id)
         if obj:
             entity_label = obj.project_name or entity_label
-    elif table == 'owners_developers':
-        obj = db_session.get(OwnerDeveloper, record_id)
+    elif table == 'companies':
+        obj = db_session.get(Company, record_id)
         if obj:
             entity_label = obj.company_name or entity_label
-    elif table == 'technology_vendors':
-        obj = db_session.get(TechnologyVendor, record_id)
+    elif table == 'contact_log':
+        obj = db_session.get(ContactLog, record_id)
         if obj:
-            entity_label = obj.vendor_name or entity_label
+            entity_label = f"Contact #{record_id}"
 
     return entity_label, flag.field_name
 
 
-def _collect_relationship_entries():
+def _collect_relationship_entries(filter_company_id=None, filter_project_id=None):
     entries = []
     for key, (model, label_func) in RELATIONSHIP_CONFIG.items():
-        items = db_session.query(model).order_by(model.relationship_id).all()
+        # Get the primary key field name based on model
+        if key == 'company_role_assignment':
+            pk_field = 'assignment_id'
+            order_field = CompanyRoleAssignment.assignment_id
+            query = db_session.query(model)
+
+            # Apply filters for company_role_assignment
+            if filter_company_id:
+                query = query.filter(CompanyRoleAssignment.company_id == filter_company_id)
+            if filter_project_id:
+                query = query.filter(
+                    CompanyRoleAssignment.context_type == 'Project',
+                    CompanyRoleAssignment.context_id == filter_project_id
+                )
+
+            items = query.order_by(order_field).all()
+        elif key == 'personnel_entity':
+            pk_field = 'relationship_id'
+            order_field = PersonnelEntityRelationship.relationship_id
+            query = db_session.query(model)
+
+            # Apply filters for personnel_entity
+            if filter_company_id:
+                query = query.filter(
+                    PersonnelEntityRelationship.entity_type == 'Company',
+                    PersonnelEntityRelationship.entity_id == filter_company_id
+                )
+            if filter_project_id:
+                query = query.filter(
+                    PersonnelEntityRelationship.entity_type == 'Project',
+                    PersonnelEntityRelationship.entity_id == filter_project_id
+                )
+
+            items = query.order_by(order_field).all()
+        else:
+            continue
+
         for rel in items:
             entries.append({
                 'type': key,
-                'id': rel.relationship_id,
+                'id': getattr(rel, pk_field),
                 'label': label_func(rel),
-                'notes': getattr(rel, 'notes', None) or getattr(rel, 'component_type', None) or getattr(rel, 'preference_reason', None),
+                'notes': getattr(rel, 'notes', None),
                 'is_confidential': bool(getattr(rel, 'is_confidential', False)),
             })
     return entries
@@ -391,6 +401,8 @@ def audit_log():
 @admin_required
 def permission_scrubbing():
     view = request.args.get('view', 'confidential')
+    filter_company_id = request.args.get('filter_company', type=int)
+    filter_project_id = request.args.get('filter_project', type=int)
 
     flags = db_session.query(ConfidentialFieldFlag).order_by(ConfidentialFieldFlag.marked_date.desc()).all()
     confidential_field_count = sum(1 for flag in flags if flag.is_confidential)
@@ -406,7 +418,7 @@ def permission_scrubbing():
             'field_name': field_name,
         })
 
-    relationship_entries_all = _collect_relationship_entries()
+    relationship_entries_all = _collect_relationship_entries(filter_company_id, filter_project_id)
     relationship_confidential = sum(1 for entry in relationship_entries_all if entry['is_confidential'])
     if view == 'confidential':
         relationship_entries = [entry for entry in relationship_entries_all if entry['is_confidential']]
@@ -414,6 +426,10 @@ def permission_scrubbing():
         relationship_entries = relationship_entries_all
 
     contact_logs = _collect_confidential_contacts()
+
+    # Get companies and projects for filter dropdowns
+    companies = db_session.query(Company).order_by(Company.company_name).all()
+    projects = db_session.query(Project).order_by(Project.project_name).all()
 
     field_form = ConfirmActionForm()
     field_toggle_form = ConfirmActionForm()
@@ -428,6 +444,10 @@ def permission_scrubbing():
         confidential_field_count=confidential_field_count,
         relationship_confidential=relationship_confidential,
         view=view,
+        filter_company_id=filter_company_id,
+        filter_project_id=filter_project_id,
+        companies=companies,
+        projects=projects,
         field_form=field_form,
         field_toggle_form=field_toggle_form,
         relationship_toggle_form=relationship_toggle_form,

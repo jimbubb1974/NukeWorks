@@ -28,6 +28,33 @@
                 <option value="all" {% if view == 'all' %}selected{% endif %}>Show all items</option>
             </select>
         </div>
+        <div class="col-md-3">
+            <label class="form-label">Filter by Company</label>
+            <select name="filter_company" class="form-select" onchange="this.form.submit()">
+                <option value="">All Companies</option>
+                {% for company in companies %}
+                <option value="{{ company.company_id }}" {% if filter_company_id == company.company_id %}selected{% endif %}>
+                    {{ company.company_name }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label">Filter by Project</label>
+            <select name="filter_project" class="form-select" onchange="this.form.submit()">
+                <option value="">All Projects</option>
+                {% for project in projects %}
+                <option value="{{ project.project_id }}" {% if filter_project_id == project.project_id %}selected{% endif %}>
+                    {{ project.project_name }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-3 d-flex align-items-end">
+            <button type="submit" class="btn btn-outline-secondary w-100">
+                <i class="bi bi-arrow-clockwise"></i> Apply Filters
+            </button>
+        </div>
     </form>
 
     <div class="card mb-4">
@@ -130,7 +157,6 @@
                     <thead class="table-light">
                         <tr>
                             <th>Relationship</th>
-                            <th>Type</th>
                             <th>Status</th>
                             <th class="text-end">Actions</th>
                         </tr>
@@ -139,7 +165,6 @@
                         {% for rel in relationship_entries %}
                         <tr>
                             <td>{{ rel.label }}</td>
-                            <td class="text-capitalize">{{ rel.type.replace('_', ' ') }}</td>
                             <td>
                                 {% if rel.is_confidential %}
                                 <span class="badge bg-warning text-dark">Confidential</span>
