@@ -1,7 +1,7 @@
 # 03_DATABASE_RELATIONSHIPS.md - Junction Tables & Relationships
 
-**Document Version:** 1.0  
-**Last Updated:** December 4, 2025
+**Document Version:** 2.0
+**Last Updated:** October 7, 2025
 
 **Related Documents:**
 - `02_DATABASE_SCHEMA.md` - Core entity tables
@@ -12,7 +12,13 @@
 
 ## Overview
 
-This document defines all many-to-many (N:N) relationships using junction tables. Each junction table includes:
+This document defines all many-to-many (N:N) relationships using junction tables. The system uses a **unified company schema** where a single `companies` table with role-based assignments replaces legacy entity-specific tables.
+
+**Key Architectural Change (October 2025):**
+- **Before:** Separate tables (Technology_Vendors, Owners_Developers, Operators, Constructors, Offtakers)
+- **After:** Single `companies` table with `company_role_assignments` for flexible role management
+
+Each junction table includes:
 - Foreign keys to both entities
 - Confidentiality flag (`is_confidential`)
 - Optional metadata (notes, relationship type)
@@ -24,40 +30,58 @@ This document defines all many-to-many (N:N) relationships using junction tables
 
 ## Table of Contents
 
-1. [Vendor_Supplier_Relationships](#vendor_supplier_relationships)
-2. [Owner_Vendor_Relationships](#owner_vendor_relationships)
-3. [Project_Vendor_Relationships](#project_vendor_relationships)
-4. [Project_Constructor_Relationships](#project_constructor_relationships)
-5. [Project_Operator_Relationships](#project_operator_relationships)
-6. [Project_Owner_Relationships](#project_owner_relationships)
-7. [Vendor_Preferred_Constructor](#vendor_preferred_constructor)
-8. [Personnel_Entity_Relationships](#personnel_entity_relationships)
-9. [Entity_Team_Members](#entity_team_members)
-10. [Relationship Summary](#relationship_summary)
+1. [Unified Company System](#unified-company-system)
+2. [Company_Role_Assignments](#company_role_assignments) (Primary Relationship Table)
+3. [Person_Company_Affiliations](#person_company_affiliations)
+4. [Entity_Team_Members](#entity_team_members)
+5. [Legacy Tables (Deprecated)](#legacy-tables-deprecated)
+6. [Relationship Summary](#relationship_summary)
+7. [Migration Notes](#migration-notes)
 
 ---
 
-## Vendor_Supplier_Relationships
+## Unified Company System
 
-**Purpose:** Track which vendors supply components to other vendors
+### Core Concept
 
-**Connects:** Technology_Vendors (vendor) ↔ Technology_Vendors (supplier)
+The unified company system consolidates all organization types (vendors, owners, operators, constructors, offtakers) into a single `companies` table with flexible role-based relationships.
+
+**Benefits:**
+- Single source of truth for all companies
+- Companies can have multiple roles (e.g., both vendor and operator)
+- Simplified queries and reduced code duplication
+- Easier to add new company types without schema changes
+
+### Key Tables
+
+1. **companies** - All organizations (replaces 5 legacy tables)
+2. **company_roles** - Available roles (vendor, developer, operator, constructor, offtaker)
+3. **company_role_assignments** - Polymorphic relationship table linking companies to any entity with a specific role
+
+---
+
+## Company_Role_Assignments
+
+**Purpose:** Unified relationship table connecting companies to projects, personnel, and other entities in specific roles
+
+**Connects:** Companies ↔ Any Entity (Projects, Personnel, etc.) with role context
 
 **SQL Definition:**
 ```sql
-CREATE TABLE Vendor_Supplier_Relationships (
-    relationship_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    vendor_id INTEGER NOT NULL,
-    supplier_id INTEGER NOT NULL,
-    component_type TEXT,
+CREATE TABLE company_role_assignments (
+    assignment_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    company_id INTEGER NOT NULL,
+    role_id INTEGER NOT NULL,
+    context_type TEXT NOT NULL,
+    context_id INTEGER NOT NULL,
     is_confidential BOOLEAN DEFAULT 0,
     notes TEXT,
     created_by INTEGER,
     created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     modified_by INTEGER,
     modified_date TIMESTAMP,
-    FOREIGN KEY (vendor_id) REFERENCES Technology_Vendors(vendor_id),
-    FOREIGN KEY (supplier_id) REFERENCES Technology_Vendors(vendor_id),
+    FOREIGN KEY (company_id) REFERENCES companies(company_id),
+    FOREIGN KEY (role_id) REFERENCES company_roles(role_id),
     FOREIGN KEY (created_by) REFERENCES Users(user_id),
     FOREIGN KEY (modified_by) REFERENCES Users(user_id)
 );
@@ -67,10 +91,11 @@ CREATE TABLE Vendor_Supplier_Relationships (
 
 | Field | Type | Null | Default | Description |
 |-------|------|------|---------|-------------|
-| relationship_id | INTEGER | No | Auto | Primary key |
-| vendor_id | INTEGER | No | - | FK to Technology_Vendors (the vendor) |
-| supplier_id | INTEGER | No | - | FK to Technology_Vendors (the supplier) |
-| component_type | TEXT | Yes | NULL | major_component, minor_component, etc. |
+| assignment_id | INTEGER | No | Auto | Primary key |
+| company_id | INTEGER | No | - | FK to companies |
+| role_id | INTEGER | No | - | FK to company_roles |
+| context_type | TEXT | No | - | Entity type: 'Project', 'Personnel', etc. |
+| context_id | INTEGER | No | - | ID of the specific entity |
 | is_confidential | BOOLEAN | No | 0 | Hide from users without confidential access |
 | notes | TEXT | Yes | NULL | Freeform notes about the relationship |
 | created_by | INTEGER | Yes | - | FK to Users |
@@ -78,48 +103,67 @@ CREATE TABLE Vendor_Supplier_Relationships (
 | modified_by | INTEGER | Yes | - | FK to Users |
 | modified_date | TIMESTAMP | Yes | - | Last modified timestamp |
 
+**Polymorphic Relationship Pattern:**
+- `context_type` specifies what kind of entity (e.g., 'Project', 'Personnel')
+- `context_id` specifies which specific entity
+- This allows one table to manage all company relationships
+
 **Business Rules:**
-- Typically one vendor per project (technology provider)
-- Multiple vendors possible if project uses hybrid technology
-- Combination of (project_id, vendor_id) should be unique
+- context_type must be one of: 'Project', 'Personnel', 'Company' (for supplier relationships)
+- context_id must be valid ID for the specified context_type
+- role_id determines the relationship type (vendor, developer, operator, etc.)
+- Same company can have multiple roles on same project
+- Combination of (company_id, role_id, context_type, context_id) should be unique
 
 **Indexes:**
 ```sql
-CREATE INDEX idx_project_vendor_project ON Project_Vendor_Relationships(project_id);
-CREATE INDEX idx_project_vendor_vendor ON Project_Vendor_Relationships(vendor_id);
-CREATE INDEX idx_project_vendor_conf ON Project_Vendor_Relationships(is_confidential);
+CREATE INDEX idx_company_role_assignment_company ON company_role_assignments(company_id);
+CREATE INDEX idx_company_role_assignment_role ON company_role_assignments(role_id);
+CREATE INDEX idx_company_role_assignment_context ON company_role_assignments(context_type, context_id);
+CREATE INDEX idx_company_role_assignment_conf ON company_role_assignments(is_confidential);
 ```
 
-**Example:**
+**Examples:**
 ```sql
--- Project Alpha uses TechVendor X's technology (public)
-INSERT INTO Project_Vendor_Relationships 
-(project_id, vendor_id, is_confidential, created_by)
-VALUES (1, 3, 0, 1);
+-- NuScale Power (company_id=1) is Technology Vendor (role_id=1) for Project 5
+INSERT INTO company_role_assignments
+(company_id, role_id, context_type, context_id, is_confidential, created_by)
+VALUES (1, 1, 'Project', 5, 0, 1);
+
+-- AtkinsRéalis (company_id=10) is Constructor (role_id=4) for Project 5
+INSERT INTO company_role_assignments
+(company_id, role_id, context_type, context_id, is_confidential, created_by)
+VALUES (10, 4, 'Project', 5, 0, 1);
+
+-- Ontario Power Generation (company_id=15) is Owner/Developer (role_id=2) for Project 5
+INSERT INTO company_role_assignments
+(company_id, role_id, context_type, context_id, is_confidential, created_by)
+VALUES (15, 2, 'Project', 5, 0, 1);
 ```
 
 ---
 
-## Project_Constructor_Relationships
+## Person_Company_Affiliations
 
-**Purpose:** Track which construction companies are building projects
+**Purpose:** Track personnel affiliations with companies (replaces Personnel_Entity_Relationships for company entities)
 
-**Connects:** Projects ↔ Constructors
+**Connects:** Personnel ↔ Companies
 
 **SQL Definition:**
 ```sql
-CREATE TABLE Project_Constructor_Relationships (
-    relationship_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    project_id INTEGER NOT NULL,
-    constructor_id INTEGER NOT NULL,
+CREATE TABLE person_company_affiliations (
+    affiliation_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    personnel_id INTEGER NOT NULL,
+    company_id INTEGER NOT NULL,
+    role_at_company TEXT,
     is_confidential BOOLEAN DEFAULT 0,
     notes TEXT,
     created_by INTEGER,
     created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     modified_by INTEGER,
     modified_date TIMESTAMP,
-    FOREIGN KEY (project_id) REFERENCES Projects(project_id),
-    FOREIGN KEY (constructor_id) REFERENCES Constructors(constructor_id),
+    FOREIGN KEY (personnel_id) REFERENCES Personnel(personnel_id),
+    FOREIGN KEY (company_id) REFERENCES companies(company_id),
     FOREIGN KEY (created_by) REFERENCES Users(user_id),
     FOREIGN KEY (modified_by) REFERENCES Users(user_id)
 );
@@ -129,206 +173,46 @@ CREATE TABLE Project_Constructor_Relationships (
 
 | Field | Type | Null | Default | Description |
 |-------|------|------|---------|-------------|
-| relationship_id | INTEGER | No | Auto | Primary key |
-| project_id | INTEGER | No | - | FK to Projects |
-| constructor_id | INTEGER | No | - | FK to Constructors |
+| affiliation_id | INTEGER | No | Auto | Primary key |
+| personnel_id | INTEGER | No | - | FK to Personnel |
+| company_id | INTEGER | No | - | FK to companies |
+| role_at_company | TEXT | Yes | NULL | Person's role (e.g., "CEO", "VP Engineering") |
 | is_confidential | BOOLEAN | No | 0 | Hide from users without confidential access |
-| notes | TEXT | Yes | NULL | Construction details, contract type |
+| notes | TEXT | Yes | NULL | Additional details about affiliation |
 | created_by | INTEGER | Yes | - | FK to Users |
 | created_date | TIMESTAMP | No | NOW | Creation timestamp |
 | modified_by | INTEGER | Yes | - | FK to Users |
 | modified_date | TIMESTAMP | Yes | - | Last modified timestamp |
 
 **Business Rules:**
-- One or more constructors per project
-- Can distinguish primary vs. secondary constructor in notes
-- Combination of (project_id, constructor_id) should be unique
+- Same person can be affiliated with multiple companies
+- role_at_company describes their position at the company
+- Replaces legacy Personnel_Entity_Relationships for all company entity types
+- Combination of (personnel_id, company_id, role_at_company) should be unique
 
 **Indexes:**
 ```sql
-CREATE INDEX idx_project_constructor_project ON Project_Constructor_Relationships(project_id);
-CREATE INDEX idx_project_constructor_constructor ON Project_Constructor_Relationships(constructor_id);
-CREATE INDEX idx_project_constructor_conf ON Project_Constructor_Relationships(is_confidential);
+CREATE INDEX idx_person_company_personnel ON person_company_affiliations(personnel_id);
+CREATE INDEX idx_person_company_company ON person_company_affiliations(company_id);
+CREATE INDEX idx_person_company_conf ON person_company_affiliations(is_confidential);
 ```
 
-**Example:**
+**Examples:**
 ```sql
--- Project Alpha uses Constructor D (confidential - in negotiations)
-INSERT INTO Project_Constructor_Relationships 
-(project_id, constructor_id, is_confidential, notes, created_by)
-VALUES (1, 4, 1, 'In contract negotiations', 1);
+-- John Doe is CEO of NuScale Power (company_id=1)
+INSERT INTO person_company_affiliations
+(personnel_id, company_id, role_at_company, is_confidential, created_by)
+VALUES (10, 1, 'CEO', 0, 1);
+
+-- Jane Smith is VP of Engineering at Ontario Power Generation (company_id=15)
+INSERT INTO person_company_affiliations
+(personnel_id, company_id, role_at_company, is_confidential, created_by)
+VALUES (12, 15, 'VP of Engineering', 0, 1);
 ```
 
 ---
 
-## Project_Operator_Relationships
-
-**Purpose:** Track which companies will operate projects
-
-**Connects:** Projects ↔ Operators
-
-**SQL Definition:**
-```sql
-CREATE TABLE Project_Operator_Relationships (
-    relationship_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    project_id INTEGER NOT NULL,
-    operator_id INTEGER NOT NULL,
-    is_confidential BOOLEAN DEFAULT 0,
-    notes TEXT,
-    created_by INTEGER,
-    created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    modified_by INTEGER,
-    modified_date TIMESTAMP,
-    FOREIGN KEY (project_id) REFERENCES Projects(project_id),
-    FOREIGN KEY (operator_id) REFERENCES Operators(operator_id),
-    FOREIGN KEY (created_by) REFERENCES Users(user_id),
-    FOREIGN KEY (modified_by) REFERENCES Users(user_id)
-);
-```
-
-**Field Reference:**
-
-| Field | Type | Null | Default | Description |
-|-------|------|------|---------|-------------|
-| relationship_id | INTEGER | No | Auto | Primary key |
-| project_id | INTEGER | No | - | FK to Projects |
-| operator_id | INTEGER | No | - | FK to Operators |
-| is_confidential | BOOLEAN | No | 0 | Hide from users without confidential access |
-| notes | TEXT | Yes | NULL | Operating agreement details |
-| created_by | INTEGER | Yes | - | FK to Users |
-| created_date | TIMESTAMP | No | NOW | Creation timestamp |
-| modified_by | INTEGER | Yes | - | FK to Users |
-| modified_date | TIMESTAMP | Yes | - | Last modified timestamp |
-
-**Business Rules:**
-- Typically one operator per project
-- Operator may be same as owner/developer
-- Combination of (project_id, operator_id) should be unique
-
-**Indexes:**
-```sql
-CREATE INDEX idx_project_operator_project ON Project_Operator_Relationships(project_id);
-CREATE INDEX idx_project_operator_operator ON Project_Operator_Relationships(operator_id);
-CREATE INDEX idx_project_operator_conf ON Project_Operator_Relationships(is_confidential);
-```
-
----
-
-## Project_Owner_Relationships
-
-**Purpose:** Track which owners/developers own projects
-
-**Connects:** Projects ↔ Owners_Developers
-
-**SQL Definition:**
-```sql
-CREATE TABLE Project_Owner_Relationships (
-    relationship_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    project_id INTEGER NOT NULL,
-    owner_id INTEGER NOT NULL,
-    is_confidential BOOLEAN DEFAULT 0,
-    notes TEXT,
-    created_by INTEGER,
-    created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    modified_by INTEGER,
-    modified_date TIMESTAMP,
-    FOREIGN KEY (project_id) REFERENCES Projects(project_id),
-    FOREIGN KEY (owner_id) REFERENCES Owners_Developers(owner_id),
-    FOREIGN KEY (created_by) REFERENCES Users(user_id),
-    FOREIGN KEY (modified_by) REFERENCES Users(user_id)
-);
-```
-
-**Field Reference:**
-
-| Field | Type | Null | Default | Description |
-|-------|------|------|---------|-------------|
-| relationship_id | INTEGER | No | Auto | Primary key |
-| project_id | INTEGER | No | - | FK to Projects |
-| owner_id | INTEGER | No | - | FK to Owners_Developers |
-| is_confidential | BOOLEAN | No | 0 | Hide from users without confidential access |
-| notes | TEXT | Yes | NULL | Ownership details, partnership structure |
-| created_by | INTEGER | Yes | - | FK to Users |
-| created_date | TIMESTAMP | No | NOW | Creation timestamp |
-| modified_by | INTEGER | Yes | - | FK to Users |
-| modified_date | TIMESTAMP | Yes | - | Last modified timestamp |
-
-**Business Rules:**
-- One or more owners per project (consortiums, partnerships)
-- Typically one primary owner
-- Combination of (project_id, owner_id) should be unique
-
-**Indexes:**
-```sql
-CREATE INDEX idx_project_owner_project ON Project_Owner_Relationships(project_id);
-CREATE INDEX idx_project_owner_owner ON Project_Owner_Relationships(owner_id);
-CREATE INDEX idx_project_owner_conf ON Project_Owner_Relationships(is_confidential);
-```
-
----
-
-## Vendor_Preferred_Constructor
-
-**Purpose:** Track which constructors are preferred by vendors
-
-**Connects:** Technology_Vendors ↔ Constructors
-
-**SQL Definition:**
-```sql
-CREATE TABLE Vendor_Preferred_Constructor (
-    relationship_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    vendor_id INTEGER NOT NULL,
-    constructor_id INTEGER NOT NULL,
-    is_confidential BOOLEAN DEFAULT 0,
-    preference_reason TEXT,
-    created_by INTEGER,
-    created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    modified_by INTEGER,
-    modified_date TIMESTAMP,
-    FOREIGN KEY (vendor_id) REFERENCES Technology_Vendors(vendor_id),
-    FOREIGN KEY (constructor_id) REFERENCES Constructors(constructor_id),
-    FOREIGN KEY (created_by) REFERENCES Users(user_id),
-    FOREIGN KEY (modified_by) REFERENCES Users(user_id)
-);
-```
-
-**Field Reference:**
-
-| Field | Type | Null | Default | Description |
-|-------|------|------|---------|-------------|
-| relationship_id | INTEGER | No | Auto | Primary key |
-| vendor_id | INTEGER | No | - | FK to Technology_Vendors |
-| constructor_id | INTEGER | No | - | FK to Constructors |
-| is_confidential | BOOLEAN | No | 0 | Hide from users without confidential access |
-| preference_reason | TEXT | Yes | NULL | Why this constructor is preferred |
-| created_by | INTEGER | Yes | - | FK to Users |
-| created_date | TIMESTAMP | No | NOW | Creation timestamp |
-| modified_by | INTEGER | Yes | - | FK to Users |
-| modified_date | TIMESTAMP | Yes | - | Last modified timestamp |
-
-**Business Rules:**
-- Vendors can have multiple preferred constructors
-- This is often confidential business strategy information
-- Combination of (vendor_id, constructor_id) should be unique
-
-**Indexes:**
-```sql
-CREATE INDEX idx_vendor_constructor_vendor ON Vendor_Preferred_Constructor(vendor_id);
-CREATE INDEX idx_vendor_constructor_constructor ON Vendor_Preferred_Constructor(constructor_id);
-CREATE INDEX idx_vendor_constructor_conf ON Vendor_Preferred_Constructor(is_confidential);
-```
-
-**Example:**
-```sql
--- Vendor X prefers Constructor Y (confidential)
-INSERT INTO Vendor_Preferred_Constructor 
-(vendor_id, constructor_id, is_confidential, preference_reason, created_by)
-VALUES (2, 3, 1, 'Previous successful projects, cost-effective', 1);
-```
-
----
-
-## Personnel_Entity_Relationships
+## Personnel_Entity_Relationships (Legacy - Still Active)
 
 **Purpose:** Track which people are associated with which organizations/projects
 
@@ -464,150 +348,167 @@ VALUES ('Owner', 10, 8, 'Team_Member', '2025-02-01');
 
 ## Relationship Summary
 
-### Complete Relationship Map
+### Unified Schema Relationship Map
 
 ```
-Technology_Vendors
-├── Products (1:N)
-├── Vendor_Supplier_Relationships (N:N with Technology_Vendors)
-├── Owner_Vendor_Relationships (N:N with Owners_Developers)
-├── Project_Vendor_Relationships (N:N with Projects)
-├── Vendor_Preferred_Constructor (N:N with Constructors)
-└── Personnel_Entity_Relationships (N:N with Personnel)
-
-Owners_Developers
-├── Owner_Vendor_Relationships (N:N with Technology_Vendors)
-├── Project_Owner_Relationships (N:N with Projects)
+Companies (Unified)
+├── Products (1:N) - for technology vendors
+├── Company_Role_Assignments (N:N polymorphic)
+│   ├── Projects (via context_type='Project')
+│   ├── Personnel (via context_type='Personnel')
+│   └── Other Companies (via context_type='Company' for supplier relationships)
+├── Person_Company_Affiliations (N:N with Personnel)
+├── Client_Profiles (1:1 extension for CRM)
 ├── Contact_Log (1:N)
-├── Roundtable_History (1:N)
-├── Entity_Team_Members (1:N with Personnel)
-└── Personnel_Entity_Relationships (N:N with Personnel)
+└── Entity_Team_Members (1:N with Personnel)
 
 Projects
-├── Project_Vendor_Relationships (N:N with Technology_Vendors)
-├── Project_Constructor_Relationships (N:N with Constructors)
-├── Project_Operator_Relationships (N:N with Operators)
-├── Project_Owner_Relationships (N:N with Owners_Developers)
+├── Company_Role_Assignments (N:N with Companies)
+│   ├── Technology Vendor role
+│   ├── Owner/Developer role
+│   ├── Operator role
+│   ├── Constructor role
+│   └── Offtaker role
 ├── Entity_Team_Members (1:N with Personnel)
-└── Personnel_Entity_Relationships (N:N with Personnel)
-
-Constructors
-├── Project_Constructor_Relationships (N:N with Projects)
-├── Vendor_Preferred_Constructor (N:N with Technology_Vendors)
-└── Personnel_Entity_Relationships (N:N with Personnel)
-
-Operators
-├── Project_Operator_Relationships (N:N with Projects)
-└── Personnel_Entity_Relationships (N:N with Personnel)
+└── Personnel_Entity_Relationships (N:N with Personnel) - for project personnel
 
 Personnel
-├── Personnel_Entity_Relationships (N:N with all entities)
-├── Entity_Team_Members (N:N with all entities)
-└── Referenced by Contact_Log, Owners_Developers POC fields
+├── Person_Company_Affiliations (N:N with Companies)
+├── Company_Role_Assignments (N:N polymorphic)
+├── Personnel_Entity_Relationships (N:N polymorphic - for projects)
+└── Entity_Team_Members (N:N for internal team assignments)
 ```
 
-### Relationship Count by Type
+### Active Relationship Tables
 
-| Relationship Type | Junction Table | Confidentiality |
-|-------------------|----------------|-----------------|
-| Vendor → Supplier | Vendor_Supplier_Relationships | Optional |
-| Owner ↔ Vendor | Owner_Vendor_Relationships | Optional |
-| Project → Vendor | Project_Vendor_Relationships | Optional |
-| Project → Constructor | Project_Constructor_Relationships | Optional |
-| Project → Operator | Project_Operator_Relationships | Optional |
-| Project → Owner | Project_Owner_Relationships | Optional |
-| Vendor → Constructor | Vendor_Preferred_Constructor | Optional |
-| Personnel → Entity | Personnel_Entity_Relationships | Optional |
-| Internal Personnel → Entity | Entity_Team_Members | No flag |
+| Relationship Type | Junction Table | Confidentiality | Status |
+|-------------------|----------------|-----------------|--------|
+| Company → Project (any role) | company_role_assignments | Optional | Active |
+| Company → Company (supplier) | company_role_assignments | Optional | Active |
+| Personnel → Company | person_company_affiliations | Optional | Active |
+| Personnel → Project | Personnel_Entity_Relationships | Optional | Active |
+| Internal Personnel → Entity | Entity_Team_Members | No flag | Active |
 
-**Total Junction Tables:** 9
+**Total Active Junction Tables:** 3 (down from 9!)
+
+**Consolidated Functionality:**
+- `company_role_assignments` replaces 5+ legacy relationship tables
+- Polymorphic pattern allows one table to handle all company relationships
+- Simpler schema, easier to maintain, more flexible
 
 ---
 
-## Query Examples
+## Query Examples (Unified Schema)
 
-### Get All Relationships for a Project
+### Get All Company Relationships for a Project
 
 ```sql
--- Get all vendors for Project 5
-SELECT v.vendor_name, pvr.is_confidential, pvr.notes
-FROM Project_Vendor_Relationships pvr
-JOIN Technology_Vendors v ON pvr.vendor_id = v.vendor_id
-WHERE pvr.project_id = 5
-AND (pvr.is_confidential = 0 OR ? = 1);  -- ? = user has confidential access
+-- Get all companies for Project 5 (any role)
+SELECT
+    c.company_name,
+    r.role_label,
+    cra.is_confidential,
+    cra.notes
+FROM company_role_assignments cra
+JOIN companies c ON cra.company_id = c.company_id
+JOIN company_roles r ON cra.role_id = r.role_id
+WHERE cra.context_type = 'Project'
+AND cra.context_id = 5
+AND (cra.is_confidential = 0 OR ? = 1);  -- ? = user has confidential access
 
--- Get all constructors for Project 5
-SELECT c.company_name, pcr.is_confidential, pcr.notes
-FROM Project_Constructor_Relationships pcr
-JOIN Constructors c ON pcr.constructor_id = c.constructor_id
-WHERE pcr.project_id = 5
-AND (pcr.is_confidential = 0 OR ? = 1);
-
--- Get all personnel for Project 5
-SELECT p.full_name, per.role_at_entity, per.is_confidential
-FROM Personnel_Entity_Relationships per
-JOIN Personnel p ON per.personnel_id = p.personnel_id
-WHERE per.entity_type = 'Project' 
-AND per.entity_id = 5
-AND (per.is_confidential = 0 OR ? = 1);
+-- Get just the technology vendor for Project 5
+SELECT c.company_name, cra.notes
+FROM company_role_assignments cra
+JOIN companies c ON cra.company_id = c.company_id
+JOIN company_roles r ON cra.role_id = r.role_id
+WHERE cra.context_type = 'Project'
+AND cra.context_id = 5
+AND r.role_code = 'vendor'
+AND (cra.is_confidential = 0 OR ? = 1);
 ```
 
-### Get All Relationships for a Vendor
+### Get All Projects for a Company
 
 ```sql
--- Get all suppliers for Vendor 3
-SELECT s.vendor_name, vsr.component_type, vsr.is_confidential
-FROM Vendor_Supplier_Relationships vsr
-JOIN Technology_Vendors s ON vsr.supplier_id = s.vendor_id
-WHERE vsr.vendor_id = 3
-AND (vsr.is_confidential = 0 OR ? = 1);
+-- Get all projects for Company 1 (any role)
+SELECT
+    p.project_name,
+    r.role_label,
+    cra.is_confidential,
+    cra.notes
+FROM company_role_assignments cra
+JOIN projects p ON cra.context_id = p.project_id
+JOIN company_roles r ON cra.role_id = r.role_id
+WHERE cra.company_id = 1
+AND cra.context_type = 'Project'
+AND (cra.is_confidential = 0 OR ? = 1)
+ORDER BY p.project_name;
 
--- Get all owners with agreements with Vendor 3
-SELECT o.company_name, ovr.relationship_type, ovr.is_confidential
-FROM Owner_Vendor_Relationships ovr
-JOIN Owners_Developers o ON ovr.owner_id = o.owner_id
-WHERE ovr.vendor_id = 3
-AND (ovr.is_confidential = 0 OR ? = 1);
-
--- Get preferred constructors for Vendor 3
-SELECT c.company_name, vpc.preference_reason, vpc.is_confidential
-FROM Vendor_Preferred_Constructor vpc
-JOIN Constructors c ON vpc.constructor_id = c.constructor_id
-WHERE vpc.vendor_id = 3
-AND (vpc.is_confidential = 0 OR ? = 1);
+-- Get all companies related to Company 1 (supplier relationships)
+SELECT
+    c.company_name,
+    r.role_label,
+    cra.notes
+FROM company_role_assignments cra
+JOIN companies c ON cra.context_id = c.company_id
+JOIN company_roles r ON cra.role_id = r.role_id
+WHERE cra.company_id = 1
+AND cra.context_type = 'Company'
+AND (cra.is_confidential = 0 OR ? = 1);
 ```
 
 ### Get Network Diagram Data
 
 ```sql
--- Get all visible relationships for network diagram
--- (Must respect confidentiality based on user permissions)
-
--- Example: Get all Project-Vendor relationships
-SELECT 
+-- Get all visible project-company relationships for network diagram
+SELECT
     p.project_name,
-    v.vendor_name,
-    pvr.is_confidential
-FROM Project_Vendor_Relationships pvr
-JOIN Projects p ON pvr.project_id = p.project_id
-JOIN Technology_Vendors v ON pvr.vendor_id = v.vendor_id
-WHERE (pvr.is_confidential = 0 OR ? = 1)  -- User has confidential access
-ORDER BY p.project_name;
+    c.company_name,
+    r.role_label,
+    cra.is_confidential
+FROM company_role_assignments cra
+JOIN projects p ON cra.context_id = p.project_id
+JOIN companies c ON cra.company_id = c.company_id
+JOIN company_roles r ON cra.role_id = r.role_id
+WHERE cra.context_type = 'Project'
+AND (cra.is_confidential = 0 OR ? = 1)  -- User has confidential access
+ORDER BY p.project_name, c.company_name;
 ```
 
-### Count Relationships by Entity
+### Count Relationships by Company
 
 ```sql
--- Count all relationships for each vendor
-SELECT 
-    v.vendor_id,
-    v.vendor_name,
-    (SELECT COUNT(*) FROM Project_Vendor_Relationships WHERE vendor_id = v.vendor_id) as project_count,
-    (SELECT COUNT(*) FROM Owner_Vendor_Relationships WHERE vendor_id = v.vendor_id) as owner_count,
-    (SELECT COUNT(*) FROM Vendor_Supplier_Relationships WHERE vendor_id = v.vendor_id) as supplier_count,
-    (SELECT COUNT(*) FROM Vendor_Preferred_Constructor WHERE vendor_id = v.vendor_id) as constructor_count
-FROM Technology_Vendors v
-ORDER BY v.vendor_name;
+-- Count all relationships for each company
+SELECT
+    c.company_id,
+    c.company_name,
+    (SELECT COUNT(*)
+     FROM company_role_assignments
+     WHERE company_id = c.company_id AND context_type = 'Project') as project_count,
+    (SELECT COUNT(*)
+     FROM company_role_assignments
+     WHERE company_id = c.company_id AND context_type = 'Company') as supplier_count,
+    (SELECT COUNT(*)
+     FROM person_company_affiliations
+     WHERE company_id = c.company_id) as personnel_count
+FROM companies c
+ORDER BY c.company_name;
+```
+
+### Get Personnel for a Company
+
+```sql
+-- Get all personnel affiliated with Company 1
+SELECT
+    p.full_name,
+    pca.role_at_company,
+    pca.is_confidential,
+    pca.notes
+FROM person_company_affiliations pca
+JOIN personnel p ON pca.personnel_id = p.personnel_id
+WHERE pca.company_id = 1
+AND (pca.is_confidential = 0 OR ? = 1)
+ORDER BY p.last_name, p.first_name;
 ```
 
 ---
@@ -678,35 +579,99 @@ ON Owner_Vendor_Relationships(owner_id, vendor_id, relationship_type);
 
 ---
 
-## Migration Considerations
+## Migration Notes
 
-When adding new relationship types in future:
-1. Create new junction table following the pattern
-2. Include is_confidential flag
-3. Add appropriate indexes
-4. Update network diagram serialization
-5. Update permission checking logic
+### October 2025 Company Unification Migration
 
-**Example future relationship:**
+**Completed:** October 7, 2025
+**Duration:** 4.6 hours (Phases 1-5)
+**Status:** Successful - All tests passing
+
+#### What Changed
+
+**Phase 1: Schema Preparation**
+- Created unified `companies` table
+- Created `company_roles` lookup table
+- Created `company_role_assignments` polymorphic relationship table
+- Created `person_company_affiliations` table
+- Data migrated from 5 legacy tables into unified schema
+
+**Phase 2: Code Migration**
+- Updated all application code to use unified schema
+- Modified 6 route files (projects.py, admin.py, contact_log.py, personnel.py, network_diagram.py)
+- Created unified helper functions in relationship_utils.py
+- Network diagram refactored from 8 edge builders to 1
+- Code reduction: -616 lines net
+
+**Phase 3: Route Deprecation**
+- Disabled 5 legacy blueprints (vendors, owners, operators, constructors, offtakers)
+- All functionality now accessible via `/companies` with role filtering
+- Legacy routes return 404
+
+**Phase 4: Cleanup**
+- Removed 5 dual-write sync functions from company_sync.py
+- Code reduction: -313 lines
+- Total cleanup: ~1,200 lines of legacy code removed
+
+**Phase 5: Testing**
+- 6 smoke tests completed successfully
+- 47 companies accessible
+- 85 role assignments working
+- 31 project-company relationships functioning
+
+#### Legacy Tables (Deprecated but Not Dropped)
+
+These tables still exist in the database for reference but are no longer used by the application:
+
+- `technology_vendors` → Use `companies` with role 'vendor'
+- `owners_developers` → Use `companies` with role 'developer'
+- `operators` → Use `companies` with role 'operator'
+- `constructors` → Use `companies` with role 'constructor'
+- `offtakers` → Use `companies` with role 'offtaker'
+- `project_vendor_relationships` → Use `company_role_assignments` with context_type='Project', role='vendor'
+- `project_owner_relationships` → Use `company_role_assignments` with context_type='Project', role='developer'
+- `project_operator_relationships` → Use `company_role_assignments` with context_type='Project', role='operator'
+- `project_constructor_relationships` → Use `company_role_assignments` with context_type='Project', role='constructor'
+- `project_offtaker_relationships` → Use `company_role_assignments` with context_type='Project', role='offtaker'
+
+**Note:** Legacy tables will be dropped in Phase 7 (3-6 months after migration) once stability is confirmed.
+
+#### Backward Compatibility
+
+**Preserved:**
+- Legacy helper function names aliased to unified functions
+- Entity type mapping for contact log and personnel routes
+- All existing data accessible through new schema
+
+**Broken:**
+- Direct URLs to `/vendors`, `/owners`, etc. (return 404)
+- Code imports from deleted route files
+- Direct queries to legacy tables in custom scripts
+
+#### Benefits Realized
+
+1. **Simplified Schema**: 3 active junction tables instead of 9
+2. **Code Reduction**: -1,200 lines of legacy code removed
+3. **Flexibility**: Companies can now have multiple roles
+4. **Maintainability**: Single source of truth for all companies
+5. **Performance**: Simpler queries, better indexing
+
+#### Future Considerations
+
+**Adding New Company Roles:**
+With the unified schema, adding new company types is trivial:
 ```sql
--- Hypothetical: Vendor partnerships
-CREATE TABLE Vendor_Partnership_Relationships (
-    relationship_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    vendor_id_1 INTEGER NOT NULL,
-    vendor_id_2 INTEGER NOT NULL,
-    partnership_type TEXT,
-    is_confidential BOOLEAN DEFAULT 0,
-    notes TEXT,
-    created_by INTEGER,
-    created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    modified_by INTEGER,
-    modified_date TIMESTAMP,
-    FOREIGN KEY (vendor_id_1) REFERENCES Technology_Vendors(vendor_id),
-    FOREIGN KEY (vendor_id_2) REFERENCES Technology_Vendors(vendor_id),
-    FOREIGN KEY (created_by) REFERENCES Users(user_id),
-    FOREIGN KEY (modified_by) REFERENCES Users(user_id)
-);
+-- Add a new role (e.g., 'regulator')
+INSERT INTO company_roles (role_code, role_label, role_description)
+VALUES ('regulator', 'Regulatory Body', 'Government regulatory agencies');
+
+-- Assign role to company for a project
+INSERT INTO company_role_assignments
+(company_id, role_id, context_type, context_id)
+VALUES (25, 6, 'Project', 10);
 ```
+
+No schema changes, no code changes, no new tables required!
 
 ---
 
@@ -716,6 +681,7 @@ CREATE TABLE Vendor_Partnership_Relationships (
 2. Review `05_PERMISSION_SYSTEM.md` for access control implementation
 3. Review `11_NETWORK_DIAGRAM.md` for relationship visualization
 4. Implement relationship CRUD operations with permission checks
+5. Consider Phase 7 cleanup after 3-6 months of stability
 
 ---
 

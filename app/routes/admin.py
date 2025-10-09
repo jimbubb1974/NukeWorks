@@ -76,6 +76,30 @@ def _format_company_role_label(rel):
     elif rel.context_type == 'Company' and rel.context_id:
         company = db_session.get(Company, rel.context_id)
         context_name = f"Company: {company.company_name}" if company else f"Company #{rel.context_id}"
+    elif rel.context_type == 'VendorRecord' and rel.context_id:
+        from app.models import TechnologyVendor
+        vendor = db_session.get(TechnologyVendor, rel.context_id)
+        context_name = f"Vendor: {vendor.vendor_name}" if vendor else f"Vendor #{rel.context_id}"
+    elif rel.context_type == 'OwnerRecord' and rel.context_id:
+        from app.models import OwnerDeveloper
+        owner = db_session.get(OwnerDeveloper, rel.context_id)
+        context_name = f"Owner: {owner.company_name}" if owner else f"Owner #{rel.context_id}"
+    elif rel.context_type == 'ClientRecord' and rel.context_id:
+        from app.models import Client
+        client = db_session.get(Client, rel.context_id)
+        context_name = f"Client: {client.client_name}" if client else f"Client #{rel.context_id}"
+    elif rel.context_type == 'OperatorRecord' and rel.context_id:
+        from app.models import Operator
+        operator = db_session.get(Operator, rel.context_id)
+        context_name = f"Operator: {operator.company_name}" if operator else f"Operator #{rel.context_id}"
+    elif rel.context_type == 'ConstructorRecord' and rel.context_id:
+        from app.models import Constructor
+        constructor = db_session.get(Constructor, rel.context_id)
+        context_name = f"Constructor: {constructor.company_name}" if constructor else f"Constructor #{rel.context_id}"
+    elif rel.context_type == 'OfftakerRecord' and rel.context_id:
+        from app.models import Offtaker
+        offtaker = db_session.get(Offtaker, rel.context_id)
+        context_name = f"Offtaker: {offtaker.organization_name}" if offtaker else f"Offtaker #{rel.context_id}"
     elif rel.context_type:
         context_name = f"{rel.context_type} #{rel.context_id}" if rel.context_id else rel.context_type
 
@@ -618,6 +642,11 @@ def manage_users():
     active_users = db_session.query(User).filter_by(is_active=True).count()
     inactive_users = total_users - active_users
 
+    # Create forms for CSRF protection
+    from app.forms.relationships import ConfirmActionForm
+    deactivate_form = ConfirmActionForm()
+    activate_form = ConfirmActionForm()
+
     return render_template(
         'admin/users.html',
         users=users,
@@ -625,7 +654,9 @@ def manage_users():
         status=status,
         total_users=total_users,
         active_users=active_users,
-        inactive_users=inactive_users
+        inactive_users=inactive_users,
+        deactivate_form=deactivate_form,
+        activate_form=activate_form
     )
 
 

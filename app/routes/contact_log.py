@@ -16,8 +16,8 @@ from sqlalchemy import or_
 from app import db_session
 from app.models import (
     ContactLog,
-    OwnerDeveloper,
-    TechnologyVendor,
+    Company,
+    ClientProfile,
     Project,
     Personnel
 )
@@ -41,12 +41,13 @@ def _user_can_view(log: ContactLog) -> bool:
 
 def _get_entity_label(entity_type: str, entity_id: int) -> str:
     """Return a friendly label for the entity referenced by a contact log"""
-    if entity_type == 'Owner':
-        owner = db_session.get(OwnerDeveloper, entity_id)
-        return owner.company_name if owner else f'Owner #{entity_id}'
-    if entity_type == 'Vendor':
-        vendor = db_session.get(TechnologyVendor, entity_id)
-        return vendor.vendor_name if vendor else f'Vendor #{entity_id}'
+    if entity_type == 'Company':
+        company = db_session.get(Company, entity_id)
+        return company.company_name if company else f'Company #{entity_id}'
+    # Legacy support for old entity types
+    if entity_type in ('Owner', 'Vendor', 'Developer', 'Operator', 'Constructor', 'Offtaker', 'Client'):
+        company = db_session.get(Company, entity_id)
+        return company.company_name if company else f'{entity_type} #{entity_id}'
     if entity_type == 'Project':
         project = db_session.get(Project, entity_id)
         return project.project_name if project else f'Project #{entity_id}'
@@ -56,14 +57,15 @@ def _get_entity_label(entity_type: str, entity_id: int) -> str:
 def _ensure_entity_exists(entity_type: str, entity_id: int):
     """Ensure referenced entity exists; abort with 404 otherwise"""
     record = None
-    if entity_type == 'Owner':
-        record = db_session.get(OwnerDeveloper, entity_id)
-    elif entity_type == 'Vendor':
-        record = db_session.get(TechnologyVendor, entity_id)
+    if entity_type == 'Company':
+        record = db_session.get(Company, entity_id)
+    # Legacy support for old entity types - map to Company
+    elif entity_type in ('Owner', 'Vendor', 'Developer', 'Operator', 'Constructor', 'Offtaker', 'Client'):
+        record = db_session.get(Company, entity_id)
     elif entity_type == 'Project':
         record = db_session.get(Project, entity_id)
 
-    if entity_type in {'Owner', 'Vendor', 'Project'} and record is None:
+    if entity_type in {'Company', 'Owner', 'Vendor', 'Developer', 'Operator', 'Constructor', 'Offtaker', 'Client', 'Project'} and record is None:
         abort(404)
 
 
@@ -130,25 +132,34 @@ def _apply_contact_filters(query, entity_type=None, entity_id=None, search=None)
     return query
 
 
-def _update_owner_contact_metrics(owner_id: int):
-    """Update owner's last/next contact fields based on contact log data"""
-    owner = db_session.get(OwnerDeveloper, owner_id)
-    if not owner:
+def _update_company_contact_metrics(company_id: int):
+    """Update company's client profile last/next contact fields based on contact log data"""
+    company = db_session.get(Company, company_id)
+    if not company:
         return
 
-    logs = db_session.query(ContactLog).filter_by(entity_type='Owner', entity_id=owner_id).order_by(ContactLog.contact_date.desc(), ContactLog.contact_id.desc()).all()
+    # Get or create client profile for this company
+    client_profile = db_session.get(ClientProfile, company_id)
+    if not client_profile:
+        client_profile = ClientProfile(company_id=company_id)
+        db_session.add(client_profile)
+
+    # Query contact logs - support both 'Company' and legacy entity types
+    logs = db_session.query(ContactLog).filter(
+        (ContactLog.entity_type == 'Company') |
+        (ContactLog.entity_type.in_(['Owner', 'Vendor', 'Developer', 'Client'])),
+        ContactLog.entity_id == company_id
+    ).order_by(ContactLog.contact_date.desc(), ContactLog.contact_id.desc()).all()
 
     if logs:
         latest = logs[0]
-        owner.last_contact_date = latest.contact_date
-        owner.last_contact_type = latest.contact_type
-        owner.last_contact_by = latest.contacted_by
-        owner.last_contact_notes = latest.summary
+        client_profile.last_contact_date = latest.contact_date
+        client_profile.last_contact_type = latest.contact_type
+        client_profile.last_contact_by = latest.contacted_by
     else:
-        owner.last_contact_date = None
-        owner.last_contact_type = None
-        owner.last_contact_by = None
-        owner.last_contact_notes = None
+        client_profile.last_contact_date = None
+        client_profile.last_contact_type = None
+        client_profile.last_contact_by = None
 
     # Determine next planned contact (earliest future follow-up)
     upcoming = [log for log in logs if log.follow_up_needed and log.follow_up_date]
@@ -157,13 +168,13 @@ def _update_owner_contact_metrics(owner_id: int):
     if upcoming:
         upcoming.sort(key=lambda l: (l.follow_up_date, l.contact_id))
         next_contact = upcoming[0]
-        owner.next_planned_contact_date = next_contact.follow_up_date
-        owner.next_planned_contact_type = next_contact.contact_type
-        owner.next_planned_contact_assigned_to = next_contact.follow_up_assigned_to
+        client_profile.next_planned_contact_date = next_contact.follow_up_date
+        client_profile.next_planned_contact_type = next_contact.contact_type
+        client_profile.next_planned_contact_assigned_to = next_contact.follow_up_assigned_to
     else:
-        owner.next_planned_contact_date = None
-        owner.next_planned_contact_type = None
-        owner.next_planned_contact_assigned_to = None
+        client_profile.next_planned_contact_date = None
+        client_profile.next_planned_contact_type = None
+        client_profile.next_planned_contact_assigned_to = None
 
 
 def _redirect_after_save(entity_type: str, entity_id: int):
@@ -278,8 +289,9 @@ def add_contact_log():
             flash(f'Error saving contact log: {exc}', 'danger')
             return render_template('contact_log/form.html', form=form, title='Add Contact Log', entity_label=_get_entity_label(entity_type, entity_id))
 
-        if entity_type == 'Owner':
-            _update_owner_contact_metrics(contact_log.entity_id)
+        # Update contact metrics for Company/Client entities
+        if entity_type in ('Company', 'Owner', 'Vendor', 'Developer', 'Client'):
+            _update_company_contact_metrics(contact_log.entity_id)
             db_session.commit()
 
         flash('Contact log entry saved.', 'success')
@@ -371,8 +383,9 @@ def edit_contact_log(contact_id):
             flash(f'Error updating contact log: {exc}', 'danger')
             return render_template('contact_log/form.html', form=form, title='Edit Contact Log', entity_label=_get_entity_label(contact_log.entity_type, contact_log.entity_id), followup_checked=form.follow_up_needed.data)
 
-        if contact_log.entity_type == 'Owner':
-            _update_owner_contact_metrics(contact_log.entity_id)
+        # Update contact metrics for Company/Client entities
+        if contact_log.entity_type in ('Company', 'Owner', 'Vendor', 'Developer', 'Client'):
+            _update_company_contact_metrics(contact_log.entity_id)
             db_session.commit()
 
         flash('Contact log updated.', 'success')

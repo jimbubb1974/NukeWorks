@@ -162,7 +162,7 @@ def check_company_coverage(session) -> dict:
     print(f'Offtakers:    {stats["offtakers"]["total"]} total, {stats["offtakers"]["missing"]} missing')
 
     if not issues:
-        print('\n✓ All legacy entities have corresponding company records')
+        print('\n[SUCCESS] All legacy entities have corresponding company records')
 
     return {'stats': stats, 'issues': issues}
 
@@ -188,7 +188,7 @@ def check_duplicate_companies(session) -> dict:
                 role_names = [r.role.role_code if r.role else 'unknown' for r in roles]
                 print(f'    - ID {comp.company_id}: roles={role_names}, type={comp.company_type}')
     else:
-        print('✓ No duplicate company names found')
+        print('[SUCCESS] No duplicate company names found')
 
     return {'duplicates': duplicates}
 
@@ -273,7 +273,7 @@ def check_project_relationship_coverage(session) -> dict:
             issues.append(f'{rel_type}: {data["total"] - data["synced"]} not synced')
 
     if not issues:
-        print('\n✓ All project relationships synced')
+        print('\n[SUCCESS] All project relationships synced')
 
     return {'stats': stats, 'issues': issues}
 
@@ -301,7 +301,7 @@ def check_personnel_affiliations(session) -> dict:
     if len(affiliations) < len(company_rels):
         issues.append(f'{len(company_rels) - len(affiliations)} personnel affiliations not migrated')
     else:
-        print('\n✓ Personnel affiliations migrated')
+        print('\n[SUCCESS] Personnel affiliations migrated')
 
     return {'company_rels': len(company_rels), 'affiliations': len(affiliations), 'issues': issues}
 
@@ -339,13 +339,13 @@ def run_validation(config_name: str = None) -> None:
         print_section('Validation Summary')
 
         if not all_issues and not duplicate_check['duplicates']:
-            print('✓ All validation checks passed!')
+            print('[SUCCESS] All validation checks passed!')
             print('  - All legacy entities have company records')
             print('  - No duplicate company names')
             print('  - All project relationships synced')
             print('  - All personnel affiliations migrated')
         else:
-            print('⚠️  Issues found:')
+            print('[WARNING] Issues found:')
             if all_issues:
                 for issue in all_issues:
                     print(f'  - {issue}')

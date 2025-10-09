@@ -191,7 +191,18 @@ def create_project():
     # Get all companies for relationship dropdowns
     companies = db_session.query(Company).order_by(Company.company_name).all()
 
-    return render_template('projects/form.html', form=form, project=None, title='Create Project', companies=companies)
+    return render_template(
+        'projects/form.html',
+        form=form,
+        project=None,
+        title='Create Project',
+        companies=companies,
+        vendor_assignments=[],
+        owner_assignments=[],
+        operator_assignments=[],
+        constructor_assignments=[],
+        offtaker_assignments=[]
+    )
 
 
 @bp.route('/<int:project_id>')
@@ -206,12 +217,15 @@ def view_project(project_id):
         context_id=project.project_id
     ).options(joinedload(CompanyRoleAssignment.company), joinedload(CompanyRoleAssignment.role)).all()
     
-    # Group relationships by role type
-    vendor_relationships = [r for r in company_relationships if r.role and r.role.role_code == 'vendor']
-    constructor_relationships = [r for r in company_relationships if r.role and r.role.role_code == 'constructor']
-    operator_relationships = [r for r in company_relationships if r.role and r.role.role_code == 'operator']
-    owner_relationships = [r for r in company_relationships if r.role and r.role.role_code in ('owner', 'developer')]
-    offtaker_relationships = [r for r in company_relationships if r.role and r.role.role_code == 'offtaker']
+    # Apply confidentiality filter so users without access do not see confidential relationships
+    visible_company_relationships = filter_relationships(current_user, company_relationships)
+
+    # Group relationships by role type (only visible ones)
+    vendor_relationships = [r for r in visible_company_relationships if r.role and r.role.role_code == 'vendor']
+    constructor_relationships = [r for r in visible_company_relationships if r.role and r.role.role_code == 'constructor']
+    operator_relationships = [r for r in visible_company_relationships if r.role and r.role.role_code == 'operator']
+    owner_relationships = [r for r in visible_company_relationships if r.role and r.role.role_code == 'developer']
+    offtaker_relationships = [r for r in visible_company_relationships if r.role and r.role.role_code == 'offtaker']
     personnel_relationships = filter_relationships(
         current_user,
         db_session.query(PersonnelEntityRelationship).filter_by(entity_type='Project', entity_id=project.project_id)
@@ -299,12 +313,45 @@ def edit_project(project_id):
     # Get all companies for relationship dropdowns
     companies = db_session.query(Company).order_by(Company.company_name).all()
 
+    # Build relationship assignments from unified schema for form display
+    assignments_all = (
+        db_session.query(CompanyRoleAssignment)
+        .join(CompanyRole)
+        .filter(
+            CompanyRoleAssignment.context_type == 'Project',
+            CompanyRoleAssignment.context_id == project.project_id
+        )
+        .all()
+    )
+
+    def _by_role(code: str):
+        return [
+            {
+                'company_id': a.company_id,
+                'is_confidential': bool(getattr(a, 'is_confidential', False)),
+                'notes': a.notes or ''
+            }
+            for a in assignments_all
+            if a.role and a.role.role_code == code
+        ]
+
+    vendor_assignments = _by_role('vendor')
+    owner_assignments = _by_role('developer')
+    operator_assignments = _by_role('operator')
+    constructor_assignments = _by_role('constructor')
+    offtaker_assignments = _by_role('offtaker')
+
     return render_template(
         'projects/form.html',
         form=form,
         project=project,
         title=f'Edit Project: {project.project_name}',
-        companies=companies
+        companies=companies,
+        vendor_assignments=vendor_assignments,
+        owner_assignments=owner_assignments,
+        operator_assignments=operator_assignments,
+        constructor_assignments=constructor_assignments,
+        offtaker_assignments=offtaker_assignments
     )
 
 

@@ -10,7 +10,7 @@ from datetime import datetime
 from app import db_session
 from app.models import Company, CompanyRole, CompanyRoleAssignment
 from app.forms.companies import CompanyForm
-from app.forms.relationships import ConfirmActionForm
+from app.forms.relationships import ConfirmActionForm, CompanyLinkForm
 
 bp = Blueprint('companies', __name__, url_prefix='/companies')
 
@@ -115,11 +115,14 @@ def list_companies():
         query = (
             query.join(CompanyRoleAssignment)
             .join(CompanyRole)
-            .filter(CompanyRole.role_code == role_filter)
+            .filter(
+                CompanyRole.role_code == role_filter,
+                CompanyRoleAssignment.context_type == 'Project'
+            )
             .distinct()
         )
 
-    companies = query.options(joinedload(Company.role_assignments).joinedload(CompanyRoleAssignment.role)).order_by(Company.company_name).all()
+    companies = query.order_by(Company.company_name).all()
 
     company_ids = [company.company_id for company in companies]
     assignments_map: dict[int, list[dict[str, str | int | None]]] = defaultdict(list)
@@ -129,6 +132,7 @@ def list_companies():
             db_session.query(CompanyRoleAssignment)
             .options(joinedload(CompanyRoleAssignment.role))
             .filter(CompanyRoleAssignment.company_id.in_(company_ids))
+            .filter(CompanyRoleAssignment.context_type == 'Project')
             .all()
         )
         for assignment in assignments:
@@ -149,6 +153,7 @@ def list_companies():
         count = (
             db_session.query(func.count(func.distinct(CompanyRoleAssignment.company_id)))
             .filter(CompanyRoleAssignment.role_id == role.role_id)
+            .filter(CompanyRoleAssignment.context_type == 'Project')
             .scalar() or 0
         )
         role_counts[role.role_code] = count
@@ -190,6 +195,28 @@ def view_company(company_id):
     role_assignments = db_session.query(CompanyRoleAssignment).filter_by(
         company_id=company_id
     ).options(joinedload(CompanyRoleAssignment.role)).all()
+
+    # Company↔Company links via unified role assignments (context_type = 'Company')
+    company_links = db_session.query(CompanyRoleAssignment).options(joinedload(CompanyRoleAssignment.role)).filter(
+        CompanyRoleAssignment.company_id == company_id,
+        CompanyRoleAssignment.context_type == 'Company'
+    ).all()
+
+    # Enrich links with linked company names for display
+    linked_ids = [link.context_id for link in company_links if link.context_id is not None]
+    id_to_name: dict[int, str] = {}
+    if linked_ids:
+        for cid, cname in db_session.query(Company.company_id, Company.company_name).filter(Company.company_id.in_(linked_ids)).all():
+            id_to_name[cid] = cname
+    company_links_display = [
+        {
+            'linked_company_name': id_to_name.get(link.context_id, f"Company #{link.context_id}"),
+            'role_label': (link.role.role_label if link.role else link.role_id),
+            'is_confidential': bool(link.is_confidential),
+            'notes': link.notes or '—'
+        }
+        for link in company_links
+    ]
     
     # Get external personnel linked to this company
     from app.models import ExternalPersonnel, PersonnelRelationship, InternalPersonnel
@@ -226,6 +253,13 @@ def view_company(company_id):
     
     can_manage = _can_manage_companies(current_user)
     delete_form = ConfirmActionForm()
+    link_form = CompanyLinkForm()
+
+    # Populate target companies for link form (exclude self)
+    all_companies = db_session.query(Company).order_by(Company.company_name).all()
+    link_form.target_company_id.choices = [
+        (c.company_id, c.company_name) for c in all_companies if c.company_id != company.company_id
+    ]
     
     return render_template(
         'companies/detail.html',
@@ -235,8 +269,91 @@ def view_company(company_id):
         personnel_with_connections=personnel_with_connections,
         all_personnel=all_personnel,
         can_manage=can_manage,
-        delete_form=delete_form
+        delete_form=delete_form,
+        link_form=link_form,
+        company_links=company_links_display
     )
+
+
+@bp.route('/<int:company_id>/links/add', methods=['POST'])
+@login_required
+def add_company_link(company_id):
+    """Create a company→company link using CompanyRoleAssignment.
+
+    Mirrors the link by creating the opposite assignment for convenience.
+    Respects confidentiality flag.
+    """
+    company = _get_company_or_404(company_id)
+    if not _can_manage_companies(current_user):
+        flash('You do not have permission to modify companies.', 'danger')
+        return redirect(url_for('companies.view_company', company_id=company_id))
+
+    form = CompanyLinkForm()
+    # Repopulate choices (Flask-WTF needs choices on POST too)
+    all_companies = db_session.query(Company).order_by(Company.company_name).all()
+    form.target_company_id.choices = [
+        (c.company_id, c.company_name) for c in all_companies if c.company_id != company.company_id
+    ]
+
+    if not form.validate_on_submit():
+        flash('Please correct the link form errors.', 'warning')
+        return redirect(url_for('companies.view_company', company_id=company_id))
+
+    target_company_id = form.target_company_id.data
+    link_role = form.link_role.data  # 'vendor' or 'developer'
+    is_confidential = bool(form.is_confidential.data)
+    notes = form.notes.data or None
+
+    # Resolve role IDs
+    vendor_role = db_session.query(CompanyRole).filter(CompanyRole.role_code == 'vendor').one_or_none()
+    developer_role = db_session.query(CompanyRole).filter(CompanyRole.role_code == 'developer').one_or_none()
+    if not vendor_role or not developer_role:
+        flash('Required roles are not configured (vendor/developer).', 'danger')
+        return redirect(url_for('companies.view_company', company_id=company_id))
+
+    try:
+        if link_role == 'vendor':
+            # This company links to a preferred Vendor (target is vendor)
+            primary_role_id = vendor_role.role_id
+            mirror_role_id = developer_role.role_id
+        else:
+            # This company links to a Developer (target is developer)
+            primary_role_id = developer_role.role_id
+            mirror_role_id = vendor_role.role_id
+
+        # Create primary assignment: company_id -> target (context_type='Company')
+        primary = CompanyRoleAssignment(
+            company_id=company.company_id,
+            role_id=primary_role_id,
+            context_type='Company',
+            context_id=target_company_id,
+            is_confidential=is_confidential,
+            notes=notes,
+            created_by=current_user.user_id,
+            modified_by=current_user.user_id
+        )
+        db_session.add(primary)
+
+        # Create mirrored assignment: target -> company
+        mirror = CompanyRoleAssignment(
+            company_id=target_company_id,
+            role_id=mirror_role_id,
+            context_type='Company',
+            context_id=company.company_id,
+            is_confidential=is_confidential,
+            notes=notes,
+            created_by=current_user.user_id,
+            modified_by=current_user.user_id
+        )
+        db_session.add(mirror)
+
+        db_session.commit()
+        flash('Company link created.', 'success')
+    except Exception as exc:
+        db_session.rollback()
+        flash(f'Error creating link: {exc}', 'danger')
+
+    return redirect(url_for('companies.view_company', company_id=company_id))
 
 
 @bp.route('/<int:company_id>/edit', methods=['GET', 'POST'])

@@ -61,7 +61,7 @@ def _get_project_relationships(project_id):
         }
 
         # Map role to relationship category
-        if role.role_code in ['developer', 'owner']:
+        if role.role_code == 'developer':
             relationships['owners'].append(company_info)
         elif role.role_code == 'vendor':
             relationships['vendors'].append(company_info)

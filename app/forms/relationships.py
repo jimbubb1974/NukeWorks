@@ -166,3 +166,22 @@ class ConfirmActionForm(FlaskForm):
     """Simple form used to confirm destructive actions"""
 
     submit = SubmitField('Confirm')
+
+
+class CompanyLinkForm(FlaskForm):
+    """Create a company-to-company link using unified role assignments."""
+
+    # Select the other company to link to
+    target_company_id = SelectField('Target Company', coerce=int, validators=[DataRequired()])
+    # Directional link intent from the perspective of current company
+    # If 'vendor' is selected, you are linking this company to a preferred Vendor (target is vendor).
+    # If 'developer' is selected, you are linking this company to a Developer (target is developer).
+    link_role = SelectField(
+        'Link Type',
+        coerce=str,
+        validators=[DataRequired()],
+        choices=[('vendor', 'Preferred Vendor'), ('developer', 'Preferred Developer')]
+    )
+    notes = TextAreaField('Notes', validators=[Optional(), Length(max=2000)])
+    is_confidential = BooleanField('Confidential')
+    submit = SubmitField('Add Link')

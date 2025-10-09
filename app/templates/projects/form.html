@@ -171,13 +171,14 @@
                         <div class="mb-4">
                             <h6><i class="bi bi-box-seam"></i> Technology Vendors</h6>
                             <div id="vendor-relationships">
-                                {% for vendor_rel in project.vendor_relationships if project %}
+                                {% set vendor_rows = vendor_assignments if vendor_assignments is defined and vendor_assignments else (project.vendor_relationships if project else []) %}
+                                {% for vendor_rel in vendor_rows %}
                                 <div class="row g-2 mb-2 vendor-row">
                                     <div class="col-md-4">
                                         <select name="vendor_entity_id[]" class="form-select">
-                                            <option value="">Select Vendor</option>
+                                            <option value="">{% if vendor_rel.vendor_id or vendor_rel.company_id %}Select Different Vendor{% else %}Select Vendor{% endif %}</option>
                                             {% for company in companies %}
-                                            <option value="{{ company.company_id }}" {% if vendor_rel.company_id == company.company_id %}selected{% endif %}>
+                                            <option value="{{ company.company_id }}" {% if (vendor_rel.vendor_id or vendor_rel.company_id) == company.company_id %}selected{% endif %}>
                                                 {{ company.company_name }}
                                             </option>
                                             {% endfor %}
@@ -211,13 +212,14 @@
                         <div class="mb-4">
                             <h6><i class="bi bi-building-gear"></i> Owners/Developers</h6>
                             <div id="owner-relationships">
-                                {% for owner_rel in project.owner_relationships if project %}
+                                {% set owner_rows = owner_assignments if owner_assignments is defined and owner_assignments else (project.owner_relationships if project else []) %}
+                                {% for owner_rel in owner_rows %}
                                 <div class="row g-2 mb-2 owner-row">
                                     <div class="col-md-4">
                                         <select name="owner_entity_id[]" class="form-select">
-                                            <option value="">Select Owner</option>
+                                            <option value="">{% if owner_rel.owner_id or owner_rel.company_id %}Select Different Owner{% else %}Select Owner{% endif %}</option>
                                             {% for company in companies %}
-                                            <option value="{{ company.company_id }}" {% if owner_rel.company_id == company.company_id %}selected{% endif %}>
+                                            <option value="{{ company.company_id }}" {% if (owner_rel.owner_id or owner_rel.company_id) == company.company_id %}selected{% endif %}>
                                                 {{ company.company_name }}
                                             </option>
                                             {% endfor %}
@@ -251,13 +253,14 @@
                         <div class="mb-4">
                             <h6><i class="bi bi-gear"></i> Operators</h6>
                             <div id="operator-relationships">
-                                {% for operator_rel in project.operator_relationships if project %}
+                                {% set operator_rows = operator_assignments if operator_assignments is defined and operator_assignments else (project.operator_relationships if project else []) %}
+                                {% for operator_rel in operator_rows %}
                                 <div class="row g-2 mb-2 operator-row">
                                     <div class="col-md-4">
                                         <select name="operator_entity_id[]" class="form-select">
-                                            <option value="">Select Operator</option>
+                                            <option value="">{% if operator_rel.operator_id or operator_rel.company_id %}Select Different Operator{% else %}Select Operator{% endif %}</option>
                                             {% for company in companies %}
-                                            <option value="{{ company.company_id }}" {% if operator_rel.company_id == company.company_id %}selected{% endif %}>
+                                            <option value="{{ company.company_id }}" {% if (operator_rel.operator_id or operator_rel.company_id) == company.company_id %}selected{% endif %}>
                                                 {{ company.company_name }}
                                             </option>
                                             {% endfor %}
@@ -291,13 +294,14 @@
                         <div class="mb-4">
                             <h6><i class="bi bi-hammer"></i> Constructors</h6>
                             <div id="constructor-relationships">
-                                {% for constructor_rel in project.constructor_relationships if project %}
+                                {% set constructor_rows = constructor_assignments if constructor_assignments is defined and constructor_assignments else (project.constructor_relationships if project else []) %}
+                                {% for constructor_rel in constructor_rows %}
                                 <div class="row g-2 mb-2 constructor-row">
                                     <div class="col-md-4">
                                         <select name="constructor_entity_id[]" class="form-select">
-                                            <option value="">Select Constructor</option>
+                                            <option value="">{% if constructor_rel.constructor_id or constructor_rel.company_id %}Select Different Constructor{% else %}Select Constructor{% endif %}</option>
                                             {% for company in companies %}
-                                            <option value="{{ company.company_id }}" {% if constructor_rel.company_id == company.company_id %}selected{% endif %}>
+                                            <option value="{{ company.company_id }}" {% if (constructor_rel.constructor_id or constructor_rel.company_id) == company.company_id %}selected{% endif %}>
                                                 {{ company.company_name }}
                                             </option>
                                             {% endfor %}
@@ -331,13 +335,14 @@
                         <div class="mb-4">
                             <h6><i class="bi bi-lightning"></i> Offtakers</h6>
                             <div id="offtaker-relationships">
-                                {% for offtaker_rel in project.offtaker_relationships if project %}
+                                {% set offtaker_rows = offtaker_assignments if offtaker_assignments is defined and offtaker_assignments else (project.offtaker_relationships if project else []) %}
+                                {% for offtaker_rel in offtaker_rows %}
                                 <div class="row g-2 mb-2 offtaker-row">
                                     <div class="col-md-4">
                                         <select name="offtaker_entity_id[]" class="form-select">
-                                            <option value="">Select Offtaker</option>
+                                            <option value="">{% if offtaker_rel.offtaker_id or offtaker_rel.company_id %}Select Different Offtaker{% else %}Select Offtaker{% endif %}</option>
                                             {% for company in companies %}
-                                            <option value="{{ company.company_id }}" {% if offtaker_rel.company_id == company.company_id %}selected{% endif %}>
+                                            <option value="{{ company.company_id }}" {% if (offtaker_rel.offtaker_id or offtaker_rel.company_id) == company.company_id %}selected{% endif %}>
                                                 {{ company.company_name }}
                                             </option>
                                             {% endfor %}

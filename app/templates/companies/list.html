@@ -161,11 +161,11 @@
                                 {% endif %}
                             </td>
                             <td>
-                                {% set roles = company.role_assignments %}
+                                {% set roles = assignments_map.get(company.company_id, []) %}
                                 {% if roles %}
                                     {% set seen_roles = [] %}
                                     {% for assignment in roles %}
-                                        {% set role_label = assignment.role.role_label if assignment.role else assignment.role_id %}
+                                        {% set role_label = assignment.role_label %}
                                         {% if role_label not in seen_roles %}
                                             {% set _ = seen_roles.append(role_label) %}
                                             <span class="badge bg-primary me-1 mb-1">{{ role_label }}</span>

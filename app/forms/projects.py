@@ -1,6 +1,6 @@
 """Project forms for creating and updating project records."""
 from flask_wtf import FlaskForm
-from wtforms import StringField, TextAreaField, SubmitField, DateField, DecimalField
+from wtforms import StringField, TextAreaField, SubmitField, DateField, DecimalField, SelectField, BooleanField, FieldList, FormField
 from wtforms.validators import DataRequired, Length, Optional, ValidationError, NumberRange
 from app import db_session
 from app.models import Project
@@ -104,3 +104,19 @@ class ProjectForm(FlaskForm):
             return False
 
         return True
+
+
+class RelationshipForm(FlaskForm):
+    """Form for individual relationship entries."""
+    entity_id = SelectField('Entity', coerce=int, validators=[Optional()])
+    is_confidential = BooleanField('Confidential', default=False)
+    notes = TextAreaField('Notes', validators=[Optional(), Length(max=1000)], render_kw={'rows': 2, 'placeholder': 'Optional relationship notes'})
+
+
+class ProjectRelationshipForm(FlaskForm):
+    """Form for managing project relationships."""
+    vendors = FieldList(FormField(RelationshipForm), min_entries=0)
+    owners = FieldList(FormField(RelationshipForm), min_entries=0)
+    operators = FieldList(FormField(RelationshipForm), min_entries=0)
+    constructors = FieldList(FormField(RelationshipForm), min_entries=0)
+    offtakers = FieldList(FormField(RelationshipForm), min_entries=0)

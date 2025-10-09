@@ -10,14 +10,13 @@ from app.models import (
     InternalPersonnel,
     ExternalPersonnel,
     PersonnelRelationship,
-    OwnerDeveloper,
+    Company,
     Project,
     Client,
     ContactLog,
     ClientPersonnelRelationship,
-    TechnologyVendor,
-    Operator,
-    Offtaker,
+    ClientProfile,
+    PersonCompanyAffiliation,
 )
 from app.models.relationships import PersonnelEntityRelationship, EntityTeamMember
 from app.forms.personnel import PersonnelForm, PersonnelClientLinkForm, PersonnelRelationshipForm
@@ -48,11 +47,15 @@ def _gather_external_contacts_for_internal(person: InternalPersonnel) -> list[di
 
 
 _ORG_ROUTE_MAP = {
-    'Client': ('clients.view_client', 'client_id', Client, 'client_name'),
-    'Owner': ('owners.view_owner', 'owner_id', OwnerDeveloper, 'company_name'),
-    'Vendor': ('vendors.view_vendor', 'vendor_id', TechnologyVendor, 'vendor_name'),
-    'Operator': ('operators.view_operator', 'operator_id', Operator, 'company_name'),
-    'Offtaker': ('offtakers.view_offtaker', 'offtaker_id', Offtaker, 'organization_name'),
+    'Client': ('companies.view_company', 'company_id', Company, 'company_name'),
+    'Company': ('companies.view_company', 'company_id', Company, 'company_name'),
+    # Legacy entity types mapped to unified company route
+    'Owner': ('companies.view_company', 'company_id', Company, 'company_name'),
+    'Developer': ('companies.view_company', 'company_id', Company, 'company_name'),
+    'Vendor': ('companies.view_company', 'company_id', Company, 'company_name'),
+    'Operator': ('companies.view_company', 'company_id', Company, 'company_name'),
+    'Constructor': ('companies.view_company', 'company_id', Company, 'company_name'),
+    'Offtaker': ('companies.view_company', 'company_id', Company, 'company_name'),
 }
 
 
@@ -432,15 +435,14 @@ def _cleanup_personnel_references(personnel_id: int) -> None:
             'Reassign or remove those contact logs first.'
         )
 
-    # Null out references in owners, projects, clients, and contact logs
-    owner_updates = {
-        OwnerDeveloper.primary_poc: None,
-        OwnerDeveloper.secondary_poc: None,
-        OwnerDeveloper.last_contact_by: None,
-        OwnerDeveloper.next_planned_contact_assigned_to: None,
+    # Null out references in client profiles, projects, clients (legacy), and contact logs
+    # Update ClientProfile records that reference this personnel
+    client_profile_updates = {
+        ClientProfile.last_contact_by: None,
+        ClientProfile.next_planned_contact_assigned_to: None,
     }
-    for column in owner_updates:
-        db_session.query(OwnerDeveloper).filter(column == personnel_id).update({column: None}, synchronize_session=False)
+    for column in client_profile_updates:
+        db_session.query(ClientProfile).filter(column == personnel_id).update({column: None}, synchronize_session=False)
 
     project_updates = {
         Project.primary_firm_contact: None,
@@ -449,6 +451,7 @@ def _cleanup_personnel_references(personnel_id: int) -> None:
     for column in project_updates:
         db_session.query(Project).filter(column == personnel_id).update({column: None}, synchronize_session=False)
 
+    # Legacy Client table (if still in use)
     client_updates = {
         Client.mpr_primary_poc: None,
         Client.mpr_secondary_poc: None,
@@ -463,6 +466,7 @@ def _cleanup_personnel_references(personnel_id: int) -> None:
 
     # Remove junction-table relationships that point at this personnel
     db_session.query(PersonnelEntityRelationship).filter_by(personnel_id=personnel_id).delete(synchronize_session=False)
+    db_session.query(PersonCompanyAffiliation).filter_by(personnel_id=personnel_id).delete(synchronize_session=False)
     db_session.query(EntityTeamMember).filter_by(personnel_id=personnel_id).delete(synchronize_session=False)
     db_session.query(ClientPersonnelRelationship).filter_by(personnel_id=personnel_id).delete(synchronize_session=False)
 

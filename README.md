@@ -8,6 +8,7 @@ A multi-user web-based database application for managing nuclear project data, t
 - **Two-Tier Permission System**:
   - Tier 1: Confidential Access (business data)
   - Tier 2: NED Team Access (internal strategy notes)
+- **Unified Company Management** with role-based organization system
 - **Client Relationship Management (CRM)** for tracking interactions
 - **Network Diagram Visualization** of relationships
 - **PDF Report Generation** with confidentiality filtering
@@ -39,9 +40,8 @@ nukeworks/
 │   │   ├── __init__.py
 │   │   ├── base.py           # Base model and mixins
 │   │   ├── user.py           # User authentication
-│   │   ├── vendor.py         # Technology vendors
+│   │   ├── company.py        # Unified company system
 │   │   ├── project.py        # Projects
-│   │   ├── owner.py          # Owners/developers
 │   │   ├── personnel.py      # Personnel
 │   │   ├── relationships.py  # Junction tables
 │   │   └── ...              # Other models
@@ -50,9 +50,9 @@ nukeworks/
 │   │   ├── __init__.py
 │   │   ├── auth.py           # Authentication routes
 │   │   ├── dashboard.py      # Dashboard
-│   │   ├── vendors.py        # Vendor CRUD
+│   │   ├── companies.py      # Company management
 │   │   ├── projects.py       # Project CRUD
-│   │   ├── owners.py         # Owner CRUD
+│   │   ├── personnel.py      # Personnel management
 │   │   ├── crm.py            # CRM features
 │   │   ├── reports.py        # Report generation
 │   │   └── admin.py          # Administration
@@ -64,7 +64,7 @@ nukeworks/
 │   │   ├── base.html        # Base template
 │   │   ├── dashboard.html   # Dashboard
 │   │   ├── auth/            # Authentication pages
-│   │   ├── vendors/         # Vendor pages
+│   │   ├── companies/       # Company pages
 │   │   ├── projects/        # Project pages
 │   │   └── ...
 │   │
@@ -257,6 +257,12 @@ flake8 app/
    ```
 
 ## Architecture Highlights
+
+### Unified Company System
+- **Single Company Table**: Replaces legacy role-specific tables (vendors, owners, operators, etc.)
+- **Role-Based Assignment**: Companies can have multiple roles (vendor, developer, operator, constructor, offtaker)
+- **Flexible Relationships**: CompanyRoleAssignment links companies to projects, personnel, and other entities
+- **Backward Compatible**: Legacy helper functions preserved as aliases
 
 ### Database Concurrency
 - **WAL Mode**: Enabled for better concurrent access on network drives

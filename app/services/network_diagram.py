@@ -8,29 +8,15 @@ from sqlalchemy.orm import joinedload
 from app import db_session
 from app.models import (
     Company,
+    CompanyRole,
     CompanyRoleAssignment,
-    OwnerVendorRelationship,
     Project,
-    ProjectOwnerRelationship,
-    ProjectVendorRelationship,
-    ProjectConstructorRelationship,
-    ProjectOperatorRelationship,
-    ProjectOfftakerRelationship,
-    VendorPreferredConstructor,
-    VendorSupplierRelationship,
 )
 from app.utils.permissions import can_view_relationship
 
 DEFAULT_ENTITY_TYPES: Tuple[str, ...] = ("company", "project")
 DEFAULT_RELATIONSHIP_TYPES: Tuple[str, ...] = (
-    "project_vendor",
-    "project_owner",
-    "project_constructor",
-    "project_operator",
-    "project_offtaker",
-    "owner_vendor",
-    "vendor_supplier",
-    "vendor_constructor",
+    "project_company",  # Unified project-company relationships
 )
 
 
@@ -125,342 +111,81 @@ def _company_node_for(
     return f"company_{assignment.company_id}", assignment
 
 
-def _owner_vendor_edges(
+
+def _project_company_edges(
     user,
     entity_types: Iterable[str],
     nodes: Dict[str, Dict[str, Any]],
     assignment_index: Dict[Tuple[str, int], CompanyRoleAssignment],
 ) -> Tuple[List[Dict[str, Any]], int]:
+    """Generate edges for all project-company relationships using unified schema."""
     edges: List[Dict[str, Any]] = []
     hidden = 0
-    if "company" not in entity_types:
-        return edges, hidden
-    query = db_session.query(OwnerVendorRelationship).options(
-        joinedload(OwnerVendorRelationship.owner),
-        joinedload(OwnerVendorRelationship.vendor),
-    )
-    for rel in query.all():
-        if not can_view_relationship(user, rel):
-            hidden += 1
-            continue
-        owner_node, owner_assignment = _company_node_for(assignment_index, "OwnerRecord", rel.owner_id)
-        vendor_node, vendor_assignment = _company_node_for(assignment_index, "VendorRecord", rel.vendor_id)
-        if not owner_node or not vendor_node:
-            continue
-        if owner_node not in nodes or vendor_node not in nodes:
-            continue
-        label = rel.relationship_type or "Owner ↔ Vendor"
-        title = label
-        if owner_assignment and vendor_assignment:
-            title = (
-                f"{owner_assignment.company.company_name} ↔ {vendor_assignment.company.company_name}"
-            )
-            if rel.relationship_type:
-                title += f"\nType: {rel.relationship_type}"
-        edges.append(
-            {
-                "id": f"owner_vendor_{rel.relationship_id}",
-                "from": owner_node,
-                "to": vendor_node,
-                "label": label,
-                "title": title,
-            }
-        )
-    return edges, hidden
-
-
-def _vendor_supplier_edges(
-    user,
-    entity_types: Iterable[str],
-    nodes: Dict[str, Dict[str, Any]],
-    assignment_index: Dict[Tuple[str, int], CompanyRoleAssignment],
-) -> Tuple[List[Dict[str, Any]], int]:
-    edges: List[Dict[str, Any]] = []
-    hidden = 0
-    if "company" not in entity_types:
-        return edges, hidden
-    query = db_session.query(VendorSupplierRelationship).options(
-        joinedload(VendorSupplierRelationship.vendor),
-        joinedload(VendorSupplierRelationship.supplier),
-    )
-    for rel in query.all():
-        if not can_view_relationship(user, rel):
-            hidden += 1
-            continue
-        supplier_node, supplier_assignment = _company_node_for(assignment_index, "VendorRecord", rel.supplier_id)
-        vendor_node, vendor_assignment = _company_node_for(assignment_index, "VendorRecord", rel.vendor_id)
-        if not supplier_node or not vendor_node:
-            continue
-        if supplier_node not in nodes or vendor_node not in nodes:
-            continue
-        label = rel.component_type or "Supplier"
-        title = label
-        if supplier_assignment and vendor_assignment:
-            title = (
-                f"{supplier_assignment.company.company_name} supplies {vendor_assignment.company.company_name}"
-            )
-        edges.append(
-            {
-                "id": f"vendor_supplier_{rel.relationship_id}",
-                "from": supplier_node,
-                "to": vendor_node,
-                "label": label,
-                "title": title,
-                "arrows": "to",
-            }
-        )
-    return edges, hidden
-
-
-def _vendor_constructor_edges(
-    user,
-    entity_types: Iterable[str],
-    nodes: Dict[str, Dict[str, Any]],
-    assignment_index: Dict[Tuple[str, int], CompanyRoleAssignment],
-) -> Tuple[List[Dict[str, Any]], int]:
-    edges: List[Dict[str, Any]] = []
-    hidden = 0
-    if "company" not in entity_types:
-        return edges, hidden
-    query = db_session.query(VendorPreferredConstructor).options(
-        joinedload(VendorPreferredConstructor.vendor),
-        joinedload(VendorPreferredConstructor.constructor),
-    )
-    for rel in query.all():
-        if not can_view_relationship(user, rel):
-            hidden += 1
-            continue
-        vendor_node, vendor_assignment = _company_node_for(assignment_index, "VendorRecord", rel.vendor_id)
-        constructor_node, constructor_assignment = _company_node_for(assignment_index, "ConstructorRecord", rel.constructor_id)
-        if not vendor_node or not constructor_node:
-            continue
-        if vendor_node not in nodes or constructor_node not in nodes:
-            continue
-        title = "Preferred constructor"
-        if vendor_assignment and constructor_assignment:
-            title = (
-                f"{vendor_assignment.company.company_name} prefers {constructor_assignment.company.company_name}"
-            )
-        edges.append(
-            {
-                "id": f"vendor_constructor_{rel.relationship_id}",
-                "from": vendor_node,
-                "to": constructor_node,
-                "label": "Preferred",
-                "title": title,
-            }
-        )
-    return edges, hidden
-
-
-def _project_vendor_edges(
-    user,
-    entity_types: Iterable[str],
-    nodes: Dict[str, Dict[str, Any]],
-    assignment_index: Dict[Tuple[str, int], CompanyRoleAssignment],
-) -> Tuple[List[Dict[str, Any]], int]:
-    edges: List[Dict[str, Any]] = []
-    hidden = 0
+    
     if "company" not in entity_types or "project" not in entity_types:
         return edges, hidden
-    query = db_session.query(ProjectVendorRelationship).options(
-        joinedload(ProjectVendorRelationship.project),
-        joinedload(ProjectVendorRelationship.vendor),
+    
+    # Query all CompanyRoleAssignments with context_type='Project'
+    query = db_session.query(CompanyRoleAssignment).filter_by(
+        context_type='Project'
+    ).options(
+        joinedload(CompanyRoleAssignment.company),
+        joinedload(CompanyRoleAssignment.role),
     )
-    for rel in query.all():
-        if not can_view_relationship(user, rel):
+    
+    # Group multiple roles between the same company and project into a single edge
+    grouped: Dict[Tuple[int, int], Dict[str, Any]] = {}
+
+    for assignment in query.all():
+        if not can_view_relationship(user, assignment):
             hidden += 1
             continue
-        vendor_node, vendor_assignment = _company_node_for(assignment_index, "VendorRecord", rel.vendor_id)
-        project_node = f"project_{rel.project_id}"
-        if not vendor_node or project_node not in nodes:
+
+        project_id = assignment.context_id
+        company_id = assignment.company_id
+        if project_id is None:
             continue
-        if vendor_node not in nodes:
+
+        project_node = f"project_{project_id}"
+        company_node = f"company_{company_id}"
+
+        if project_node not in nodes or company_node not in nodes:
             continue
-        title = "Vendor involved with project"
-        if vendor_assignment and rel.project:
-            title = f"{vendor_assignment.company.company_name} ↔ {rel.project.project_name}"
-        edges.append(
-            {
-                "id": f"project_vendor_{rel.relationship_id}",
-                "from": vendor_node,
+
+        role_label = assignment.role.role_label if assignment.role else "Company"
+        key = (project_id, company_id)
+        if key not in grouped:
+            company_name = assignment.company.company_name if assignment.company else "Company"
+            project = db_session.get(Project, project_id)
+            project_name = project.project_name if project else f"Project {project_id}"
+            grouped[key] = {
+                "from": company_node,
                 "to": project_node,
-                "label": "Vendor",
-                "title": title,
+                "role_labels": [role_label],
+                "company_name": company_name,
+                "project_name": project_name,
             }
-        )
+        else:
+            if role_label not in grouped[key]["role_labels"]:
+                grouped[key]["role_labels"].append(role_label)
+
+    for (project_id, company_id), data in grouped.items():
+        label_text = ", ".join(data["role_labels"]) or "Company"
+        title = f"{data['company_name']} ({label_text}) ↔ {data['project_name']}"
+        edges.append({
+            "id": f"project_company_{project_id}_{company_id}",
+            "from": data["from"],
+            "to": data["to"],
+            "label": label_text,
+            "title": title,
+        })
+    
     return edges, hidden
 
-
-def _project_owner_edges(
-    user,
-    entity_types: Iterable[str],
-    nodes: Dict[str, Dict[str, Any]],
-    assignment_index: Dict[Tuple[str, int], CompanyRoleAssignment],
-) -> Tuple[List[Dict[str, Any]], int]:
-    edges: List[Dict[str, Any]] = []
-    hidden = 0
-    if "company" not in entity_types or "project" not in entity_types:
-        return edges, hidden
-    query = db_session.query(ProjectOwnerRelationship).options(
-        joinedload(ProjectOwnerRelationship.project),
-        joinedload(ProjectOwnerRelationship.owner),
-    )
-    for rel in query.all():
-        if not can_view_relationship(user, rel):
-            hidden += 1
-            continue
-        owner_node, owner_assignment = _company_node_for(assignment_index, "OwnerRecord", rel.owner_id)
-        project_node = f"project_{rel.project_id}"
-        if not owner_node or project_node not in nodes:
-            continue
-        if owner_node not in nodes:
-            continue
-        title = "Owner relationship"
-        if owner_assignment and rel.project:
-            title = f"{owner_assignment.company.company_name} ↔ {rel.project.project_name}"
-        edges.append(
-            {
-                "id": f"project_owner_{rel.relationship_id}",
-                "from": owner_node,
-                "to": project_node,
-                "label": "Owner",
-                "title": title,
-            }
-        )
-    return edges, hidden
-
-
-def _project_constructor_edges(
-    user,
-    entity_types: Iterable[str],
-    nodes: Dict[str, Dict[str, Any]],
-    assignment_index: Dict[Tuple[str, int], CompanyRoleAssignment],
-) -> Tuple[List[Dict[str, Any]], int]:
-    edges: List[Dict[str, Any]] = []
-    hidden = 0
-    if "company" not in entity_types or "project" not in entity_types:
-        return edges, hidden
-    query = db_session.query(ProjectConstructorRelationship).options(
-        joinedload(ProjectConstructorRelationship.project),
-        joinedload(ProjectConstructorRelationship.constructor),
-    )
-    for rel in query.all():
-        if not can_view_relationship(user, rel):
-            hidden += 1
-            continue
-        constructor_node, constructor_assignment = _company_node_for(assignment_index, "ConstructorRecord", rel.constructor_id)
-        project_node = f"project_{rel.project_id}"
-        if not constructor_node or project_node not in nodes:
-            continue
-        if constructor_node not in nodes:
-            continue
-        title = "Constructor relationship"
-        if constructor_assignment and rel.project:
-            title = f"{constructor_assignment.company.company_name} ↔ {rel.project.project_name}"
-        edges.append(
-            {
-                "id": f"project_constructor_{rel.relationship_id}",
-                "from": constructor_node,
-                "to": project_node,
-                "label": "Constructor",
-                "title": title,
-            }
-        )
-    return edges, hidden
-
-
-def _project_operator_edges(
-    user,
-    entity_types: Iterable[str],
-    nodes: Dict[str, Dict[str, Any]],
-    assignment_index: Dict[Tuple[str, int], CompanyRoleAssignment],
-) -> Tuple[List[Dict[str, Any]], int]:
-    edges: List[Dict[str, Any]] = []
-    hidden = 0
-    if "company" not in entity_types or "project" not in entity_types:
-        return edges, hidden
-    query = db_session.query(ProjectOperatorRelationship).options(
-        joinedload(ProjectOperatorRelationship.project),
-        joinedload(ProjectOperatorRelationship.operator),
-    )
-    for rel in query.all():
-        if not can_view_relationship(user, rel):
-            hidden += 1
-            continue
-        operator_node, operator_assignment = _company_node_for(assignment_index, "OperatorRecord", rel.operator_id)
-        project_node = f"project_{rel.project_id}"
-        if not operator_node or project_node not in nodes:
-            continue
-        if operator_node not in nodes:
-            continue
-        title = "Operator relationship"
-        if operator_assignment and rel.project:
-            title = f"{operator_assignment.company.company_name} ↔ {rel.project.project_name}"
-        edges.append(
-            {
-                "id": f"project_operator_{rel.relationship_id}",
-                "from": operator_node,
-                "to": project_node,
-                "label": "Operator",
-                "title": title,
-            }
-        )
-    return edges, hidden
-
-
-def _project_offtaker_edges(
-    user,
-    entity_types: Iterable[str],
-    nodes: Dict[str, Dict[str, Any]],
-    assignment_index: Dict[Tuple[str, int], CompanyRoleAssignment],
-) -> Tuple[List[Dict[str, Any]], int]:
-    edges: List[Dict[str, Any]] = []
-    hidden = 0
-    if "company" not in entity_types or "project" not in entity_types:
-        return edges, hidden
-    query = db_session.query(ProjectOfftakerRelationship).options(
-        joinedload(ProjectOfftakerRelationship.project),
-        joinedload(ProjectOfftakerRelationship.offtaker),
-    )
-    for rel in query.all():
-        if not can_view_relationship(user, rel):
-            hidden += 1
-            continue
-        offtaker_node, offtaker_assignment = _company_node_for(assignment_index, "OfftakerRecord", rel.offtaker_id)
-        project_node = f"project_{rel.project_id}"
-        if not offtaker_node or project_node not in nodes:
-            continue
-        if offtaker_node not in nodes:
-            continue
-        label = rel.agreement_type or "Off-taker"
-        title = label
-        if offtaker_assignment and rel.project:
-            title = f"{offtaker_assignment.company.company_name} ↔ {rel.project.project_name}"
-            if rel.agreement_type:
-                title += f"\nType: {rel.agreement_type}"
-        edges.append(
-            {
-                "id": f"project_offtaker_{rel.relationship_id}",
-                "from": offtaker_node,
-                "to": project_node,
-                "label": label,
-                "title": title,
-            }
-        )
-    return edges, hidden
 
 EDGE_BUILDERS = {
-    "owner_vendor": _owner_vendor_edges,
-    "vendor_supplier": _vendor_supplier_edges,
-    "vendor_constructor": _vendor_constructor_edges,
-    "project_vendor": _project_vendor_edges,
-    "project_owner": _project_owner_edges,
-    "project_constructor": _project_constructor_edges,
-    "project_operator": _project_operator_edges,
-    "project_offtaker": _project_offtaker_edges,
+    "project_company": _project_company_edges,
 }
-
 
 
 def _apply_focus_filter(

@@ -1,16 +1,8 @@
 """Helper utilities for relationship management routes"""
-from typing import List, Tuple
+from typing import List, Tuple, Optional
 
 from app import db_session
-from app.models import (
-    TechnologyVendor,
-    OwnerDeveloper,
-    Project,
-    Constructor,
-    Operator,
-    Personnel,
-    Offtaker
-)
+from app.models import Company, CompanyRoleAssignment, CompanyRole, Project, Personnel
 
 
 def _with_placeholder(choices: List[Tuple[int, str]], placeholder: str) -> List[Tuple[int, str]]:
@@ -18,19 +10,30 @@ def _with_placeholder(choices: List[Tuple[int, str]], placeholder: str) -> List[
     return [(0, placeholder)] + choices
 
 
-def get_vendor_choices(exclude_id: int | None = None, placeholder: str = '-- Select Vendor --') -> List[Tuple[int, str]]:
-    """Return selectable vendor choices"""
-    query = db_session.query(TechnologyVendor).order_by(TechnologyVendor.vendor_name)
-    if exclude_id:
-        query = query.filter(TechnologyVendor.vendor_id != exclude_id)
-    choices = [(vendor.vendor_id, vendor.vendor_name) for vendor in query]
-    return _with_placeholder(choices, placeholder)
+def get_company_choices(
+    role_filter: Optional[str] = None,
+    placeholder: str = '-- Select Company --'
+) -> List[Tuple[int, str]]:
+    """
+    Return selectable company choices.
 
+    Args:
+        role_filter: Optional role code to filter by (e.g., 'vendor', 'developer', 'operator')
+        placeholder: Placeholder text for dropdown
 
-def get_owner_choices(placeholder: str = '-- Select Owner / Developer --') -> List[Tuple[int, str]]:
-    """Return selectable owner/developer choices"""
-    owners = db_session.query(OwnerDeveloper).order_by(OwnerDeveloper.company_name).all()
-    choices = [(owner.owner_id, owner.company_name) for owner in owners]
+    Returns:
+        List of (company_id, company_name) tuples with placeholder at index 0
+    """
+    query = db_session.query(Company).order_by(Company.company_name)
+
+    if role_filter:
+        # Filter companies that have the specified role
+        query = query.join(CompanyRoleAssignment).join(CompanyRole).filter(
+            CompanyRole.role_code == role_filter
+        ).distinct()
+
+    companies = query.all()
+    choices = [(company.company_id, company.company_name) for company in companies]
     return _with_placeholder(choices, placeholder)
 
 
@@ -38,27 +41,6 @@ def get_project_choices(placeholder: str = '-- Select Project --') -> List[Tuple
     """Return selectable project choices"""
     projects = db_session.query(Project).order_by(Project.project_name).all()
     choices = [(project.project_id, project.project_name) for project in projects]
-    return _with_placeholder(choices, placeholder)
-
-
-def get_constructor_choices(placeholder: str = '-- Select Constructor --') -> List[Tuple[int, str]]:
-    """Return selectable constructor choices"""
-    constructors = db_session.query(Constructor).order_by(Constructor.company_name).all()
-    choices = [(constructor.constructor_id, constructor.company_name) for constructor in constructors]
-    return _with_placeholder(choices, placeholder)
-
-
-def get_operator_choices(placeholder: str = '-- Select Operator --') -> List[Tuple[int, str]]:
-    """Return selectable operator choices"""
-    operators = db_session.query(Operator).order_by(Operator.company_name).all()
-    choices = [(operator.operator_id, operator.company_name) for operator in operators]
-    return _with_placeholder(choices, placeholder)
-
-
-def get_offtaker_choices(placeholder: str = '-- Select Off-taker --') -> List[Tuple[int, str]]:
-    """Return selectable energy off-taker choices."""
-    offtakers = db_session.query(Offtaker).order_by(Offtaker.organization_name).all()
-    choices = [(offtaker.offtaker_id, offtaker.organization_name) for offtaker in offtakers]
     return _with_placeholder(choices, placeholder)
 
 
@@ -73,3 +55,31 @@ def get_personnel_choices(
     personnel = query.all()
     choices = [(person.personnel_id, person.full_name) for person in personnel]
     return _with_placeholder(choices, placeholder)
+
+
+# Legacy function aliases for backward compatibility
+# These will be deprecated in future releases
+
+def get_vendor_choices(exclude_id: int | None = None, placeholder: str = '-- Select Vendor --') -> List[Tuple[int, str]]:
+    """DEPRECATED: Use get_company_choices(role_filter='vendor') instead"""
+    return get_company_choices(role_filter='vendor', placeholder=placeholder)
+
+
+def get_owner_choices(placeholder: str = '-- Select Owner / Developer --') -> List[Tuple[int, str]]:
+    """DEPRECATED: Use get_company_choices(role_filter='developer') instead"""
+    return get_company_choices(role_filter='developer', placeholder=placeholder)
+
+
+def get_constructor_choices(placeholder: str = '-- Select Constructor --') -> List[Tuple[int, str]]:
+    """DEPRECATED: Use get_company_choices(role_filter='constructor') instead"""
+    return get_company_choices(role_filter='constructor', placeholder=placeholder)
+
+
+def get_operator_choices(placeholder: str = '-- Select Operator --') -> List[Tuple[int, str]]:
+    """DEPRECATED: Use get_company_choices(role_filter='operator') instead"""
+    return get_company_choices(role_filter='operator', placeholder=placeholder)
+
+
+def get_offtaker_choices(placeholder: str = '-- Select Off-taker --') -> List[Tuple[int, str]]:
+    """DEPRECATED: Use get_company_choices(role_filter='offtaker') instead"""
+    return get_company_choices(role_filter='offtaker', placeholder=placeholder)

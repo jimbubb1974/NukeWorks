@@ -77,12 +77,12 @@
                             <a href="{{ url_for('admin.change_user_password', user_id=user.user_id) }}" class="btn btn-sm btn-outline-secondary">Password</a>
                             {% if user.is_active %}
                             <form method="post" action="{{ url_for('admin.deactivate_user', user_id=user.user_id) }}" class="d-inline">
-                                {{ csrf_token() }}
+                                {{ deactivate_form.hidden_tag() }}
                                 <button type="submit" class="btn btn-sm btn-outline-warning" {% if current_user.user_id == user.user_id %}disabled{% endif %}>Deactivate</button>
                             </form>
                             {% else %}
                             <form method="post" action="{{ url_for('admin.activate_user', user_id=user.user_id) }}" class="d-inline">
-                                {{ csrf_token() }}
+                                {{ activate_form.hidden_tag() }}
                                 <button type="submit" class="btn btn-sm btn-outline-success">Reactivate</button>
                             </form>
                             {% endif %}

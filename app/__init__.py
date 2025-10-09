@@ -298,19 +298,18 @@ def register_blueprints(app):
     Args:
         app: Flask application
     """
-    from app.routes import auth, dashboard, vendors, projects, owners, operators, constructors, technologies, offtakers, companies, clients, crm, reports, admin, contact_log, network, personnel, db_select
+    from app.routes import auth, dashboard, projects, operators, constructors, technologies, offtakers, companies, clients, crm, reports, admin, contact_log, network, personnel, db_select
 
     app.register_blueprint(db_select.bp)
     app.register_blueprint(auth.bp)
     app.register_blueprint(dashboard.bp)
-    app.register_blueprint(vendors.bp)
+    # Legacy blueprints removed - use companies.bp with role filtering instead
     app.register_blueprint(projects.bp)
-    app.register_blueprint(owners.bp)
-    app.register_blueprint(operators.bp)
-    app.register_blueprint(constructors.bp)
+    # app.register_blueprint(operators.bp)  # Use /companies?role=operator
+    # app.register_blueprint(constructors.bp)  # Use /companies?role=constructor
     app.register_blueprint(companies.bp)
     app.register_blueprint(technologies.bp)
-    app.register_blueprint(offtakers.bp)
+    # app.register_blueprint(offtakers.bp)  # Use /companies?role=offtaker
     app.register_blueprint(clients.bp)
     app.register_blueprint(crm.bp)
     app.register_blueprint(reports.bp)
