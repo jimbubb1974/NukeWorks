@@ -151,17 +151,6 @@ class ExternalPersonnelForm(FlaskForm):
         validators=[DataRequired(message='Company is required for external personnel')]
     )
 
-    contact_type = SelectField(
-        'Contact Type',
-        choices=[
-            ('Primary', 'Primary Contact'),
-            ('Secondary', 'Secondary Contact'),
-            ('Technical', 'Technical Contact'),
-            ('Business', 'Business Contact')
-        ],
-        validators=[Optional()]
-    )
-
     notes = TextAreaField(
         'Notes',
         validators=[Optional(), Length(max=5000)],
