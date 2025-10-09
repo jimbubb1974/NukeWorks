@@ -227,3 +227,4 @@ Rollout Notes
 - **Migration compatibility**: Users can seamlessly switch between databases with matching schema versions.
 - **Session persistence**: Uses existing filesystem-based sessions (SESSION_TYPE = 'filesystem').
 - **Backwards compatibility**: Existing routes continue to work due to LocalProxy indirection for db_session.
+

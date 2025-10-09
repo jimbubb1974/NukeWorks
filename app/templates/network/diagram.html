@@ -1,193 +1,321 @@
-{% extends "base.html" %}
-
-{% block title %}Network Diagram{% endblock %}
-
-{% block extra_css %}
-<link rel="stylesheet" href="{{ url_for('static', filename='lib/vis/vis.min.css') }}">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/network-diagram.css') }}">
-{% endblock %}
-
-{% block content %}
+{% extends "base.html" %} {% block title %}Network Diagram{% endblock %} {%
+block extra_css %}
+<link
+  rel="stylesheet"
+  href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.css"
+  crossorigin="anonymous"
+  referrerpolicy="no-referrer"
+/>
+<link
+  rel="stylesheet"
+  href="{{ url_for('static', filename='css/network-diagram.css') }}"
+/>
+{% endblock %} {% block content %}
 <div class="row g-3">
-    <div class="col-lg-3">
-        <div class="card mb-3">
-            <div class="card-header">Filters</div>
-            <div class="card-body">
-                <form id="network-filter-form" class="network-filter-form">
-                    <div class="mb-3">
-                        <h6 class="text-uppercase text-muted">Entities</h6>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="entity-company" name="entity_types" value="company" checked>
-                            <label class="form-check-label" for="entity-company">Companies (all types)</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="entity-project" name="entity_types" value="project" checked>
-                            <label class="form-check-label" for="entity-project">Projects</label>
-                        </div>
-                        <p class="form-text small text-muted mb-0">Companies include vendors, owners, developers, operators, constructors, and off-takers.</p>
-                    </div>
-                    <div class="mb-3">
-                        <h6 class="text-uppercase text-muted">Display Options</h6>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="hide-unconnected-companies" name="hide_unconnected_companies" value="1">
-                            <label class="form-check-label" for="hide-unconnected-companies">Hide companies without project connections</label>
-                        </div>
-                        <p class="form-text small text-muted mb-0">Only show companies that are linked to at least one project.</p>
-                    </div>
-                    <div class="mb-3">
-                        <h6 class="text-uppercase text-muted">Relationships</h6>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="rel-project-company" name="relationship_types" value="project_company" checked>
-                            <label class="form-check-label" for="rel-project-company">Project ↔ Company (all roles)</label>
-                        </div>
-                        <p class="form-text small text-muted mb-0">Shows all project-company relationships including vendors, owners, operators, constructors, and off-takers.</p>
-                    </div>
-                    <button type="submit" class="btn btn-primary btn-sm w-100">Apply Filters</button>
-                </form>
+  <div class="col-lg-3">
+    <div class="card mb-3">
+      <div
+        class="card-header"
+        data-bs-toggle="collapse"
+        data-bs-target="#filtersCollapse"
+        style="cursor: pointer"
+      >
+        <i class="bi bi-chevron-down float-end"></i>
+        Filters
+      </div>
+      <div id="filtersCollapse" class="collapse">
+        <div class="card-body">
+          <form id="network-filter-form" class="network-filter-form">
+            <div class="mb-3">
+              <h6 class="text-uppercase text-muted">Entities</h6>
+              <div class="form-check">
+                <input
+                  class="form-check-input"
+                  type="checkbox"
+                  id="entity-company"
+                  name="entity_types"
+                  value="company"
+                  checked
+                />
+                <label class="form-check-label" for="entity-company"
+                  >Companies (all types)</label
+                >
+              </div>
+              <div class="form-check">
+                <input
+                  class="form-check-input"
+                  type="checkbox"
+                  id="entity-project"
+                  name="entity_types"
+                  value="project"
+                  checked
+                />
+                <label class="form-check-label" for="entity-project"
+                  >Projects</label
+                >
+              </div>
+              <p class="form-text small text-muted mb-0">
+                Companies include vendors, owners, developers, operators,
+                constructors, and off-takers.
+              </p>
             </div>
-        </div>
-
-        <div class="card mb-3">
-            <div class="card-header">Focus Mode</div>
-            <div class="card-body">
-                <form id="focus-form" class="network-focus-form">
-                    <div class="mb-2">
-                        <label for="focus-entity" class="form-label">Select Entity</label>
-                        <select id="focus-entity" class="form-select form-select-sm">
-                            <option value="">-- Show Entire Network --</option>
-                        </select>
-                    </div>
-                    <div class="mb-2">
-                        <label for="focus-depth" class="form-label">Depth</label>
-                        <select id="focus-depth" class="form-select form-select-sm">
-                            <option value="1">Direct connections</option>
-                            <option value="2" selected>Depth 2</option>
-                            <option value="3">Depth 3</option>
-                            <option value="all">Show all</option>
-                        </select>
-                    </div>
-                    <div class="d-flex gap-2">
-                        <button type="submit" class="btn btn-outline-primary btn-sm flex-grow-1">Apply Focus</button>
-                        <button type="button" class="btn btn-outline-secondary btn-sm flex-grow-1" id="clear-focus-btn">Clear</button>
-                    </div>
-                    <p class="form-text mt-2 mb-0">Tip: Double-click a node to focus on it quickly.</p>
-                </form>
-            </div>
-        </div>
-
-        <div class="card mb-3">
-            <div class="card-header">Network Stats</div>
-            <div class="card-body">
-                <ul class="list-unstyled small mb-0">
-                    <li><strong>Total Nodes:</strong> <span id="total-nodes">0</span></li>
-                    <li><strong>Total Edges:</strong> <span id="total-edges">0</span></li>
-                    <li><strong>Hidden (Confidential):</strong> <span id="hidden-count">0</span></li>
-                </ul>
-            </div>
-        </div>
-
-        <div class="card">
-            <div class="card-header">Legend</div>
-            <div class="card-body">
-                <div class="legend-item">
-                    <span class="legend-node company"></span>
-                    <span>Company</span>
+            <div class="mb-3">
+              <h6 class="text-uppercase text-muted">Display Options</h6>
+              <div class="form-check">
+                <input
+                  class="form-check-input"
+                  type="checkbox"
+                  id="hide-unconnected-companies"
+                  name="hide_unconnected_companies"
+                  value="1"
+                />
+                <label class="form-check-label" for="hide-unconnected-companies"
+                  >Hide companies without project connections</label
+                >
+              </div>
+              <div class="form-check">
+                <input
+                  class="form-check-input"
+                  type="checkbox"
+                  id="show-edge-labels"
+                  name="show_edge_labels"
+                  value="1"
+                  checked
+                />
+                <label class="form-check-label" for="show-edge-labels"
+                  >Show role labels on connections</label
+                >
+              </div>
+              <p class="form-text small text-muted mb-0">
+                When unchecked, roles are identified by color only.
+              </p>
+              <div class="mt-3">
+                <div class="alert alert-info small mb-0">
+                  <i class="bi bi-info-circle"></i>
+                  <strong>Multi-Role Connections:</strong> When a company has
+                  multiple roles with a project (e.g., Vendor + Owner), separate
+                  color-coded lines are shown for each role.
                 </div>
-                <div class="legend-item">
-                    <span class="legend-node project"></span>
-                    <span>Project</span>
-                </div>
-                <hr>
-                <div class="legend-item">
-                    <span class="legend-edge solid"></span>
-                    <span>Company Role on Project</span>
-                </div>
-                <p class="form-text small text-muted mb-0 mt-2">Edge labels show the company's role (Vendor, Owner, Operator, Constructor, Off-taker)</p>
+              </div>
             </div>
+            <div class="mb-3">
+              <h6 class="text-uppercase text-muted">Relationships</h6>
+              <div class="form-check">
+                <input
+                  class="form-check-input"
+                  type="checkbox"
+                  id="rel-project-company"
+                  name="relationship_types"
+                  value="project_company"
+                  checked
+                />
+                <label class="form-check-label" for="rel-project-company"
+                  >Project ↔ Company (all roles)</label
+                >
+              </div>
+              <p class="form-text small text-muted mb-0">
+                Shows all project-company relationships including vendors,
+                owners, operators, constructors, and off-takers.
+              </p>
+            </div>
+            <button type="submit" class="btn btn-primary btn-sm w-100">
+              Apply Filters
+            </button>
+          </form>
         </div>
+      </div>
     </div>
 
-    <div class="col-lg-9">
-        <div class="card h-100">
-            <div class="card-header d-flex align-items-center">
-                <span>Relationship Network</span>
-                <div class="ms-auto d-flex gap-2">
-                    <button type="button" class="btn btn-outline-secondary btn-sm" id="reset-physics-btn">Re-enable Physics</button>
-                    <button type="button" class="btn btn-outline-secondary btn-sm" id="reset-view-btn">Reset View</button>
-                </div>
+    <div class="card mb-3">
+      <div
+        class="card-header"
+        data-bs-toggle="collapse"
+        data-bs-target="#focusCollapse"
+        style="cursor: pointer"
+      >
+        <i class="bi bi-chevron-down float-end"></i>
+        Focus Mode
+      </div>
+      <div id="focusCollapse" class="collapse">
+        <div class="card-body">
+          <form id="focus-form" class="network-focus-form">
+            <div class="mb-2">
+              <label for="focus-entity" class="form-label">Select Entity</label>
+              <select id="focus-entity" class="form-select form-select-sm">
+                <option value="">-- Show Entire Network --</option>
+              </select>
             </div>
-            <div class="card-body p-0">
-                <div id="network-container" class="network-container">
-                    <div class="network-loading" id="network-loading">
-                        <div class="spinner-border text-primary" role="status">
-                            <span class="visually-hidden">Loading...</span>
-                        </div>
-                    </div>
-                </div>
+            <div class="mb-2">
+              <label for="focus-depth" class="form-label">Depth</label>
+              <select id="focus-depth" class="form-select form-select-sm">
+                <option value="1">Direct connections</option>
+                <option value="2" selected>Depth 2</option>
+                <option value="3">Depth 3</option>
+                <option value="all">Show all</option>
+              </select>
             </div>
+            <div class="d-flex gap-2">
+              <button
+                type="submit"
+                class="btn btn-outline-primary btn-sm flex-grow-1"
+              >
+                Apply Focus
+              </button>
+              <button
+                type="button"
+                class="btn btn-outline-secondary btn-sm flex-grow-1"
+                id="clear-focus-btn"
+              >
+                Clear
+              </button>
+            </div>
+            <p class="form-text mt-2 mb-0">
+              Tip: Double-click a node to focus on it quickly.
+            </p>
+          </form>
         </div>
-
-        <div class="card mt-3">
-            <div class="card-header">Node Details</div>
-            <div class="card-body" id="node-detail-panel">
-                <p class="text-muted mb-0" id="node-detail-placeholder">Hover over a node to see quick details here.</p>
-                <div id="node-detail-content" class="d-none">
-                    <h6 id="node-detail-label" class="mb-1"></h6>
-                    <p id="node-detail-description" class="mb-0 small"></p>
-                </div>
-            </div>
-        </div>
+      </div>
     </div>
+
+    <div class="card mb-3">
+      <div class="card-header">Network Stats</div>
+      <div class="card-body">
+        <ul class="list-unstyled small mb-0">
+          <li><strong>Total Nodes:</strong> <span id="total-nodes">0</span></li>
+          <li><strong>Total Edges:</strong> <span id="total-edges">0</span></li>
+          <li>
+            <strong>Hidden (Confidential):</strong>
+            <span id="hidden-count">0</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">Legend</div>
+      <div class="card-body">
+        <div class="legend-item">
+          <span class="legend-node company"></span>
+          <span>Company</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-node project"></span>
+          <span>Project</span>
+        </div>
+        <hr />
+        <h6 class="small text-uppercase text-muted mb-2">Role Colors</h6>
+        <div class="legend-item">
+          <span
+            class="legend-edge solid"
+            style="background-color: #e74c3c"
+          ></span>
+          <span>Vendor</span>
+        </div>
+        <div class="legend-item">
+          <span
+            class="legend-edge solid"
+            style="background-color: #3498db"
+          ></span>
+          <span>Owner</span>
+        </div>
+        <div class="legend-item">
+          <span
+            class="legend-edge solid"
+            style="background-color: #9b59b6"
+          ></span>
+          <span>Operator</span>
+        </div>
+        <div class="legend-item">
+          <span
+            class="legend-edge solid"
+            style="background-color: #f39c12"
+          ></span>
+          <span>Constructor</span>
+        </div>
+        <div class="legend-item">
+          <span
+            class="legend-edge solid"
+            style="background-color: #16a085"
+          ></span>
+          <span>Offtaker</span>
+        </div>
+        <div class="legend-item">
+          <span
+            class="legend-edge solid"
+            style="background-color: #2ecc71"
+          ></span>
+          <span>Developer</span>
+        </div>
+        <p class="form-text small text-muted mb-0 mt-2">
+          Companies with multiple roles show separate color-coded connections
+          for each role.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-9">
+    <div class="card h-100">
+      <div class="card-header d-flex align-items-center">
+        <span>Relationship Network</span>
+        <div class="ms-auto d-flex gap-2">
+          <button
+            type="button"
+            class="btn btn-outline-secondary btn-sm"
+            id="reset-physics-btn"
+          >
+            Re-enable Physics
+          </button>
+          <button
+            type="button"
+            class="btn btn-outline-secondary btn-sm"
+            id="reset-view-btn"
+          >
+            Reset View
+          </button>
+        </div>
+      </div>
+      <div class="card-body p-0">
+        <div id="network-container" class="network-container">
+          <div class="network-loading" id="network-loading">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
-{% endblock %}
-
-{% block extra_js %}
-<script src="{{ url_for('static', filename='lib/vis/vis.min.js') }}"></script>
-<script>
-    if (typeof vis === 'undefined') {
-        const script = document.createElement('script');
-        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.js';
-        script.crossOrigin = 'anonymous';
-        script.referrerPolicy = 'no-referrer';
-        window.__visLibraryLoading = true;
-        script.onload = function () {
-            window.__visLibraryLoading = false;
-        };
-        script.onerror = function () {
-            window.__visLibraryLoading = false;
-        };
-        document.head.appendChild(script);
-    }
-</script>
+{% endblock %} {% block extra_js %}
+<script
+  src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.js"
+  crossorigin="anonymous"
+  referrerpolicy="no-referrer"
+></script>
 <script src="{{ url_for('static', filename='js/network-diagram.js') }}"></script>
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        if (window.NetworkDiagram) {
-            window.NetworkDiagram.init({
-                dataUrl: "{{ url_for('network.network_data') }}",
-                containerId: 'network-container',
-                loadingIndicatorId: 'network-loading',
-                filterFormId: 'network-filter-form',
-                focusFormId: 'focus-form',
-                focusSelectId: 'focus-entity',
-                focusDepthId: 'focus-depth',
-                clearFocusButtonId: 'clear-focus-btn',
-                resetViewButtonId: 'reset-view-btn',
-                resetPhysicsButtonId: 'reset-physics-btn',
-                statsSelectors: {
-                    totalNodes: '#total-nodes',
-                    totalEdges: '#total-edges',
-                    hidden: '#hidden-count'
-                },
-                detailPanel: {
-                    placeholderSelector: '#node-detail-placeholder',
-                    containerSelector: '#node-detail-content',
-                    labelSelector: '#node-detail-label',
-                    descriptionSelector: '#node-detail-description'
-                },
-                errorBannerId: 'network-error-banner'
-            });
-        }
-    });
+  document.addEventListener("DOMContentLoaded", function () {
+    if (window.NetworkDiagram) {
+      window.NetworkDiagram.init({
+        dataUrl: "{{ url_for('network.network_data') }}",
+        containerId: "network-container",
+        loadingIndicatorId: "network-loading",
+        filterFormId: "network-filter-form",
+        focusFormId: "focus-form",
+        focusSelectId: "focus-entity",
+        focusDepthId: "focus-depth",
+        clearFocusButtonId: "clear-focus-btn",
+        resetViewButtonId: "reset-view-btn",
+        resetPhysicsButtonId: "reset-physics-btn",
+        statsSelectors: {
+          totalNodes: "#total-nodes",
+          totalEdges: "#total-edges",
+          hidden: "#hidden-count",
+        },
+        errorBannerId: "network-error-banner",
+      });
+    }
+  });
 </script>
 {% endblock %}

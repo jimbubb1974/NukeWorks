@@ -111,6 +111,64 @@ def _company_node_for(
     return f"company_{assignment.company_id}", assignment
 
 
+def _calculate_edge_roundness(role_index: int, total_roles: int) -> float:
+    """Calculate roundness value for multiple edges between same nodes.
+    
+    Args:
+        role_index: Index of current role (0-based)
+        total_roles: Total number of roles between these nodes
+    
+    Returns:
+        Roundness value for vis.js smooth curve
+    """
+    if total_roles == 1:
+        return 0.2  # Default single edge
+    
+    # Base roundness
+    base = 0.2
+    
+    # Spread factor - increases with more roles
+    spread = 0.15
+    
+    # Center offset - distribute roles evenly around center
+    center_offset = (role_index - (total_roles - 1) / 2.0) * spread
+    
+    return base + center_offset
+
+
+def _get_role_color(role_label: str) -> str:
+    """Get color for a specific role type.
+    
+    Args:
+        role_label: Role label (e.g., 'Vendor', 'Owner', 'Operator')
+    
+    Returns:
+        Hex color code
+    """
+    # Normalize the role label to check for keywords
+    role_lower = role_label.lower()
+    
+    # Map role keywords to colors
+    if 'vendor' in role_lower or 'technology' in role_lower:
+        return '#e74c3c'  # Red
+    elif 'owner' in role_lower or 'developer' in role_lower:
+        return '#3498db'  # Blue
+    elif 'operator' in role_lower or 'operate' in role_lower:
+        return '#9b59b6'  # Purple
+    elif 'constructor' in role_lower or 'construct' in role_lower:
+        return '#f39c12'  # Orange
+    elif 'offtaker' in role_lower or 'off-taker' in role_lower:
+        return '#16a085'  # Teal
+    elif 'investor' in role_lower or 'investment' in role_lower:
+        return '#34495e'  # Dark gray
+    elif 'regulator' in role_lower or 'regulatory' in role_lower:
+        return '#e67e22'  # Dark orange
+    elif 'supplier' in role_lower or 'supply' in role_lower:
+        return '#c0392b'  # Dark red
+    else:
+        return '#7f8c8d'  # Default gray for unknown roles
+
+
 
 def _project_company_edges(
     user,
@@ -169,16 +227,38 @@ def _project_company_edges(
             if role_label not in grouped[key]["role_labels"]:
                 grouped[key]["role_labels"].append(role_label)
 
+    # Generate separate edges for each role (with color coding and smart spacing)
     for (project_id, company_id), data in grouped.items():
-        label_text = ", ".join(data["role_labels"]) or "Company"
-        title = f"{data['company_name']} ({label_text}) ↔ {data['project_name']}"
-        edges.append({
-            "id": f"project_company_{project_id}_{company_id}",
-            "from": data["from"],
-            "to": data["to"],
-            "label": label_text,
-            "title": title,
-        })
+        roles = data["role_labels"]
+        
+        # Create separate edge for each role
+        for idx, role_label in enumerate(roles):
+            roundness = _calculate_edge_roundness(idx, len(roles))
+            
+            # Determine curve direction (alternate for better spacing)
+            curve_type = "curvedCW" if idx % 2 == 0 else "curvedCCW"
+            
+            title = f"{data['company_name']} ({role_label}) ↔ {data['project_name']}"
+            
+            edges.append({
+                "id": f"project_company_{project_id}_{company_id}_{role_label}",
+                "from": data["from"],
+                "to": data["to"],
+                "label": role_label,
+                "title": title,
+                "color": {
+                    "color": _get_role_color(role_label),
+                    "highlight": _get_role_color(role_label),
+                    "hover": _get_role_color(role_label),
+                    "inherit": False,
+                },
+                "smooth": {
+                    "enabled": True,
+                    "type": curve_type,
+                    "roundness": roundness,
+                },
+                "width": 2,
+            })
     
     return edges, hidden
 
