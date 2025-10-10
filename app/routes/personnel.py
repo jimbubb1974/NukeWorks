@@ -249,32 +249,8 @@ def edit_personnel(personnel_id: int):
             (ip.personnel_id, ip.full_name) for ip in internal_personnel
         ]
 
-    if form.validate_on_submit():
-        person.full_name = form.full_name.data
-        person.email = form.email.data or None
-        person.phone = form.phone.data or None
-        person.role = form.role.data or None
-        person.is_active = bool(form.is_active.data)
-        person.notes = form.notes.data or None
-        
-        if is_internal:
-            # Update internal-specific fields
-            person.department = form.department.data or None
-        else:
-            # Update external-specific fields
-            # Company is required for external personnel
-            person.company_id = form.company_id.data
-
-        try:
-            db_session.commit()
-            flash(f'{person.full_name} updated successfully.', 'success')
-            return redirect(url_for('personnel.list_personnel'))
-        except Exception as exc:
-            db_session.rollback()
-            flash(f'Error updating personnel: {exc}', 'danger')
-    
-    # Handle relationship form submission for external personnel
-    if not is_internal and relationship_form and relationship_form.validate_on_submit():
+    # Handle relationship form submission for external personnel (check this first)
+    if not is_internal and relationship_form and request.method == 'POST' and 'add_relationship' in request.form:
         try:
             # Check if relationship already exists
             existing = db_session.query(PersonnelRelationship).filter_by(
@@ -301,6 +277,31 @@ def edit_personnel(personnel_id: int):
         except Exception as exc:
             db_session.rollback()
             flash(f'Error adding relationship: {exc}', 'danger')
+    
+    # Handle main personnel form submission
+    if form.validate_on_submit():
+        person.full_name = form.full_name.data
+        person.email = form.email.data or None
+        person.phone = form.phone.data or None
+        person.role = form.role.data or None
+        person.is_active = bool(form.is_active.data)
+        person.notes = form.notes.data or None
+        
+        if is_internal:
+            # Update internal-specific fields
+            person.department = form.department.data or None
+        else:
+            # Update external-specific fields
+            # Company is required for external personnel
+            person.company_id = form.company_id.data
+
+        try:
+            db_session.commit()
+            flash(f'{person.full_name} updated successfully.', 'success')
+            return redirect(url_for('personnel.list_personnel'))
+        except Exception as exc:
+            db_session.rollback()
+            flash(f'Error updating personnel: {exc}', 'danger')
 
     return render_template('personnel/edit.html', 
                          form=form, 
