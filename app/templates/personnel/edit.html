@@ -153,9 +153,7 @@
         </div>
         {% else %}
         <p class="text-muted mb-3">No internal personnel relationships.</p>
-        {% endif %}
-
-        {% if relationship_form %}
+        {% endif %} {% if relationship_form %}
         <h6>Add New Relationship</h6>
         <form method="post">
           {{ relationship_form.hidden_tag() }}
@@ -188,7 +186,10 @@
           </div>
         </form>
         {% else %}
-        <p class="text-muted">Relationship form not available. Please contact support if this persists.</p>
+        <p class="text-muted">
+          Relationship form not available. Please contact support if this
+          persists.
+        </p>
         {% endif %}
       </div>
     </div>
