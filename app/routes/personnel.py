@@ -12,13 +12,13 @@ from app.models import (
     PersonnelRelationship,
     Company,
     Project,
-    Client,
+    # Client,  # Removed in Phase 4 cleanup
     ContactLog,
-    ClientPersonnelRelationship,
+    # ClientPersonnelRelationship,  # Removed in Phase 4 cleanup
     ClientProfile,
     PersonCompanyAffiliation,
 )
-from app.models.relationships import PersonnelEntityRelationship, EntityTeamMember
+# from app.models.relationships import PersonnelEntityRelationship, EntityTeamMember  # Removed in Phase 4 cleanup
 from app.forms.personnel import PersonnelForm, PersonnelClientLinkForm, PersonnelRelationshipForm
 from app.forms.relationships import ConfirmActionForm
 
@@ -335,84 +335,86 @@ def delete_personnel_relationship(personnel_id: int, relationship_id: int):
         return redirect(url_for('personnel.edit_personnel', personnel_id=personnel_id, type='external'))
 
 
-@bp.route('/<int:personnel_id>/clients', methods=['GET', 'POST'])
-@login_required
-def manage_personnel_clients(personnel_id: int):
-    """View and manage client relationships for the selected personnel."""
-    person = db_session.get(Personnel, personnel_id)
-    if not person:
-        flash('Personnel record not found.', 'error')
-        return redirect(url_for('personnel.list_personnel'))
+# Removed in Phase 4 cleanup - Client and ClientPersonnelRelationship models no longer exist
+# @bp.route('/<int:personnel_id>/clients', methods=['GET', 'POST'])
+# @login_required
+# def manage_personnel_clients(personnel_id: int):
+#     """View and manage client relationships for the selected personnel."""
+#     person = db_session.get(Personnel, personnel_id)
+#     if not person:
+#         flash('Personnel record not found.', 'error')
+#         return redirect(url_for('personnel.list_personnel'))
+#
+#     clients = db_session.query(Client).order_by(Client.client_name).all()
+#     client_choices = [(client.client_id, client.client_name) for client in clients]
+#
+#     form = PersonnelClientLinkForm(client_choices=client_choices)
+#     delete_form = ConfirmActionForm()
+#
+#     if form.validate_on_submit():
+#         existing = (
+#             db_session.query(ClientPersonnelRelationship)
+#             .filter_by(client_id=form.client_id.data, personnel_id=personnel_id)
+#             .first()
+#         )
+#         if existing:
+#             flash('This client is already linked to the selected person.', 'warning')
+#         else:
+#             relationship = ClientPersonnelRelationship(
+#                 client_id=form.client_id.data,
+#                 personnel_id=personnel_id,
+#                 role_at_client=form.role_at_client.data or None,
+#                 is_primary_contact=bool(form.is_primary_contact.data),
+#                 is_confidential=bool(form.is_confidential.data),
+#                 notes=form.notes.data or None,
+#                 created_by=current_user.user_id,
+#                 modified_by=current_user.user_id,
+#             )
+#             db_session.add(relationship)
+#             db_session.commit()
+#             flash('Client relationship added.', 'success')
+#             return redirect(url_for('personnel.manage_personnel_clients', personnel_id=personnel_id))
+#
+#     relationships = (
+#         db_session.query(ClientPersonnelRelationship)
+#         .options(joinedload(ClientPersonnelRelationship.client))
+#         .filter_by(personnel_id=personnel_id)
+#         .order_by(ClientPersonnelRelationship.is_primary_contact.desc(), ClientPersonnelRelationship.role_at_client)
+#         .all()
+#     )
+#
+#     return render_template(
+#         'personnel/manage_clients.html',
+#         person=person,
+#         relationships=relationships,
+#         form=form,
+#         delete_form=delete_form,
+#     )
 
-    clients = db_session.query(Client).order_by(Client.client_name).all()
-    client_choices = [(client.client_id, client.client_name) for client in clients]
 
-    form = PersonnelClientLinkForm(client_choices=client_choices)
-    delete_form = ConfirmActionForm()
-
-    if form.validate_on_submit():
-        existing = (
-            db_session.query(ClientPersonnelRelationship)
-            .filter_by(client_id=form.client_id.data, personnel_id=personnel_id)
-            .first()
-        )
-        if existing:
-            flash('This client is already linked to the selected person.', 'warning')
-        else:
-            relationship = ClientPersonnelRelationship(
-                client_id=form.client_id.data,
-                personnel_id=personnel_id,
-                role_at_client=form.role_at_client.data or None,
-                is_primary_contact=bool(form.is_primary_contact.data),
-                is_confidential=bool(form.is_confidential.data),
-                notes=form.notes.data or None,
-                created_by=current_user.user_id,
-                modified_by=current_user.user_id,
-            )
-            db_session.add(relationship)
-            db_session.commit()
-            flash('Client relationship added.', 'success')
-            return redirect(url_for('personnel.manage_personnel_clients', personnel_id=personnel_id))
-
-    relationships = (
-        db_session.query(ClientPersonnelRelationship)
-        .options(joinedload(ClientPersonnelRelationship.client))
-        .filter_by(personnel_id=personnel_id)
-        .order_by(ClientPersonnelRelationship.is_primary_contact.desc(), ClientPersonnelRelationship.role_at_client)
-        .all()
-    )
-
-    return render_template(
-        'personnel/manage_clients.html',
-        person=person,
-        relationships=relationships,
-        form=form,
-        delete_form=delete_form,
-    )
-
-
-@bp.route('/<int:personnel_id>/clients/<int:relationship_id>/remove', methods=['POST'])
-@login_required
-def remove_personnel_client(personnel_id: int, relationship_id: int):
-    person = db_session.get(Personnel, personnel_id)
-    if not person:
-        flash('Personnel record not found.', 'error')
-        return redirect(url_for('personnel.list_personnel'))
-
-    form = ConfirmActionForm()
-    if not form.validate_on_submit():
-        flash('Removal request was not confirmed.', 'error')
-        return redirect(url_for('personnel.manage_personnel_clients', personnel_id=personnel_id))
-
-    relationship = db_session.get(ClientPersonnelRelationship, relationship_id)
-    if not relationship or relationship.personnel_id != personnel_id:
-        flash('Client relationship not found.', 'error')
-        return redirect(url_for('personnel.manage_personnel_clients', personnel_id=personnel_id))
-
-    db_session.delete(relationship)
-    db_session.commit()
-    flash('Client relationship removed.', 'success')
-    return redirect(url_for('personnel.manage_personnel_clients', personnel_id=personnel_id))
+# Removed in Phase 4 cleanup - Client and ClientPersonnelRelationship models no longer exist
+# @bp.route('/<int:personnel_id>/clients/<int:relationship_id>/remove', methods=['POST'])
+# @login_required
+# def remove_personnel_client(personnel_id: int, relationship_id: int):
+#     person = db_session.get(Personnel, personnel_id)
+#     if not person:
+#         flash('Personnel record not found.', 'error')
+#         return redirect(url_for('personnel.list_personnel'))
+#
+#     form = ConfirmActionForm()
+#     if not form.validate_on_submit():
+#         flash('Removal request was not confirmed.', 'error')
+#         return redirect(url_for('personnel.manage_personnel_clients', personnel_id=personnel_id))
+#
+#     relationship = db_session.get(ClientPersonnelRelationship, relationship_id)
+#     if not relationship or relationship.personnel_id != personnel_id:
+#         flash('Client relationship not found.', 'error')
+#         return redirect(url_for('personnel.manage_personnel_clients', personnel_id=personnel_id))
+#
+#     db_session.delete(relationship)
+#     db_session.commit()
+#     flash('Client relationship removed.', 'success')
+#     return redirect(url_for('personnel.manage_personnel_clients', personnel_id=personnel_id))
 
 
 class PersonnelDeletionError(Exception):
@@ -436,7 +438,7 @@ def _cleanup_personnel_references(personnel_id: int) -> None:
             'Reassign or remove those contact logs first.'
         )
 
-    # Null out references in client profiles, projects, clients (legacy), and contact logs
+    # Null out references in client profiles, projects, and contact logs
     # Update ClientProfile records that reference this personnel
     client_profile_updates = {
         ClientProfile.last_contact_by: None,
@@ -452,24 +454,27 @@ def _cleanup_personnel_references(personnel_id: int) -> None:
     for column in project_updates:
         db_session.query(Project).filter(column == personnel_id).update({column: None}, synchronize_session=False)
 
-    # Legacy Client table (if still in use)
-    client_updates = {
-        Client.mpr_primary_poc: None,
-        Client.mpr_secondary_poc: None,
-        Client.last_contact_by: None,
-        Client.next_planned_contact_assigned_to: None,
-    }
-    for column in client_updates:
-        db_session.query(Client).filter(column == personnel_id).update({column: None}, synchronize_session=False)
+    # Legacy Client table removed in Phase 4 cleanup
+    # client_updates = {
+    #     Client.mpr_primary_poc: None,
+    #     Client.mpr_secondary_poc: None,
+    #     Client.last_contact_by: None,
+    #     Client.next_planned_contact_assigned_to: None,
+    # }
+    # for column in client_updates:
+    #     db_session.query(Client).filter(column == personnel_id).update({column: None}, synchronize_session=False)
 
     db_session.query(ContactLog).filter(ContactLog.contact_person_id == personnel_id).update({ContactLog.contact_person_id: None}, synchronize_session=False)
     db_session.query(ContactLog).filter(ContactLog.follow_up_assigned_to == personnel_id).update({ContactLog.follow_up_assigned_to: None}, synchronize_session=False)
 
     # Remove junction-table relationships that point at this personnel
-    db_session.query(PersonnelEntityRelationship).filter_by(personnel_id=personnel_id).delete(synchronize_session=False)
-    db_session.query(PersonCompanyAffiliation).filter_by(personnel_id=personnel_id).delete(synchronize_session=False)
-    db_session.query(EntityTeamMember).filter_by(personnel_id=personnel_id).delete(synchronize_session=False)
-    db_session.query(ClientPersonnelRelationship).filter_by(personnel_id=personnel_id).delete(synchronize_session=False)
+    # PersonnelEntityRelationship removed in Phase 4 cleanup
+    # db_session.query(PersonnelEntityRelationship).filter_by(personnel_id=personnel_id).delete(synchronize_session=False)
+    db_session.query(PersonCompanyAffiliation).filter_by(person_id=personnel_id).delete(synchronize_session=False)  # Note: column is person_id, not personnel_id
+    # EntityTeamMember removed in Phase 4 cleanup
+    # db_session.query(EntityTeamMember).filter_by(personnel_id=personnel_id).delete(synchronize_session=False)
+    # ClientPersonnelRelationship removed in Phase 4 cleanup
+    # db_session.query(ClientPersonnelRelationship).filter_by(personnel_id=personnel_id).delete(synchronize_session=False)
 
 
 @bp.route('/<int:personnel_id>/delete', methods=['POST'])

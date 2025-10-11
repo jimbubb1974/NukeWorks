@@ -16,7 +16,7 @@ from app.models import (
     Project,
     Company,
     CompanyRoleAssignment,
-    PersonnelEntityRelationship,
+    # PersonnelEntityRelationship,  # Removed in Phase 4 cleanup
     DatabaseSnapshot,
     AuditLog,
 )
@@ -76,61 +76,41 @@ def _format_company_role_label(rel):
     elif rel.context_type == 'Company' and rel.context_id:
         company = db_session.get(Company, rel.context_id)
         context_name = f"Company: {company.company_name}" if company else f"Company #{rel.context_id}"
-    elif rel.context_type == 'VendorRecord' and rel.context_id:
-        from app.models import TechnologyVendor
-        vendor = db_session.get(TechnologyVendor, rel.context_id)
-        context_name = f"Vendor: {vendor.vendor_name}" if vendor else f"Vendor #{rel.context_id}"
-    elif rel.context_type == 'OwnerRecord' and rel.context_id:
-        from app.models import OwnerDeveloper
-        owner = db_session.get(OwnerDeveloper, rel.context_id)
-        context_name = f"Owner: {owner.company_name}" if owner else f"Owner #{rel.context_id}"
-    elif rel.context_type == 'ClientRecord' and rel.context_id:
-        from app.models import Client
-        client = db_session.get(Client, rel.context_id)
-        context_name = f"Client: {client.client_name}" if client else f"Client #{rel.context_id}"
-    elif rel.context_type == 'OperatorRecord' and rel.context_id:
-        from app.models import Operator
-        operator = db_session.get(Operator, rel.context_id)
-        context_name = f"Operator: {operator.company_name}" if operator else f"Operator #{rel.context_id}"
-    elif rel.context_type == 'ConstructorRecord' and rel.context_id:
-        from app.models import Constructor
-        constructor = db_session.get(Constructor, rel.context_id)
-        context_name = f"Constructor: {constructor.company_name}" if constructor else f"Constructor #{rel.context_id}"
-    elif rel.context_type == 'OfftakerRecord' and rel.context_id:
-        from app.models import Offtaker
-        offtaker = db_session.get(Offtaker, rel.context_id)
-        context_name = f"Offtaker: {offtaker.organization_name}" if offtaker else f"Offtaker #{rel.context_id}"
+    elif rel.context_type == 'Global':
+        # Global context assignments (company-level roles, no specific context)
+        context_name = 'Global (company-level)'
     elif rel.context_type:
         context_name = f"{rel.context_type} #{rel.context_id}" if rel.context_id else rel.context_type
 
     return f"{company_name} ({role_label}) → {context_name}"
 
 
-def _format_personnel_entity_label(rel):
-    """Format label for personnel-entity relationship showing actual entity name."""
-    if not rel:
-        return 'Unknown Relationship'
-
-    personnel_name = rel.personnel.full_name if rel.personnel else 'Personnel'
-    role = rel.role_at_entity or 'N/A'
-
-    # Get the actual entity name
-    entity_name = 'Unknown'
-    if rel.entity_type == 'Project' and rel.entity_id:
-        project = db_session.get(Project, rel.entity_id)
-        entity_name = f"Project: {project.project_name}" if project else f"Project #{rel.entity_id}"
-    elif rel.entity_type == 'Company' and rel.entity_id:
-        company = db_session.get(Company, rel.entity_id)
-        entity_name = f"Company: {company.company_name}" if company else f"Company #{rel.entity_id}"
-    elif rel.entity_type:
-        entity_name = f"{rel.entity_type} #{rel.entity_id}" if rel.entity_id else rel.entity_type
-
-    return f"{personnel_name} ↔ {entity_name} (Role: {role})"
+# Removed in Phase 4 cleanup - PersonnelEntityRelationship no longer exists
+# def _format_personnel_entity_label(rel):
+#     """Format label for personnel-entity relationship showing actual entity name."""
+#     if not rel:
+#         return 'Unknown Relationship'
+#
+#     personnel_name = rel.personnel.full_name if rel.personnel else 'Personnel'
+#     role = rel.role_at_entity or 'N/A'
+#
+#     # Get the actual entity name
+#     entity_name = 'Unknown'
+#     if rel.entity_type == 'Project' and rel.entity_id:
+#         project = db_session.get(Project, rel.entity_id)
+#         entity_name = f"Project: {project.project_name}" if project else f"Project #{rel.entity_id}"
+#     elif rel.entity_type == 'Company' and rel.entity_id:
+#         company = db_session.get(Company, rel.entity_id)
+#         entity_name = f"Company: {company.company_name}" if company else f"Company #{rel.entity_id}"
+#     elif rel.entity_type:
+#         entity_name = f"{rel.entity_type} #{rel.entity_id}" if rel.entity_id else rel.entity_type
+#
+#     return f"{personnel_name} ↔ {entity_name} (Role: {role})"
 
 
 RELATIONSHIP_CONFIG = {
     'company_role_assignment': (CompanyRoleAssignment, _format_company_role_label),
-    'personnel_entity': (PersonnelEntityRelationship, _format_personnel_entity_label),
+    # 'personnel_entity': Removed in Phase 4 cleanup - replaced by PersonnelRelationship
 }
 
 

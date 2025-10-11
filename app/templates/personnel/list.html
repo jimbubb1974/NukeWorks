@@ -98,13 +98,7 @@ endblock %} {% block content %}
                 >
                   <i class="bi bi-pencil"></i>
                 </a>
-                <a
-                  href="{{ url_for('personnel.manage_personnel_clients', personnel_id=person.personnel_id) }}"
-                  class="btn btn-sm btn-outline-secondary me-1"
-                  title="Manage client connections"
-                >
-                  <i class="bi bi-diagram-3"></i>
-                </a>
+                <!-- Removed: Manage client connections button - feature removed in Phase 4 cleanup -->
                 {% if can_delete %}
                 <form
                   method="post"

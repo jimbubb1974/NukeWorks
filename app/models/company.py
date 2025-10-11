@@ -22,10 +22,8 @@ class Company(Base, TimestampMixin):
     company_id = Column(Integer, primary_key=True, autoincrement=True)
     company_name = Column(Text, nullable=False)
     company_type = Column(Text)  # Utility, IPP, Vendor, Constructor, etc.
-    sector = Column(Text)
     website = Column(Text)
     headquarters_country = Column(Text)
-    headquarters_region = Column(Text)
     is_mpr_client = Column(Boolean, default=False, nullable=False)
     is_internal = Column(Boolean, default=False, nullable=False)
     notes = Column(Text)
@@ -57,12 +55,12 @@ class Company(Base, TimestampMixin):
         cascade='all, delete-orphan'
     )
 
-    products = relationship(
-        'Product',
-        back_populates='company',
-        cascade='all, delete-orphan'
-    )
-    
+    # products = relationship(  # Removed in Phase 4 cleanup - Product model no longer exists
+    #     'Product',
+    #     back_populates='company',
+    #     cascade='all, delete-orphan'
+    # )
+
     external_personnel = relationship(
         'ExternalPersonnel',
         back_populates='company',
@@ -78,10 +76,8 @@ class Company(Base, TimestampMixin):
             'company_id': self.company_id,
             'company_name': self.company_name,
             'company_type': self.company_type,
-            'sector': self.sector,
             'website': self.website,
             'headquarters_country': self.headquarters_country,
-            'headquarters_region': self.headquarters_region,
             'is_mpr_client': self.is_mpr_client,
             'is_internal': self.is_internal,
             'notes': self.notes,

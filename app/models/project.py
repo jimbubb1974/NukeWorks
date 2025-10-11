@@ -72,36 +72,37 @@ class Project(Base, TimestampMixin):
         backref='projects_interacted'
     )
 
-    # Relationships to other entities
-    vendor_relationships = relationship(
-        'ProjectVendorRelationship',
-        back_populates='project',
-        cascade='all, delete-orphan'
-    )
+    # Relationships to other entities - Removed in Phase 4 cleanup
+    # These legacy relationship models were replaced by CompanyRoleAssignment
+    # vendor_relationships = relationship(
+    #     'ProjectVendorRelationship',
+    #     back_populates='project',
+    #     cascade='all, delete-orphan'
+    # )
 
-    constructor_relationships = relationship(
-        'ProjectConstructorRelationship',
-        back_populates='project',
-        cascade='all, delete-orphan'
-    )
+    # constructor_relationships = relationship(
+    #     'ProjectConstructorRelationship',
+    #     back_populates='project',
+    #     cascade='all, delete-orphan'
+    # )
 
-    operator_relationships = relationship(
-        'ProjectOperatorRelationship',
-        back_populates='project',
-        cascade='all, delete-orphan'
-    )
+    # operator_relationships = relationship(
+    #     'ProjectOperatorRelationship',
+    #     back_populates='project',
+    #     cascade='all, delete-orphan'
+    # )
 
-    owner_relationships = relationship(
-        'ProjectOwnerRelationship',
-        back_populates='project',
-        cascade='all, delete-orphan'
-    )
+    # owner_relationships = relationship(
+    #     'ProjectOwnerRelationship',
+    #     back_populates='project',
+    #     cascade='all, delete-orphan'
+    # )
 
-    offtaker_relationships = relationship(
-        'ProjectOfftakerRelationship',
-        back_populates='project',
-        cascade='all, delete-orphan'
-    )
+    # offtaker_relationships = relationship(
+    #     'ProjectOfftakerRelationship',
+    #     back_populates='project',
+    #     cascade='all, delete-orphan'
+    # )
 
     def __repr__(self):
         return f'<Project {self.project_name}>'

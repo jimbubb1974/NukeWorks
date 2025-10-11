@@ -9,7 +9,7 @@ from app.models import (
     Company,
     CompanyRole,
     CompanyRoleAssignment,
-    Product,
+    # Product,  # Removed in Phase 4 cleanup - technology data consolidated into companies
 )
 from app import db_session
 
@@ -20,7 +20,7 @@ AVAILABLE_COLUMNS = {
     'project': {'label': 'Project', 'model': Project, 'field': 'project_name'},
     'owner': {'label': 'Owner/Developer', 'role_code': 'developer'},
     'vendor': {'label': 'Technology Vendor', 'role_code': 'vendor'},
-    'technology': {'label': 'Technology/Product', 'model': Product, 'field': 'product_name'},
+    # 'technology': removed in Phase 4 cleanup - products table dropped
     'operator': {'label': 'Operator', 'role_code': 'operator'},
     'offtaker': {'label': 'Offtaker', 'role_code': 'offtaker'},
     'constructor': {'label': 'Constructor', 'role_code': 'constructor'},
@@ -96,12 +96,7 @@ def _get_project_relationships(project_id):
             relationships['owners'].append(company_info)
         elif role.role_code == 'vendor':
             relationships['vendors'].append(company_info)
-            # Get products from this vendor
-            for product in company.products:
-                relationships['technologies'].append({
-                    'id': product.product_id,
-                    'name': product.product_name
-                })
+            # Note: Product/technology data removed in Phase 4 cleanup
         elif role.role_code == 'operator':
             relationships['operators'].append(company_info)
         elif role.role_code == 'offtaker':
@@ -135,8 +130,7 @@ def _build_grouped_data(group_by, selected_columns):
             groups = project_rels['owners'] if project_rels['owners'] else [{'id': None, 'name': 'No Owner'}]
         elif group_by == 'vendor':
             groups = project_rels['vendors'] if project_rels['vendors'] else [{'id': None, 'name': 'No Vendor'}]
-        elif group_by == 'technology':
-            groups = project_rels['technologies'] if project_rels['technologies'] else [{'id': None, 'name': 'No Technology'}]
+        # elif group_by == 'technology': removed in Phase 4 cleanup
         elif group_by == 'operator':
             groups = project_rels['operators'] if project_rels['operators'] else [{'id': None, 'name': 'No Operator'}]
         elif group_by == 'offtaker':
@@ -166,8 +160,7 @@ def _build_grouped_data(group_by, selected_columns):
                     item['owners'] = [o['name'] for o in project_rels['owners']]
                 elif col == 'vendor':
                     item['vendors'] = [v['name'] for v in project_rels['vendors']]
-                elif col == 'technology':
-                    item['technologies'] = [t['name'] for t in project_rels['technologies']]
+                # elif col == 'technology': removed in Phase 4 cleanup
                 elif col == 'operator':
                     item['operators'] = [o['name'] for o in project_rels['operators']]
                 elif col == 'offtaker':
@@ -201,17 +194,7 @@ def _build_grouped_data(group_by, selected_columns):
                         'projects': []
                     }
 
-    elif group_by == 'technology':
-        # Get all technologies that don't have any projects
-        all_technologies = db_session.query(Product).all()
-        for technology in all_technologies:
-            group_key = f"technology_{technology.product_id}"
-            if group_key not in grouped_data:
-                grouped_data[group_key] = {
-                    'group_id': technology.product_id,
-                    'group_name': technology.product_name,
-                    'projects': []
-                }
+    # elif group_by == 'technology': removed in Phase 4 cleanup - Product model no longer exists
 
     # Convert to list and sort
     result = list(grouped_data.values())
@@ -227,12 +210,12 @@ def network_table():
     Network table view with dynamic columns and grouping
 
     Query params:
-    - group_by: Entity to group by (project, owner, vendor, technology, operator, offtaker)
+    - group_by: Entity to group by (project, owner, vendor, operator, offtaker)
     - columns: Comma-separated list of columns to display
     """
     # Get parameters
     group_by = request.args.get('group_by', 'project')
-    columns_param = request.args.get('columns', 'project,owner,vendor,technology')
+    columns_param = request.args.get('columns', 'project,owner,vendor')  # removed 'technology' in Phase 4 cleanup
 
     # Parse selected columns
     selected_columns = [col.strip() for col in columns_param.split(',') if col.strip()]

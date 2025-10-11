@@ -12,11 +12,6 @@ from .company import (
     PersonCompanyAffiliation,
     InternalExternalLink,
 )
-from .vendor import TechnologyVendor, Product
-from .owner import OwnerDeveloper
-from .constructor import Constructor
-from .operator import Operator
-from .offtaker import Offtaker
 from .project import Project
 from .personnel import Personnel
 from .internal_personnel import InternalPersonnel
@@ -28,24 +23,13 @@ from .confidential import ConfidentialFieldFlag
 from .audit import AuditLog
 from .snapshot import DatabaseSnapshot
 from .system import SystemSetting, SchemaVersion
-from .client import Client
-from .relationships import (
-    VendorSupplierRelationship,
-    OwnerVendorRelationship,
-    ProjectVendorRelationship,
-    ProjectConstructorRelationship,
-    ProjectOperatorRelationship,
-    ProjectOwnerRelationship,
-    ProjectOfftakerRelationship,
-    VendorPreferredConstructor,
-    PersonnelEntityRelationship,
-    EntityTeamMember,
-    ClientOwnerRelationship,
-    ClientProjectRelationship,
-    ClientVendorRelationship,
-    ClientOperatorRelationship,
-    ClientPersonnelRelationship
-)
+
+# Legacy imports removed in Phase 4 cleanup (2025-10-10):
+# - TechnologyVendor, Product (from vendor.py)
+# - OwnerDeveloper (from owner.py)
+# - Constructor, Operator, Offtaker (from constructor.py, operator.py, offtaker.py)
+# - Client (from client.py)
+# - All legacy relationship models from relationships.py
 
 __all__ = [
     'Base',
@@ -57,14 +41,11 @@ __all__ = [
     'ClientProfile',
     'PersonCompanyAffiliation',
     'InternalExternalLink',
-    'TechnologyVendor',
-    'Product',
-    'OwnerDeveloper',
-    'Constructor',
-    'Operator',
     'Project',
-    'Offtaker',
     'Personnel',
+    'InternalPersonnel',
+    'ExternalPersonnel',
+    'PersonnelRelationship',
     'ContactLog',
     'RoundtableHistory',
     'ConfidentialFieldFlag',
@@ -72,20 +53,4 @@ __all__ = [
     'DatabaseSnapshot',
     'SystemSetting',
     'SchemaVersion',
-    'Client',
-    'VendorSupplierRelationship',
-    'OwnerVendorRelationship',
-    'ProjectVendorRelationship',
-    'ProjectConstructorRelationship',
-    'ProjectOperatorRelationship',
-    'ProjectOwnerRelationship',
-    'ProjectOfftakerRelationship',
-    'VendorPreferredConstructor',
-    'PersonnelEntityRelationship',
-    'EntityTeamMember',
-    'ClientOwnerRelationship',
-    'ClientProjectRelationship',
-    'ClientVendorRelationship',
-    'ClientOperatorRelationship',
-    'ClientPersonnelRelationship',
 ]

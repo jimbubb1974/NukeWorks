@@ -47,17 +47,19 @@ class Personnel(Base, TimestampMixin):
 
     # Relationships
     company = relationship('Company')
-    entity_relationships = relationship(
-        'PersonnelEntityRelationship',
-        back_populates='person',
-        cascade='all, delete-orphan'
-    )
 
-    team_assignments = relationship(
-        'EntityTeamMember',
-        back_populates='person',
-        cascade='all, delete-orphan'
-    )
+    # Removed in Phase 4 cleanup - legacy relationship models
+    # entity_relationships = relationship(
+    #     'PersonnelEntityRelationship',
+    #     back_populates='person',
+    #     cascade='all, delete-orphan'
+    # )
+
+    # team_assignments = relationship(
+    #     'EntityTeamMember',
+    #     back_populates='person',
+    #     cascade='all, delete-orphan'
+    # )
 
     contact_logs_as_contactor = relationship(
         'ContactLog',
