@@ -61,7 +61,7 @@ class Config:
     # Migration settings
     MIGRATIONS_DIR = str(basedir / 'migrations')
     APPLICATION_VERSION = '1.0.0'
-    REQUIRED_SCHEMA_VERSION = 6  # Updated for database selection feature
+    REQUIRED_SCHEMA_VERSION = 9  # Updated for company field cleanup
 
     # Report settings
     COMPANY_NAME = 'MPR Associates'

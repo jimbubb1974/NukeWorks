@@ -51,7 +51,7 @@ def enforce_roundtable_history_limit(entity_type: str, entity_id: int, limit: in
     entries = session.query(RoundtableHistory).filter_by(
         entity_type=entity_type,
         entity_id=entity_id
-    ).order_by(RoundtableHistory.meeting_date.desc(), RoundtableHistory.history_id.desc()).all()
+    ).order_by(RoundtableHistory.created_timestamp.desc()).all()
 
     if len(entries) <= limit:
         return

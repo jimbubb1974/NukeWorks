@@ -25,7 +25,7 @@ class ValidationError(Exception):
 
 # Application version and required schema version
 APPLICATION_VERSION = "1.0.0"
-APPLICATION_REQUIRED_SCHEMA_VERSION = 6  # Updated for database selection feature
+APPLICATION_REQUIRED_SCHEMA_VERSION = 12  # Updated for complete legacy table cleanup
 
 
 def get_migrations_directory():
@@ -166,12 +166,16 @@ def apply_single_migration(db_path, migration_file):
     # Validate migration SQL
     validate_migration_sql(migration_sql)
 
+    # Check if migration explicitly disables foreign keys
+    disable_fk = 'PRAGMA foreign_keys = OFF' in migration_sql.upper()
+
     # Execute migration
     conn = sqlite3.connect(db_path)
 
     try:
-        # Enable foreign keys
-        conn.execute("PRAGMA foreign_keys = ON")
+        # Enable foreign keys unless migration explicitly disables them
+        if not disable_fk:
+            conn.execute("PRAGMA foreign_keys = ON")
 
         # Execute the migration
         # Note: Migration file contains BEGIN TRANSACTION and COMMIT

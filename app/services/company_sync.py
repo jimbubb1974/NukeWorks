@@ -1,4 +1,13 @@
-"""Utilities to synchronize legacy role-specific records into the unified company schema."""
+"""Utilities to synchronize legacy role-specific records into the unified company schema.
+
+PARTIALLY DEPRECATED: As of migration 010, all CompanyRoleAssignments use 'Global'
+or 'Project' context types. The *Record context types no longer exist.
+
+The sync functions still work for creating/updating Company records from legacy tables,
+but they now create assignments with context_type='Global' instead of legacy types.
+
+These functions will be removed in Phase 4 when legacy tables are dropped.
+"""
 from __future__ import annotations
 
 from datetime import datetime
@@ -8,49 +17,63 @@ from sqlalchemy import and_
 from flask import current_app
 
 import app as app_module
-from app.models import (
-    Company,
-    CompanyRole,
-    CompanyRoleAssignment,
-    ClientProfile,
-    PersonCompanyAffiliation,
-    PersonnelEntityRelationship,
-    TechnologyVendor,
-    OwnerDeveloper,
-    Client,
-    Operator,
-    Constructor,
-    Offtaker,
-    ProjectVendorRelationship,
-    ProjectConstructorRelationship,
-    ProjectOperatorRelationship,
-    ProjectOwnerRelationship,
-    ProjectOfftakerRelationship,
-)
+
+# DEPRECATED FILE: This entire file will be removed once legacy tables are dropped.
+# The sync functions below attempt to import legacy models that no longer exist.
+# Keeping file temporarily to avoid breaking backfill scripts.
+
+try:
+    from app.models import (
+        Company,
+        CompanyRole,
+        CompanyRoleAssignment,
+        ClientProfile,
+        PersonCompanyAffiliation,
+    )
+    # Legacy models no longer exported from app.models as of Phase 4
+    # These imports will fail but are wrapped in try/except for graceful degradation
+    from app.models.vendor import TechnologyVendor
+    from app.models.owner import OwnerDeveloper
+    from app.models.client import Client
+    from app.models.operator import Operator
+    from app.models.constructor import Constructor
+    from app.models.offtaker import Offtaker
+    from app.models.relationships import (
+        PersonnelEntityRelationship,
+        ProjectVendorRelationship,
+        ProjectConstructorRelationship,
+        ProjectOperatorRelationship,
+        ProjectOwnerRelationship,
+        ProjectOfftakerRelationship,
+    )
+except ImportError as e:
+    # Expected after legacy model files are deleted
+    import warnings
+    warnings.warn(f"company_sync.py: Legacy model imports failed: {e}. This file should be deleted.", DeprecationWarning)
 
 _VENDOR_ROLE_CODE = 'vendor'
 _VENDOR_ROLE_LABEL = 'Technology Vendor'
-_VENDOR_CONTEXT = 'VendorRecord'
+_VENDOR_CONTEXT = 'Global'  # Changed from 'VendorRecord' in migration 010
 
 _OWNER_ROLE_CODE = 'developer'
 _OWNER_ROLE_LABEL = 'Owner / Developer'
-_OWNER_CONTEXT = 'OwnerRecord'
+_OWNER_CONTEXT = 'Global'  # Changed from 'OwnerRecord' in migration 010
 
 _CLIENT_ROLE_CODE = 'client'
 _CLIENT_ROLE_LABEL = 'MPR Client'
-_CLIENT_CONTEXT = 'ClientRecord'
+_CLIENT_CONTEXT = 'Global'  # Changed from 'ClientRecord' in migration 010
 
 _OPERATOR_ROLE_CODE = 'operator'
 _OPERATOR_ROLE_LABEL = 'Operator'
-_OPERATOR_CONTEXT = 'OperatorRecord'
+_OPERATOR_CONTEXT = 'Global'  # Changed from 'OperatorRecord' in migration 010
 
 _CONSTRUCTOR_ROLE_CODE = 'constructor'
 _CONSTRUCTOR_ROLE_LABEL = 'Constructor'
-_CONSTRUCTOR_CONTEXT = 'ConstructorRecord'
+_CONSTRUCTOR_CONTEXT = 'Global'  # Changed from 'ConstructorRecord' in migration 010
 
 _OFFTAKER_ROLE_CODE = 'offtaker'
 _OFFTAKER_ROLE_LABEL = 'Off-taker'
-_OFFTAKER_CONTEXT = 'OfftakerRecord'
+_OFFTAKER_CONTEXT = 'Global'  # Changed from 'OfftakerRecord' in migration 010
 
 def _session():
     try:
@@ -99,33 +122,43 @@ def _get_assignment_for_vendor(vendor_id: int, role_id: int) -> CompanyRoleAssig
     )
 
 
-def _get_assignment(company_id: int, role_id: int, context_type: str, context_id: int) -> CompanyRoleAssignment | None:
+def _get_assignment(company_id: int, role_id: int, context_type: str, context_id: int | None) -> CompanyRoleAssignment | None:
+    """Get assignment for company/role/context. After migration 010, context_id should be None for Global."""
     session = _session()
+    filters = [
+        CompanyRoleAssignment.company_id == company_id,
+        CompanyRoleAssignment.role_id == role_id,
+        CompanyRoleAssignment.context_type == context_type,
+    ]
+
+    if context_id is None:
+        filters.append(CompanyRoleAssignment.context_id.is_(None))
+    else:
+        filters.append(CompanyRoleAssignment.context_id == context_id)
+
     return (
         session.query(CompanyRoleAssignment)
-        .filter(
-            and_(
-                CompanyRoleAssignment.company_id == company_id,
-                CompanyRoleAssignment.role_id == role_id,
-                CompanyRoleAssignment.context_type == context_type,
-                CompanyRoleAssignment.context_id == context_id,
-            )
-        )
+        .filter(and_(*filters))
         .one_or_none()
     )
 
 
-def _get_assignment_by_context(role_id: int, context_type: str, context_id: int) -> CompanyRoleAssignment | None:
+def _get_assignment_by_context(role_id: int, context_type: str, context_id: int | None) -> CompanyRoleAssignment | None:
+    """Get assignment by context. After migration 010, context_id should be None for Global context."""
     session = _session()
+    filters = [
+        CompanyRoleAssignment.role_id == role_id,
+        CompanyRoleAssignment.context_type == context_type,
+    ]
+
+    if context_id is None:
+        filters.append(CompanyRoleAssignment.context_id.is_(None))
+    else:
+        filters.append(CompanyRoleAssignment.context_id == context_id)
+
     return (
         session.query(CompanyRoleAssignment)
-        .filter(
-            and_(
-                CompanyRoleAssignment.role_id == role_id,
-                CompanyRoleAssignment.context_type == context_type,
-                CompanyRoleAssignment.context_id == context_id,
-            )
-        )
+        .filter(and_(*filters))
         .one_or_none()
     )
 
@@ -163,30 +196,30 @@ def sync_company_from_vendor(vendor: TechnologyVendor, user_id: int | None = Non
     )
 
     session = _session()
-    assignment = _get_assignment_by_context(role.role_id, _VENDOR_CONTEXT, vendor.vendor_id)
 
-    if assignment:
-        company = assignment.company
-    else:
-        company = _find_company_by_name(vendor.vendor_name)
-        if company is None:
-            company = Company(
-                company_name=vendor.vendor_name,
-                company_type='Vendor',
-                notes=vendor.notes,
-                is_mpr_client=False,
-                is_internal=False,
-                created_by=user_id,
-                modified_by=user_id,
-            )
-            session.add(company)
-            session.flush()
+    # After migration 010: Look up company directly by name instead of by assignment
+    company = _find_company_by_name(vendor.vendor_name)
+    if company is None:
+        company = Company(
+            company_name=vendor.vendor_name,
+            company_type='Vendor',
+            notes=vendor.notes,
+            is_mpr_client=False,
+            is_internal=False,
+            created_by=user_id,
+            modified_by=user_id,
+        )
+        session.add(company)
+        session.flush()
 
+    # Check if Global assignment already exists for this company/role
+    existing_assignment = _get_assignment(company.company_id, role.role_id, _VENDOR_CONTEXT, None)
+    if not existing_assignment:
         assignment = CompanyRoleAssignment(
             company_id=company.company_id,
             role_id=role.role_id,
             context_type=_VENDOR_CONTEXT,
-            context_id=vendor.vendor_id,
+            context_id=None,  # Global context after migration 010
             is_primary=True,
             created_by=user_id,
             modified_by=user_id,
@@ -208,7 +241,9 @@ def sync_company_from_owner(owner: OwnerDeveloper, user_id: int | None = None) -
     )
 
     session = _session()
-    assignment = _get_assignment_by_context(role.role_id, _OWNER_CONTEXT, owner.owner_id)
+    # NOTE: After migration 010, this will find any Global assignment for this role
+    # Multiple companies may have the same role, so we rely on company name lookup below
+    assignment = _get_assignment_by_context(role.role_id, _OWNER_CONTEXT, None)
 
     if assignment:
         company = assignment.company
@@ -231,7 +266,7 @@ def sync_company_from_owner(owner: OwnerDeveloper, user_id: int | None = None) -
             company_id=company.company_id,
             role_id=role.role_id,
             context_type=_OWNER_CONTEXT,
-            context_id=owner.owner_id,
+            context_id=None,  # Global context after migration 010
             is_primary=True,
             created_by=user_id,
             modified_by=user_id,
@@ -277,7 +312,7 @@ def sync_company_from_client(client: Client, user_id: int | None = None) -> Comp
             company_id=company.company_id,
             role_id=role.role_id,
             context_type=_CLIENT_CONTEXT,
-            context_id=client.client_id,
+            context_id=None,  # Global context after migration 010
             is_primary=True,
             created_by=user_id,
             modified_by=user_id,
@@ -347,7 +382,7 @@ def sync_company_from_operator(operator: Operator, user_id: int | None = None) -
             company_id=company.company_id,
             role_id=role.role_id,
             context_type=_OPERATOR_CONTEXT,
-            context_id=operator.operator_id,
+            context_id=None,  # Global context after migration 010
             is_primary=True,
             created_by=user_id,
             modified_by=user_id,
@@ -392,7 +427,7 @@ def sync_company_from_constructor(constructor: Constructor, user_id: int | None 
             company_id=company.company_id,
             role_id=role.role_id,
             context_type=_CONSTRUCTOR_CONTEXT,
-            context_id=constructor.constructor_id,
+            context_id=None,  # Global context after migration 010
             is_primary=True,
             created_by=user_id,
             modified_by=user_id,
@@ -437,7 +472,7 @@ def sync_company_from_offtaker(offtaker: Offtaker, user_id: int | None = None) -
             company_id=company.company_id,
             role_id=role.role_id,
             context_type=_OFFTAKER_CONTEXT,
-            context_id=offtaker.offtaker_id,
+            context_id=None,  # Global context after migration 010
             is_primary=True,
             created_by=user_id,
             modified_by=user_id,

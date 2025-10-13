@@ -2,7 +2,8 @@
 Roundtable History model (NED Team only)
 Matches 02_DATABASE_SCHEMA.md specification exactly
 """
-from sqlalchemy import Column, Integer, Text, Date, ForeignKey, Index
+from sqlalchemy import Column, Integer, Text, DateTime, ForeignKey, Index
+from datetime import datetime
 from .base import Base
 
 
@@ -24,7 +25,6 @@ class RoundtableHistory(Base):
     entity_id = Column(Integer, nullable=False)
 
     # Meeting Information
-    meeting_date = Column(Date, nullable=False)
     discussion = Column(Text)
     action_items = Column(Text)
 
@@ -35,16 +35,16 @@ class RoundtableHistory(Base):
 
     # Audit fields (simpler than TimestampMixin - entries are append-only)
     created_by = Column(Integer, ForeignKey('users.user_id'))
-    created_date = Column(Date, nullable=False)
+    created_timestamp = Column(DateTime, nullable=False, default=datetime.now)
 
     # Indexes (as specified in schema)
     __table_args__ = (
         Index('idx_roundtable_entity', 'entity_type', 'entity_id'),
-        Index('idx_roundtable_meeting_date', 'meeting_date'),
+        Index('idx_roundtable_created', 'created_timestamp'),
     )
 
     def __repr__(self):
-        return f'<RoundtableHistory {self.entity_type}:{self.entity_id} on {self.meeting_date}>'
+        return f'<RoundtableHistory {self.entity_type}:{self.entity_id} at {self.created_timestamp}>'
 
     def to_dict(self):
         """Convert to dictionary (only accessible to NED Team)"""
@@ -52,12 +52,11 @@ class RoundtableHistory(Base):
             'history_id': self.history_id,
             'entity_type': self.entity_type,
             'entity_id': self.entity_id,
-            'meeting_date': self.meeting_date.isoformat() if self.meeting_date else None,
             'discussion': self.discussion,
             'action_items': self.action_items,
             'next_steps': self.next_steps,
             'client_near_term_focus': self.client_near_term_focus,
             'mpr_work_targets': self.mpr_work_targets,
             'created_by': self.created_by,
-            'created_date': self.created_date.isoformat() if self.created_date else None,
+            'created_timestamp': self.created_timestamp.isoformat() if self.created_timestamp else None,
         }

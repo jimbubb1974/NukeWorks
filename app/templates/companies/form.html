@@ -1,206 +1,661 @@
-{% extends "base.html" %}
-
-{% block title %}{{ title }} - NukeWorks{% endblock %}
-
+{% extends "base.html" %} {% block title %}{{ title }} - NukeWorks{% endblock %}
 {% block content %}
 <div class="row mb-4">
-    <div class="col-12 d-flex justify-content-between align-items-center">
-        <div>
-            <h1 class="h3 mb-1"><i class="bi bi-building"></i> {{ title }}</h1>
-            <p class="text-muted mb-0">Company Information</p>
-        </div>
-        <a href="{{ url_for('companies.list_companies') }}" class="btn btn-outline-secondary">
-            <i class="bi bi-arrow-left"></i> Back to Companies
-        </a>
+  <div class="col-12 d-flex justify-content-between align-items-center">
+    <div>
+      <h1 class="h3 mb-1"><i class="bi bi-building"></i> {{ title }}</h1>
+      <p class="text-muted mb-0">Company Information</p>
     </div>
+    {% if company %}
+    <a
+      href="{{ url_for('companies.view_company', company_id=company.company_id) }}"
+      class="btn btn-outline-secondary"
+    >
+      <i class="bi bi-arrow-left"></i> Back to Company
+    </a>
+    {% else %}
+    <a
+      href="{{ url_for('companies.list_companies') }}"
+      class="btn btn-outline-secondary"
+    >
+      <i class="bi bi-arrow-left"></i> Back to Companies
+    </a>
+    {% endif %}
+  </div>
 </div>
 
 <div class="row">
-    <div class="col-lg-8 col-xl-6">
-        <div class="card">
-            <div class="card-body">
-                <form method="post">
-                    {{ form.hidden_tag() }}
+  <div class="col-lg-6">
+    <div class="card">
+      <div class="card-body">
+        <form method="post">
+          {{ form.hidden_tag() }}
 
-                    <div class="mb-3">
-                        {{ form.company_name.label(class='form-label') }}
-                        {{ form.company_name(class='form-control') }}
-                        {% if form.company_name.errors %}
-                            <div class="text-danger small">{{ form.company_name.errors[0] }}</div>
-                        {% endif %}
-                    </div>
-
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            {{ form.company_type.label(class='form-label') }}
-                            {{ form.company_type(class='form-control') }}
-                            {% if form.company_type.errors %}
-                                <div class="text-danger small">{{ form.company_type.errors[0] }}</div>
-                            {% endif %}
-                        </div>
-                        <div class="col-md-6">
-                            {{ form.sector.label(class='form-label') }}
-                            {{ form.sector(class='form-control') }}
-                            {% if form.sector.errors %}
-                                <div class="text-danger small">{{ form.sector.errors[0] }}</div>
-                            {% endif %}
-                        </div>
-                    </div>
-
-                    <div class="mb-3">
-                        {{ form.website.label(class='form-label') }}
-                        {{ form.website(class='form-control') }}
-                        {% if form.website.errors %}
-                            <div class="text-danger small">{{ form.website.errors[0] }}</div>
-                        {% endif %}
-                    </div>
-
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            {{ form.headquarters_country.label(class='form-label') }}
-                            {{ form.headquarters_country(class='form-control') }}
-                            {% if form.headquarters_country.errors %}
-                                <div class="text-danger small">{{ form.headquarters_country.errors[0] }}</div>
-                            {% endif %}
-                        </div>
-                        <div class="col-md-6">
-                            {{ form.headquarters_region.label(class='form-label') }}
-                            {{ form.headquarters_region(class='form-control') }}
-                            {% if form.headquarters_region.errors %}
-                                <div class="text-danger small">{{ form.headquarters_region.errors[0] }}</div>
-                            {% endif %}
-                        </div>
-                    </div>
-
-                    <div class="row g-3 mt-1">
-                        <div class="col-md-6">
-                            <div class="form-check form-switch">
-                                {{ form.is_mpr_client(class='form-check-input', id='mprClientSwitch') }}
-                                <label class="form-check-label" for="mprClientSwitch">MPR Client</label>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-check form-switch">
-                                {{ form.is_internal(class='form-check-input', id='internalSwitch') }}
-                                <label class="form-check-label" for="internalSwitch">Internal Company</label>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="mb-3 mt-3">
-                        {{ form.notes.label(class='form-label') }}
-                        {{ form.notes(class='form-control') }}
-                        {% if form.notes.errors %}
-                            <div class="text-danger small">{{ form.notes.errors[0] }}</div>
-                        {% endif %}
-                    </div>
-
-                    <!-- MPR Client CRM Fields (shown only when MPR Client is checked) -->
-                    <div id="mprClientFields" class="mt-4" style="display: none;">
-                        <hr>
-                        <h5 class="mb-3"><i class="bi bi-people-fill"></i> MPR Client CRM Data</h5>
-                        
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                {{ form.client_priority.label(class='form-label') }}
-                                {{ form.client_priority(class='form-select') }}
-                                {% if form.client_priority.errors %}
-                                    <div class="text-danger small">{{ form.client_priority.errors[0] }}</div>
-                                {% endif %}
-                            </div>
-                            <div class="col-md-6">
-                                {{ form.client_status.label(class='form-label') }}
-                                {{ form.client_status(class='form-select') }}
-                                {% if form.client_status.errors %}
-                                    <div class="text-danger small">{{ form.client_status.errors[0] }}</div>
-                                {% endif %}
-                            </div>
-                        </div>
-
-                        <div class="row g-3 mt-2">
-                            <div class="col-md-6">
-                                {{ form.relationship_strength.label(class='form-label') }}
-                                {{ form.relationship_strength(class='form-select') }}
-                                {% if form.relationship_strength.errors %}
-                                    <div class="text-danger small">{{ form.relationship_strength.errors[0] }}</div>
-                                {% endif %}
-                            </div>
-                            <div class="col-md-6">
-                                {{ form.last_contact_type.label(class='form-label') }}
-                                {{ form.last_contact_type(class='form-select') }}
-                                {% if form.last_contact_type.errors %}
-                                    <div class="text-danger small">{{ form.last_contact_type.errors[0] }}</div>
-                                {% endif %}
-                            </div>
-                        </div>
-
-                        <div class="row g-3 mt-2">
-                            <div class="col-md-6">
-                                {{ form.last_contact_date.label(class='form-label') }}
-                                {{ form.last_contact_date(class='form-control') }}
-                                {% if form.last_contact_date.errors %}
-                                    <div class="text-danger small">{{ form.last_contact_date.errors[0] }}</div>
-                                {% endif %}
-                            </div>
-                            <div class="col-md-6">
-                                {{ form.next_planned_contact_date.label(class='form-label') }}
-                                {{ form.next_planned_contact_date(class='form-control') }}
-                                {% if form.next_planned_contact_date.errors %}
-                                    <div class="text-danger small">{{ form.next_planned_contact_date.errors[0] }}</div>
-                                {% endif %}
-                            </div>
-                        </div>
-
-                        <div class="row g-3 mt-2">
-                            <div class="col-md-6">
-                                {{ form.next_planned_contact_type.label(class='form-label') }}
-                                {{ form.next_planned_contact_type(class='form-select') }}
-                                {% if form.next_planned_contact_type.errors %}
-                                    <div class="text-danger small">{{ form.next_planned_contact_type.errors[0] }}</div>
-                                {% endif %}
-                            </div>
-                        </div>
-
-                        <div class="mb-3 mt-3">
-                            {{ form.relationship_notes.label(class='form-label') }}
-                            {{ form.relationship_notes(class='form-control') }}
-                            {% if form.relationship_notes.errors %}
-                                <div class="text-danger small">{{ form.relationship_notes.errors[0] }}</div>
-                            {% endif %}
-                        </div>
-                    </div>
-
-                    <div class="d-flex justify-content-end gap-2">
-                        <a href="{{ url_for('companies.list_companies') }}" class="btn btn-outline-secondary">Cancel</a>
-                        {{ form.submit(class='btn btn-primary') }}
-                    </div>
-                </form>
+          <div class="mb-3">
+            {{ form.company_name.label(class='form-label') }} {{
+            form.company_name(class='form-control') }} {% if
+            form.company_name.errors %}
+            <div class="text-danger small">
+              {{ form.company_name.errors[0] }}
             </div>
-        </div>
-    </div>
-</div>
-{% endblock %}
+            {% endif %}
+          </div>
 
-{% block extra_js %}
+          <div class="row g-3">
+            <div class="col-md-6">
+              {{ form.company_type.label(class='form-label') }} {{
+              form.company_type(class='form-control') }} {% if
+              form.company_type.errors %}
+              <div class="text-danger small">
+                {{ form.company_type.errors[0] }}
+              </div>
+              {% endif %}
+            </div>
+            <div class="col-md-6">
+              {{ form.headquarters_country.label(class='form-label') }} {{
+              form.headquarters_country(class='form-control') }} {% if
+              form.headquarters_country.errors %}
+              <div class="text-danger small">
+                {{ form.headquarters_country.errors[0] }}
+              </div>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="mb-3">
+            {{ form.website.label(class='form-label') }} {{
+            form.website(class='form-control') }} {% if form.website.errors %}
+            <div class="text-danger small">{{ form.website.errors[0] }}</div>
+            {% endif %}
+          </div>
+
+          <div class="row g-3 mt-1">
+            <div class="col-md-6">
+              <div class="form-check form-switch">
+                {{ form.is_mpr_client(class='form-check-input',
+                id='mprClientSwitch') }}
+                <label class="form-check-label" for="mprClientSwitch"
+                  >MPR Client</label
+                >
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-check form-switch">
+                {{ form.is_internal(class='form-check-input',
+                id='internalSwitch') }}
+                <label class="form-check-label" for="internalSwitch"
+                  >Internal Company</label
+                >
+              </div>
+            </div>
+          </div>
+
+          <div class="mb-3 mt-3">
+            {{ form.notes.label(class='form-label') }} {{
+            form.notes(class='form-control') }} {% if form.notes.errors %}
+            <div class="text-danger small">{{ form.notes.errors[0] }}</div>
+            {% endif %}
+          </div>
+
+          <!-- MPR Client CRM Fields (shown only when MPR Client is checked) -->
+          <div id="mprClientFields" class="mt-4" style="display: none">
+            <hr />
+            <h5 class="mb-3">
+              <i class="bi bi-people-fill"></i> MPR Client CRM Data
+            </h5>
+
+            <div class="row g-3">
+              <div class="col-md-6">
+                {{ form.client_priority.label(class='form-label') }} {{
+                form.client_priority(class='form-select') }} {% if
+                form.client_priority.errors %}
+                <div class="text-danger small">
+                  {{ form.client_priority.errors[0] }}
+                </div>
+                {% endif %}
+              </div>
+              <div class="col-md-6">
+                {{ form.client_status.label(class='form-label') }} {{
+                form.client_status(class='form-select') }} {% if
+                form.client_status.errors %}
+                <div class="text-danger small">
+                  {{ form.client_status.errors[0] }}
+                </div>
+                {% endif %}
+              </div>
+            </div>
+
+            <div class="row g-3 mt-2">
+              <div class="col-md-6">
+                {{ form.relationship_strength.label(class='form-label') }} {{
+                form.relationship_strength(class='form-select') }} {% if
+                form.relationship_strength.errors %}
+                <div class="text-danger small">
+                  {{ form.relationship_strength.errors[0] }}
+                </div>
+                {% endif %}
+              </div>
+              <div class="col-md-6">
+                {{ form.last_contact_type.label(class='form-label') }} {{
+                form.last_contact_type(class='form-select') }} {% if
+                form.last_contact_type.errors %}
+                <div class="text-danger small">
+                  {{ form.last_contact_type.errors[0] }}
+                </div>
+                {% endif %}
+              </div>
+            </div>
+
+            <div class="row g-3 mt-2">
+              <div class="col-md-6">
+                {{ form.last_contact_date.label(class='form-label') }} {{
+                form.last_contact_date(class='form-control') }} {% if
+                form.last_contact_date.errors %}
+                <div class="text-danger small">
+                  {{ form.last_contact_date.errors[0] }}
+                </div>
+                {% endif %}
+              </div>
+              <div class="col-md-6">
+                {{ form.next_planned_contact_date.label(class='form-label') }}
+                {{ form.next_planned_contact_date(class='form-control') }} {% if
+                form.next_planned_contact_date.errors %}
+                <div class="text-danger small">
+                  {{ form.next_planned_contact_date.errors[0] }}
+                </div>
+                {% endif %}
+              </div>
+            </div>
+
+            <div class="row g-3 mt-2">
+              <div class="col-md-6">
+                {{ form.next_planned_contact_type.label(class='form-label') }}
+                {{ form.next_planned_contact_type(class='form-select') }} {% if
+                form.next_planned_contact_type.errors %}
+                <div class="text-danger small">
+                  {{ form.next_planned_contact_type.errors[0] }}
+                </div>
+                {% endif %}
+              </div>
+            </div>
+
+            <div class="mb-3 mt-3">
+              {{ form.relationship_notes.label(class='form-label') }} {{
+              form.relationship_notes(class='form-control') }} {% if
+              form.relationship_notes.errors %}
+              <div class="text-danger small">
+                {{ form.relationship_notes.errors[0] }}
+              </div>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="d-flex justify-content-end gap-2">
+            {% if company %}
+            <a
+              href="{{ url_for('companies.view_company', company_id=company.company_id) }}"
+              class="btn btn-outline-secondary"
+              >Cancel</a
+            >
+            {% else %}
+            <a
+              href="{{ url_for('companies.list_companies') }}"
+              class="btn btn-outline-secondary"
+              >Cancel</a
+            >
+            {% endif %} {{ form.submit(class='btn btn-primary') }}
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-6">
+    {% if company %}
+    <!-- Personnel Management Section -->
+    <div class="card">
+      <div
+        class="card-header d-flex justify-content-between align-items-center"
+      >
+        <h5 class="mb-0">
+          <i class="bi bi-people"></i> Personnel ({{ personnel|length }})
+        </h5>
+        {% if can_manage %}
+        <button
+          class="btn btn-sm btn-primary"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#linkPersonnelForm"
+          aria-expanded="false"
+          aria-controls="linkPersonnelForm"
+        >
+          <i class="bi bi-plus-circle"></i> Link Personnel
+        </button>
+        {% endif %}
+      </div>
+      <div class="card-body">
+        {% if personnel_with_connections %} {% for item in
+        personnel_with_connections %} {% set person = item.person %} {% set
+        mpr_connections = item.mpr_connections %}
+        <div class="d-flex justify-content-between align-items-start mb-3">
+          <div class="flex-grow-1">
+            <div class="d-flex align-items-center mb-1">
+              <strong>{{ person.full_name }}</strong>
+              {% if person.role %}
+              <span class="badge bg-secondary ms-2">{{ person.role }}</span>
+              {% endif %}
+            </div>
+            {% if mpr_connections %}
+            <div class="small text-muted">
+              MPR: {% for connection in mpr_connections %} {% if
+              connection.personnel %} {% set last_name =
+              connection.personnel.full_name.split()[-1] if
+              connection.personnel.full_name else 'Unknown' %} {% if
+              connection.is_primary %}
+              <strong>{{ last_name }}</strong>{% if not loop.last %}, {% endif
+              %} {% else %} {{ last_name }}{% if not loop.last %}, {% endif %}
+              {% endif %} {% endif %} {% endfor %}
+            </div>
+            {% else %}
+            <div class="small text-warning">
+              <i class="bi bi-exclamation-triangle"></i> No MPR Connections
+            </div>
+            {% endif %}
+          </div>
+          <div class="ms-2">
+            <a
+              href="{{ url_for('personnel.edit_personnel', personnel_id=person.personnel_id, type='external') }}"
+              class="btn btn-sm btn-outline-primary"
+              title="Edit Contact"
+            >
+              <i class="bi bi-pencil"></i>
+            </a>
+            {% if can_manage %}
+            <form
+              method="post"
+              action="{{ url_for('companies.unlink_personnel_from_company', company_id=company.company_id, personnel_id=person.personnel_id) }}"
+              style="display: inline"
+              onsubmit="return confirm('Unlink {{ person.full_name }} from this company?')"
+            >
+              {{ delete_form.hidden_tag() }}
+              <button
+                type="submit"
+                class="btn btn-sm btn-outline-danger"
+                title="Unlink"
+              >
+                <i class="bi bi-x"></i>
+              </button>
+            </form>
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+        <hr class="my-3" />
+        {% else %}
+        <p class="text-muted">No personnel linked to this company yet.</p>
+        {% endif %} {% if can_manage %}
+        <div class="collapse mt-3" id="linkPersonnelForm">
+          <form
+            method="post"
+            action="{{ url_for('companies.link_personnel_to_company', company_id=company.company_id) }}"
+          >
+            <div class="row g-2">
+              <div class="col-md-8">
+                <select name="personnel_id" class="form-select" required>
+                  <option value="">Select a person to link...</option>
+                  {% for person in all_personnel %}
+                  <option value="{{ person.personnel_id }}">
+                    {{ person.full_name }}{% if person.role %} - {{ person.role
+                    }}{% endif %}
+                  </option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="col-md-4">
+                <button type="submit" class="btn btn-primary btn-sm">
+                  Link Person
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Company Links Section -->
+    <div class="card mt-3">
+      <div
+        class="card-header d-flex justify-content-between align-items-center"
+      >
+        <h5 class="mb-0">Company Links</h5>
+        {% if can_manage and link_form %}
+        <button
+          class="btn btn-sm btn-primary"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#companyLinkForm"
+          aria-expanded="false"
+          aria-controls="companyLinkForm"
+        >
+          <i class="bi bi-plus-circle"></i> Add Link
+        </button>
+        {% endif %}
+      </div>
+      <div class="card-body">
+        {% if company_links %}
+        <div class="table-responsive">
+          <table class="table table-sm align-middle">
+            <thead>
+              <tr>
+                <th style="width: 25%;">Linked Company</th>
+                <th style="width: 15%;">As</th>
+                <th style="width: 15%;">Confidential</th>
+                <th style="width: 30%;">Notes</th>
+                <th style="width: 15%;">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for link in company_links %}
+              <tr id="link-row-{{ link.assignment_id }}" data-edit-mode="false">
+                <!-- Linked Company Column -->
+                <td>
+                  <span class="view-mode">{{ link.linked_company_name }}</span>
+                  <select class="form-select form-select-sm edit-mode" name="target_company_id" data-original="{{ link.linked_company_id }}" style="display: none;">
+                    {% for c in link_form.target_company_id.choices %}
+                    <option value="{{ c[0] }}" {% if c[0] == link.linked_company_id %}selected{% endif %}>{{ c[1] }}</option>
+                    {% endfor %}
+                    <!-- Add the current linked company if it's not in choices -->
+                    <option value="{{ link.linked_company_id }}" selected>{{ link.linked_company_name }}</option>
+                  </select>
+                </td>
+                
+                <!-- Role Column -->
+                <td>
+                  <span class="view-mode">{{ link.role_label }}</span>
+                  <select class="form-select form-select-sm edit-mode" name="link_role" data-original="{{ link.role_code }}" style="display: none;">
+                    <option value="vendor" {% if link.role_code == 'vendor' %}selected{% endif %}>Vendor</option>
+                    <option value="developer" {% if link.role_code == 'developer' %}selected{% endif %}>Developer</option>
+                  </select>
+                </td>
+                
+                <!-- Confidential Column -->
+                <td>
+                  <span class="view-mode">
+                    {% if link.is_confidential %}
+                    <span class="badge bg-warning">Confidential</span>
+                    {% else %}
+                    <span class="badge bg-secondary">Public</span>
+                    {% endif %}
+                  </span>
+                  <div class="form-check edit-mode" style="display: none;">
+                    <input type="checkbox" class="form-check-input" name="is_confidential" 
+                           {% if link.is_confidential %}checked{% endif %}
+                           data-original="{{ link.is_confidential }}">
+                  </div>
+                </td>
+                
+                <!-- Notes Column -->
+                <td>
+                  <span class="view-mode">{{ link.notes }}</span>
+                  <input type="text" class="form-control form-control-sm edit-mode" name="notes" 
+                         value="{{ link.notes_raw }}" data-original="{{ link.notes_raw }}"
+                         placeholder="Optional notes" style="display: none;">
+                </td>
+                
+                <!-- Actions Column -->
+                <td>
+                  <!-- View mode buttons -->
+                  <div class="btn-group view-mode" role="group" style="display: inline-flex;">
+                    <button type="button" class="btn btn-sm btn-outline-primary" 
+                            onclick="toggleEditMode({{ link.assignment_id }}, true)"
+                            title="Edit">
+                      <i class="bi bi-pencil"></i>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-danger" 
+                            onclick="deleteCompanyLink({{ company.company_id }}, {{ link.assignment_id }})"
+                            title="Delete"
+                            data-company-name="{{ link.linked_company_name }}">
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  </div>
+                  
+                  <!-- Edit mode buttons -->
+                  <div class="btn-group edit-mode" role="group" style="display: none;">
+                    <button type="button" class="btn btn-sm btn-success" 
+                            onclick="saveCompanyLink({{ company.company_id }}, {{ link.assignment_id }})"
+                            title="Save">
+                      <i class="bi bi-check"></i>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-secondary" 
+                            onclick="toggleEditMode({{ link.assignment_id }}, false)"
+                            title="Cancel">
+                      <i class="bi bi-x"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        <hr class="my-3" />
+        {% else %}
+        <p class="text-muted">No company links yet.</p>
+        {% endif %} {% if can_manage and link_form %}
+        <div class="collapse mt-3" id="companyLinkForm">
+          <form
+            method="post"
+            action="{{ url_for('companies.add_company_link', company_id=company.company_id) }}"
+          >
+            {{ link_form.hidden_tag() }}
+            <div class="row g-2">
+              <div class="col-md-6">
+                {{ link_form.target_company_id.label(class="form-label") }} {{
+                link_form.target_company_id(class="form-select") }}
+              </div>
+              <div class="col-md-3">
+                {{ link_form.link_role.label(class="form-label") }} {{
+                link_form.link_role(class="form-select") }}
+              </div>
+              <div class="col-md-3 d-flex align-items-end">
+                <div class="form-check">
+                  {{ link_form.is_confidential(class="form-check-input",
+                  id="link-conf") }}
+                  <label for="link-conf" class="form-check-label"
+                    >Confidential</label
+                  >
+                </div>
+              </div>
+            </div>
+            <div class="mt-2">
+              {{ link_form.notes.label(class="form-label") }} {{
+              link_form.notes(class="form-control", rows="2") }}
+            </div>
+            <div class="mt-3 text-end">
+              <button type="submit" class="btn btn-primary btn-sm">
+                Add Link
+              </button>
+            </div>
+          </form>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+    {% else %}
+    <!-- Placeholder for create mode -->
+    <div class="card">
+      <div class="card-body text-muted text-center py-5">
+        <i class="bi bi-info-circle mb-2" style="font-size: 2rem"></i>
+        <p class="mb-0">
+          Save the company to manage personnel and company links.
+        </p>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %} {% block extra_js %}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const mprClientSwitch = document.getElementById('mprClientSwitch');
-    const mprClientFields = document.getElementById('mprClientFields');
-    
+  document.addEventListener("DOMContentLoaded", function () {
+    const mprClientSwitch = document.getElementById("mprClientSwitch");
+    const mprClientFields = document.getElementById("mprClientFields");
+
     // Function to toggle MPR client fields visibility
     function toggleMprFields() {
-        if (mprClientSwitch.checked) {
-            mprClientFields.style.display = 'block';
-        } else {
-            mprClientFields.style.display = 'none';
-        }
+      if (mprClientSwitch.checked) {
+        mprClientFields.style.display = "block";
+      } else {
+        mprClientFields.style.display = "none";
+      }
     }
-    
+
     // Initial state
     toggleMprFields();
-    
+
     // Add event listener
-    mprClientSwitch.addEventListener('change', toggleMprFields);
-});
+    mprClientSwitch.addEventListener("change", toggleMprFields);
+  });
+
+  // Company Link Inline Editing Functions
+  window.toggleEditMode = function(assignmentId, isEdit) {
+    const row = document.getElementById('link-row-' + assignmentId);
+    if (!row) {
+      alert('Error: Could not find row with ID link-row-' + assignmentId);
+      return;
+    }
+
+    const viewModeElements = row.querySelectorAll('.view-mode');
+    const editModeElements = row.querySelectorAll('.edit-mode');
+
+    if (isEdit) {
+      // Switch to edit mode
+      viewModeElements.forEach(function(el) {
+        el.style.display = 'none';
+      });
+      
+      editModeElements.forEach(function(el) {
+        if (el.tagName === 'SELECT') {
+          el.style.display = 'block';
+          el.style.width = '100%';
+        } else if (el.tagName === 'INPUT' && el.type !== 'checkbox') {
+          el.style.display = 'block';
+          el.style.width = '100%';
+        } else if (el.tagName === 'DIV' && el.classList.contains('form-check')) {
+          el.style.display = 'block';
+        } else if (el.tagName === 'DIV' && el.classList.contains('btn-group')) {
+          el.style.display = 'inline-flex';
+        } else {
+          el.style.display = 'block';
+        }
+      });
+      
+      row.setAttribute('data-edit-mode', 'true');
+      
+    } else {
+      // Cancel edit mode - restore original values
+      editModeElements.forEach(function(el) {
+        if (el.tagName === 'INPUT' && el.type === 'checkbox') {
+          const original = el.getAttribute('data-original');
+          el.checked = original === 'True' || original === 'true';
+        } else if (el.tagName === 'INPUT' || el.tagName === 'SELECT') {
+          const original = el.getAttribute('data-original');
+          el.value = original || '';
+        }
+      });
+      
+      viewModeElements.forEach(function(el) {
+        el.style.display = '';
+      });
+      
+      editModeElements.forEach(function(el) {
+        el.style.display = 'none';
+      });
+      
+      row.setAttribute('data-edit-mode', 'false');
+    }
+  }
+
+  window.saveCompanyLink = function(companyId, assignmentId) {
+    const row = document.getElementById('link-row-' + assignmentId);
+    if (!row) return;
+
+    // Gather form data
+    const formData = new FormData();
+    const targetCompanySelect = row.querySelector('select[name="target_company_id"]');
+    const linkRoleSelect = row.querySelector('select[name="link_role"]');
+    const isConfidentialCheckbox = row.querySelector('input[name="is_confidential"]');
+    const notesInput = row.querySelector('input[name="notes"]');
+
+    formData.append('target_company_id', targetCompanySelect.value);
+    formData.append('link_role', linkRoleSelect.value);
+    if (isConfidentialCheckbox.checked) {
+      formData.append('is_confidential', 'on');
+    }
+    formData.append('notes', notesInput.value);
+
+    // Add CSRF token
+    const csrfToken = document.querySelector('input[name="csrf_token"]').value;
+    formData.append('csrf_token', csrfToken);
+
+    // Submit via fetch
+    fetch('/companies/' + companyId + '/links/' + assignmentId + '/update', {
+      method: 'POST',
+      body: formData
+    })
+    .then(function(response) {
+      if (response.ok) {
+        // Reload page to show updated data
+        window.location.reload();
+      } else {
+        alert('Error updating company link. Please try again.');
+      }
+    })
+    .catch(function(error) {
+      alert('Error updating company link. Please try again.');
+    });
+  }
+
+  window.deleteCompanyLink = function(companyId, assignmentId) {
+    const row = document.getElementById('link-row-' + assignmentId);
+    if (!row) {
+      alert('Error: Could not find company link row.');
+      return;
+    }
+    
+    // Get company name from the view mode span in the first column
+    const companyNameSpan = row.querySelector('td:first-child .view-mode');
+    const companyName = companyNameSpan ? companyNameSpan.textContent : 'this company';
+    
+    if (!confirm('Are you sure you want to delete the link to "' + companyName + '"?')) {
+      return;
+    }
+
+    const formData = new FormData();
+    const csrfToken = document.querySelector('input[name="csrf_token"]').value;
+    formData.append('csrf_token', csrfToken);
+
+    fetch('/companies/' + companyId + '/links/' + assignmentId + '/delete', {
+      method: 'POST',
+      body: formData
+    })
+    .then(function(response) {
+      if (response.ok) {
+        // Remove the row with animation
+        row.style.transition = 'opacity 0.3s';
+        row.style.opacity = '0';
+        setTimeout(function() {
+          row.remove();
+          // Reload to update counts
+          window.location.reload();
+        }, 300);
+      } else {
+        alert('Error deleting company link. Please try again.');
+      }
+    })
+    .catch(function(error) {
+      alert('Error deleting company link. Please try again.');
+    });
+  }
 </script>
 {% endblock %}

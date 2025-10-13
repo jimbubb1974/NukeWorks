@@ -537,6 +537,9 @@ def validate_can_remove_admin_rights(user_id):
 
 def validate_unique_vendor_name(vendor_name, vendor_id=None):
     """
+    DEPRECATED: Legacy TechnologyVendor model removed in Phase 4.
+    Use validate_unique_company_name instead.
+
     Validate vendor name is unique
 
     Args:
@@ -546,55 +549,57 @@ def validate_unique_vendor_name(vendor_name, vendor_id=None):
     Raises:
         ValidationError: If vendor name already exists
     """
-    from app import db_session
-    from app.models import TechnologyVendor
-
-    if not db_session:
-        db_session = current_app.db_session
-
-    query = db_session.query(TechnologyVendor).filter(
-        TechnologyVendor.vendor_name.ilike(vendor_name)
-    )
-
-    if vendor_id is not None:
-        query = query.filter(TechnologyVendor.vendor_id != vendor_id)
-
-    existing = query.first()
-
-    if existing:
-        raise ValidationError(f"Vendor '{vendor_name}' already exists")
+    # Legacy function - vendors are now companies with vendor role
+    # Redirect to company name validation
+    return validate_unique_company_name(vendor_name, vendor_id)
 
 
 def validate_unique_product_name(product_name, vendor_id, product_id=None):
     """
+    DEPRECATED: Legacy Product model removed in Phase 4.
+    Technology/product data is now stored in Company model.
+
     Validate product name is unique within a vendor
 
     Args:
         product_name: Product name to check
-        vendor_id: Vendor ID
+        vendor_id: Vendor ID (legacy, ignored)
         product_id: Product ID to exclude from check (for updates)
 
     Raises:
-        ValidationError: If product name already exists for this vendor
+        ValidationError: Always raises - function is deprecated
+    """
+    raise ValidationError("Product validation is deprecated. Technology data is now part of Company model.")
+
+
+def validate_unique_company_name(company_name, company_id=None):
+    """
+    Validate company name is unique
+
+    Args:
+        company_name: Company name to check
+        company_id: Company ID to exclude from check (for updates)
+
+    Raises:
+        ValidationError: If company name already exists
     """
     from app import db_session
-    from app.models import Product
+    from app.models import Company
 
     if not db_session:
         db_session = current_app.db_session
 
-    query = db_session.query(Product).filter(
-        Product.product_name.ilike(product_name),
-        Product.vendor_id == vendor_id
+    query = db_session.query(Company).filter(
+        Company.company_name.ilike(company_name)
     )
 
-    if product_id is not None:
-        query = query.filter(Product.product_id != product_id)
+    if company_id is not None:
+        query = query.filter(Company.company_id != company_id)
 
     existing = query.first()
 
     if existing:
-        raise ValidationError(f"Product '{product_name}' already exists for this vendor")
+        raise ValidationError(f"Company '{company_name}' already exists")
 
 
 def check_duplicate_project_name(project_name, project_id=None):

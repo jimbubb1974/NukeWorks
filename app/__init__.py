@@ -257,19 +257,31 @@ def _ensure_product_columns(engine):
     }
 
     with engine.begin() as connection:
-        existing = {row[1] for row in connection.execute(text('PRAGMA table_info(products)'))}
-        for column, ddl in product_columns.items():
-            if column not in existing:
-                connection.execute(text(f"ALTER TABLE products ADD COLUMN {column} {ddl}"))
+        # Check if products table exists
+        table_check = connection.execute(text(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name='products'"
+        )).fetchone()
+        
+        if table_check:
+            existing = {row[1] for row in connection.execute(text('PRAGMA table_info(products)'))}
+            for column, ddl in product_columns.items():
+                if column not in existing:
+                    connection.execute(text(f"ALTER TABLE products ADD COLUMN {column} {ddl}"))
 
-        project_columns = {
-            'target_cod': 'DATE',
-        }
+        # Check if projects table exists
+        table_check = connection.execute(text(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name='projects'"
+        )).fetchone()
+        
+        if table_check:
+            project_columns = {
+                'target_cod': 'DATE',
+            }
 
-        existing_project = {row[1] for row in connection.execute(text('PRAGMA table_info(projects)'))}
-        for column, ddl in project_columns.items():
-            if column not in existing_project:
-                connection.execute(text(f"ALTER TABLE projects ADD COLUMN {column} {ddl}"))
+            existing_project = {row[1] for row in connection.execute(text('PRAGMA table_info(projects)'))}
+            for column, ddl in project_columns.items():
+                if column not in existing_project:
+                    connection.execute(text(f"ALTER TABLE projects ADD COLUMN {column} {ddl}"))
 
 
 def init_login_manager(app):
@@ -298,25 +310,23 @@ def register_blueprints(app):
     Args:
         app: Flask application
     """
-    from app.routes import auth, dashboard, projects, operators, constructors, technologies, offtakers, companies, clients, crm, reports, admin, contact_log, network, personnel, db_select
+    from app.routes import auth, dashboard, projects, companies, crm, reports, admin, contact_log, network, personnel, db_select
 
     app.register_blueprint(db_select.bp)
     app.register_blueprint(auth.bp)
     app.register_blueprint(dashboard.bp)
-    # Legacy blueprints removed - use companies.bp with role filtering instead
     app.register_blueprint(projects.bp)
-    # app.register_blueprint(operators.bp)  # Use /companies?role=operator
-    # app.register_blueprint(constructors.bp)  # Use /companies?role=constructor
     app.register_blueprint(companies.bp)
-    app.register_blueprint(technologies.bp)
-    # app.register_blueprint(offtakers.bp)  # Use /companies?role=offtaker
-    app.register_blueprint(clients.bp)
     app.register_blueprint(crm.bp)
     app.register_blueprint(reports.bp)
     app.register_blueprint(admin.bp)
     app.register_blueprint(contact_log.bp)
     app.register_blueprint(network.bp)
     app.register_blueprint(personnel.bp)
+
+    # Legacy blueprints removed in Phase 4 cleanup (2025-10-10):
+    # - operators, constructors, offtakers, technologies (use /companies?role=X instead)
+    # - clients (use /companies with is_mpr_client filter instead)
 
 
 def register_error_handlers(app):

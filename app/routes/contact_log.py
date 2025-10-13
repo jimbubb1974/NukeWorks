@@ -24,6 +24,14 @@ from app.models import (
 from app.forms.contact_log import ContactLogForm
 from app.utils.permissions import can_view_relationship
 from app.utils.validators import VALID_CONTACT_TYPES
+from app.services.company_query import (
+    get_company_for_vendor,
+    get_company_for_owner,
+    get_company_for_operator,
+    get_company_for_constructor,
+    get_company_for_offtaker,
+    get_company_for_client,
+)
 
 
 bp = Blueprint('contact_log', __name__, url_prefix='/contact-log')
@@ -39,31 +47,48 @@ def _user_can_view(log: ContactLog) -> bool:
     return can_view_relationship(current_user, log)
 
 
+_LEGACY_COMPANY_LOOKUPS = {
+    'Vendor': get_company_for_vendor,
+    'Owner': get_company_for_owner,
+    'Developer': get_company_for_owner,
+    'Operator': get_company_for_operator,
+    'Constructor': get_company_for_constructor,
+    'Offtaker': get_company_for_offtaker,
+    'Client': get_company_for_client,
+}
+
+
+def _resolve_company(entity_type: str, entity_id: int) -> Company | None:
+    """Return the unified company record for the supplied entity_type/id."""
+    if entity_type == 'Company':
+        return db_session.get(Company, entity_id)
+
+    lookup = _LEGACY_COMPANY_LOOKUPS.get(entity_type)
+    if lookup:
+        return lookup(entity_id)
+    return None
+
+
 def _get_entity_label(entity_type: str, entity_id: int) -> str:
     """Return a friendly label for the entity referenced by a contact log"""
-    if entity_type == 'Company':
-        company = db_session.get(Company, entity_id)
-        return company.company_name if company else f'Company #{entity_id}'
-    # Legacy support for old entity types
-    if entity_type in ('Owner', 'Vendor', 'Developer', 'Operator', 'Constructor', 'Offtaker', 'Client'):
-        company = db_session.get(Company, entity_id)
-        return company.company_name if company else f'{entity_type} #{entity_id}'
     if entity_type == 'Project':
         project = db_session.get(Project, entity_id)
         return project.project_name if project else f'Project #{entity_id}'
+
+    company = _resolve_company(entity_type, entity_id)
+    if company:
+        return company.company_name
+
     return f'{entity_type} #{entity_id}'
 
 
 def _ensure_entity_exists(entity_type: str, entity_id: int):
     """Ensure referenced entity exists; abort with 404 otherwise"""
     record = None
-    if entity_type == 'Company':
-        record = db_session.get(Company, entity_id)
-    # Legacy support for old entity types - map to Company
-    elif entity_type in ('Owner', 'Vendor', 'Developer', 'Operator', 'Constructor', 'Offtaker', 'Client'):
-        record = db_session.get(Company, entity_id)
-    elif entity_type == 'Project':
+    if entity_type == 'Project':
         record = db_session.get(Project, entity_id)
+    elif entity_type in {'Company', *tuple(_LEGACY_COMPANY_LOOKUPS.keys())}:
+        record = _resolve_company(entity_type, entity_id)
 
     if entity_type in {'Company', 'Owner', 'Vendor', 'Developer', 'Operator', 'Constructor', 'Offtaker', 'Client', 'Project'} and record is None:
         abort(404)
@@ -178,13 +203,18 @@ def _update_company_contact_metrics(company_id: int):
 
 
 def _redirect_after_save(entity_type: str, entity_id: int):
-    if entity_type == 'Owner':
-        return redirect(url_for('owners.view_owner', owner_id=entity_id))
-    if entity_type == 'Vendor':
-        return redirect(url_for('vendors.view_vendor', vendor_id=entity_id))
+    """Redirect to appropriate view after saving a contact log.
+
+    For legacy entity types (Owner, Vendor, etc.), redirect to the unified companies view.
+    """
     if entity_type == 'Project':
         return redirect(url_for('projects.view_project', project_id=entity_id))
-    return redirect(url_for('contact_log.list_contact_logs'))
+    elif entity_type in ('Company', 'Owner', 'Vendor', 'Developer', 'Operator', 'Constructor', 'Offtaker', 'Client'):
+        # All company-related entity types redirect to unified companies view
+        return redirect(url_for('companies.view_company', company_id=entity_id))
+    else:
+        # Fallback to contact log list
+        return redirect(url_for('contact_log.list_contact_logs'))
 
 
 def _populate_form_choices(form: ContactLogForm, entity_type: str, entity_id: int):

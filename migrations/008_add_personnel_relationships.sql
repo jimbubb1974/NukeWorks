@@ -1,6 +1,9 @@
 -- Migration: Add personnel_relationships table
 -- Purpose: Enable linking internal MPR personnel with external contacts
 -- Date: 2025-10-10
+-- Version: 8
+
+BEGIN TRANSACTION;
 
 -- Create personnel_relationships table
 CREATE TABLE IF NOT EXISTS personnel_relationships (
@@ -27,6 +30,11 @@ CREATE INDEX IF NOT EXISTS idx_personnel_relationships_type ON personnel_relatio
 CREATE INDEX IF NOT EXISTS idx_personnel_relationships_active ON personnel_relationships(is_active);
 
 -- Prevent duplicate relationships
-CREATE UNIQUE INDEX IF NOT EXISTS idx_personnel_relationships_unique 
+CREATE UNIQUE INDEX IF NOT EXISTS idx_personnel_relationships_unique
 ON personnel_relationships(internal_personnel_id, external_personnel_id);
 
+-- Update schema version
+INSERT INTO schema_version (version, applied_date, applied_by, description)
+VALUES (8, datetime('now'), 'system', 'Add personnel_relationships table');
+
+COMMIT;

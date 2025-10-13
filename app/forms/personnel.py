@@ -44,7 +44,7 @@ class PersonnelForm(FlaskForm):
         render_kw={'rows': 4}
     )
 
-    is_active = BooleanField('Active')
+    is_active = BooleanField('Active', default=True)
 
     submit = SubmitField('Save')
 
@@ -116,7 +116,7 @@ class InternalPersonnelForm(FlaskForm):
         render_kw={'rows': 4}
     )
 
-    is_active = BooleanField('Active')
+    is_active = BooleanField('Active', default=True)
 
     submit = SubmitField('Save')
 
@@ -157,7 +157,7 @@ class ExternalPersonnelForm(FlaskForm):
         render_kw={'rows': 4}
     )
 
-    is_active = BooleanField('Active')
+    is_active = BooleanField('Active', default=True)
 
     submit = SubmitField('Save')
 

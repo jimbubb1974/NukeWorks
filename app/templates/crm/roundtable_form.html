@@ -1,204 +1,416 @@
-{% extends "base.html" %}
-
-{% block title %}Add Roundtable Entry: {{ company.company_name }} - NukeWorks{% endblock %}
-
-{% block content %}
+{% extends "base.html" %} {% block title %}Add Roundtable Entry: {{
+company.company_name }} - NukeWorks{% endblock %} {% block content %}
 <div class="container-fluid">
-    <!-- Header -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="{{ url_for('crm.dashboard') }}">CRM Dashboard</a></li>
-                    <li class="breadcrumb-item"><a href="{{ url_for('crm.roundtable_meeting') }}">Roundtable Meeting</a></li>
-                    <li class="breadcrumb-item active">{{ company.company_name }}</li>
-                </ol>
-            </nav>
-            <h2><i class="bi bi-clipboard-check"></i> Add Roundtable Entry</h2>
-            <h4 class="text-muted">{{ company.company_name }}</h4>
+  <!-- Header -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="d-flex justify-content-between align-items-center">
+        <h2 class="mb-0">{{ company.company_name }}</h2>
+        <a
+          href="{{ url_for('crm.dashboard') }}"
+          class="btn btn-outline-secondary"
+          title="Back to CRM Dashboard"
+        >
+          <i class="bi bi-arrow-left"></i>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <!-- Form -->
+    <div class="col-md-8">
+      <div class="card">
+        <div class="card-body">
+          <form method="POST" novalidate>
+            {{ form.hidden_tag() }}
+
+            <!-- Next Steps -->
+            <div class="mb-3">
+              <div class="d-flex justify-content-between align-items-center">
+                {{ form.next_steps.label(class="form-label mb-0") }} {% if
+                most_recent_entry %}
+                <button
+                  type="button"
+                  class="btn btn-sm btn-outline-primary field-edit-btn"
+                  data-field="next_steps"
+                  title="Edit this field"
+                >
+                  <i class="bi bi-pencil"></i>
+                </button>
+                {% endif %}
+              </div>
+              {{ form.next_steps(class="form-control editable-field" + ("
+              is-invalid" if form.next_steps.errors else ""), id="next_steps")
+              }} {% if form.next_steps.errors %}
+              <div class="invalid-feedback">
+                {% for error in form.next_steps.errors %} {{ error }} {% endfor
+                %}
+              </div>
+              {% endif %}
+            </div>
+
+            <!-- Client Near-Term Focus -->
+            <div class="mb-3">
+              <div class="d-flex justify-content-between align-items-center">
+                {{ form.client_near_term_focus.label(class="form-label mb-0") }}
+                {% if most_recent_entry %}
+                <button
+                  type="button"
+                  class="btn btn-sm btn-outline-primary field-edit-btn"
+                  data-field="client_near_term_focus"
+                  title="Edit this field"
+                >
+                  <i class="bi bi-pencil"></i>
+                </button>
+                {% endif %}
+              </div>
+              {{ form.client_near_term_focus(class="form-control editable-field"
+              + (" is-invalid" if form.client_near_term_focus.errors else ""),
+              id="client_near_term_focus") }} {% if
+              form.client_near_term_focus.errors %}
+              <div class="invalid-feedback">
+                {% for error in form.client_near_term_focus.errors %} {{ error
+                }} {% endfor %}
+              </div>
+              {% endif %}
+            </div>
+
+            <!-- MPR Work Targets -->
+            <div class="mb-3">
+              <div class="d-flex justify-content-between align-items-center">
+                {{ form.mpr_work_targets.label(class="form-label mb-0") }} {% if
+                most_recent_entry %}
+                <button
+                  type="button"
+                  class="btn btn-sm btn-outline-primary field-edit-btn"
+                  data-field="mpr_work_targets"
+                  title="Edit this field"
+                >
+                  <i class="bi bi-pencil"></i>
+                </button>
+                {% endif %}
+              </div>
+              {{ form.mpr_work_targets(class="form-control editable-field" + ("
+              is-invalid" if form.mpr_work_targets.errors else ""),
+              id="mpr_work_targets") }} {% if form.mpr_work_targets.errors %}
+              <div class="invalid-feedback">
+                {% for error in form.mpr_work_targets.errors %} {{ error }} {%
+                endfor %}
+              </div>
+              {% endif %}
+            </div>
+
+            <!-- General Discussion -->
+            <div class="mb-3">
+              <div class="d-flex justify-content-between align-items-center">
+                {{ form.discussion.label(class="form-label mb-0") }} {% if
+                most_recent_entry %}
+                <button
+                  type="button"
+                  class="btn btn-sm btn-outline-primary field-edit-btn"
+                  data-field="discussion"
+                  title="Edit this field"
+                >
+                  <i class="bi bi-pencil"></i>
+                </button>
+                {% endif %}
+              </div>
+              {{ form.discussion(class="form-control editable-field" + ("
+              is-invalid" if form.discussion.errors else ""), id="discussion")
+              }} {% if form.discussion.errors %}
+              <div class="invalid-feedback">
+                {% for error in form.discussion.errors %} {{ error }} {% endfor
+                %}
+              </div>
+              {% endif %}
+            </div>
+
+            <!-- Buttons -->
+            <div class="d-grid">
+              {{ form.submit(class="btn btn-primary btn-lg") }}
+            </div>
+          </form>
         </div>
+      </div>
     </div>
 
-    <div class="row">
-        <!-- Form -->
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0">Meeting Notes</h5>
-                </div>
-                <div class="card-body">
-                    <form method="POST" novalidate>
-                        {{ form.hidden_tag() }}
-
-                        <!-- Meeting Date -->
-                        <div class="mb-3">
-                            {{ form.meeting_date.label(class="form-label") }}
-                            <span class="text-danger">*</span>
-                            {{ form.meeting_date(class="form-control" + (" is-invalid" if form.meeting_date.errors else "")) }}
-                            {% if form.meeting_date.errors %}
-                                <div class="invalid-feedback">
-                                    {% for error in form.meeting_date.errors %}
-                                        {{ error }}
-                                    {% endfor %}
-                                </div>
-                            {% endif %}
-                            <small class="form-text text-muted">Date of the roundtable meeting</small>
-                        </div>
-
-                        <!-- Next Steps -->
-                        <div class="mb-3">
-                            {{ form.next_steps.label(class="form-label") }}
-                            <span class="badge bg-primary ms-2">Key Field</span>
-                            {{ form.next_steps(class="form-control" + (" is-invalid" if form.next_steps.errors else "")) }}
-                            {% if form.next_steps.errors %}
-                                <div class="invalid-feedback">
-                                    {% for error in form.next_steps.errors %}
-                                        {{ error }}
-                                    {% endfor %}
-                                </div>
-                            {% endif %}
-                            <small class="form-text text-muted">
-                                What are the next steps for this client? What actions need to be taken?
-                            </small>
-                        </div>
-
-                        <!-- Client Near-Term Focus -->
-                        <div class="mb-3">
-                            {{ form.client_near_term_focus.label(class="form-label") }}
-                            <span class="badge bg-primary ms-2">Key Field</span>
-                            {{ form.client_near_term_focus(class="form-control" + (" is-invalid" if form.client_near_term_focus.errors else "")) }}
-                            {% if form.client_near_term_focus.errors %}
-                                <div class="invalid-feedback">
-                                    {% for error in form.client_near_term_focus.errors %}
-                                        {{ error }}
-                                    {% endfor %}
-                                </div>
-                            {% endif %}
-                            <small class="form-text text-muted">
-                                What is the client currently focused on? What are their priorities?
-                            </small>
-                        </div>
-
-                        <!-- MPR Work Targets -->
-                        <div class="mb-3">
-                            {{ form.mpr_work_targets.label(class="form-label") }}
-                            <span class="badge bg-primary ms-2">Key Field</span>
-                            {{ form.mpr_work_targets(class="form-control" + (" is-invalid" if form.mpr_work_targets.errors else "")) }}
-                            {% if form.mpr_work_targets.errors %}
-                                <div class="invalid-feedback">
-                                    {% for error in form.mpr_work_targets.errors %}
-                                        {{ error }}
-                                    {% endfor %}
-                                </div>
-                            {% endif %}
-                            <small class="form-text text-muted">
-                                What are MPR's goals and targets for this client relationship?
-                            </small>
-                        </div>
-
-                        <hr class="my-4">
-
-                        <h6 class="text-muted">Optional Additional Notes</h6>
-
-                        <!-- General Discussion -->
-                        <div class="mb-3">
-                            {{ form.discussion.label(class="form-label") }}
-                            {{ form.discussion(class="form-control" + (" is-invalid" if form.discussion.errors else "")) }}
-                            {% if form.discussion.errors %}
-                                <div class="invalid-feedback">
-                                    {% for error in form.discussion.errors %}
-                                        {{ error }}
-                                    {% endfor %}
-                                </div>
-                            {% endif %}
-                            <small class="form-text text-muted">General discussion notes (optional)</small>
-                        </div>
-
-                        <!-- Buttons -->
-                        <div class="d-flex justify-content-between">
-                            <a href="{{ url_for('crm.roundtable_meeting') }}" class="btn btn-secondary">
-                                <i class="bi bi-x-circle"></i> Cancel
-                            </a>
-                            {{ form.submit(class="btn btn-primary") }}
-                        </div>
-                    </form>
-                </div>
-            </div>
+    <!-- Sidebar with Previous Entries -->
+    <div class="col-md-4">
+      <!-- Company Personnel -->
+      <div class="card mb-3">
+        <div
+          class="card-header"
+          data-bs-toggle="collapse"
+          data-bs-target="#personnelCollapse"
+          style="cursor: pointer"
+        >
+          <div class="d-flex justify-content-between align-items-center">
+            <h6 class="mb-0"><i class="bi bi-people"></i> Company Personnel</h6>
+            <i class="bi bi-chevron-down"></i>
+          </div>
         </div>
-
-        <!-- Sidebar with Previous Entries and Help -->
-        <div class="col-md-4">
-            <!-- Company Quick Info -->
-            <div class="card mb-3">
-                <div class="card-header">
-                    <h6 class="mb-0"><i class="bi bi-info-circle"></i> Company Information</h6>
-                </div>
-                <div class="card-body">
-                    {% set profile = company.client_profile %}
-                    <dl class="row mb-0">
-                        <dt class="col-sm-5">Type:</dt>
-                        <dd class="col-sm-7">{{ company.company_type or '—' }}</dd>
-
-                        <dt class="col-sm-5">Priority:</dt>
-                        <dd class="col-sm-7">{{ profile.client_priority if profile else '—' }}</dd>
-
-                        <dt class="col-sm-5">Status:</dt>
-                        <dd class="col-sm-7">{{ profile.client_status if profile else '—' }}</dd>
-
-                        <dt class="col-sm-5">MPR POC:</dt>
-                        <dd class="col-sm-7">{{ profile.next_planned_contact_assigned_to if profile else '—' }}</dd>
-                    </dl>
-                    <a href="{{ url_for('companies.view_company', company_id=company.company_id) }}" class="btn btn-sm btn-outline-secondary w-100 mt-2">
-                        <i class="bi bi-eye"></i> View Full Company Details
-                    </a>
-                </div>
+        <div id="personnelCollapse" class="collapse">
+          <div class="card-body">
+            {% if external_personnel %} {% for person in external_personnel %}
+            <div
+              class="{% if not loop.last %}border-bottom pb-2 mb-2{% endif %}"
+            >
+              <div>
+                {{ person.full_name }} {% if
+                personnel_mpr_map.get(person.personnel_id) %}
+                <span class="badge bg-primary ms-2">
+                  <i class="bi bi-person-check"></i> {{
+                  personnel_mpr_map[person.personnel_id]|join(', ') }}
+                </span>
+                {% endif %} {% if person.role %}
+                <br />
+                <small class="text-muted">{{ person.role }}</small>
+                {% endif %}
+              </div>
+              {% if person.email %}
+              <div class="small mt-1">
+                <i class="bi bi-envelope"></i>
+                <a href="mailto:{{ person.email }}">{{ person.email }}</a>
+              </div>
+              {% endif %} {% if person.phone %}
+              <div class="small">
+                <i class="bi bi-telephone"></i> {{ person.phone }}
+              </div>
+              {% endif %}
             </div>
-
-            <!-- Previous Roundtable Entries -->
-            {% if previous_entries %}
-            <div class="card mb-3">
-                <div class="card-header">
-                    <h6 class="mb-0"><i class="bi bi-clock-history"></i> Previous Entries</h6>
-                </div>
-                <div class="card-body">
-                    {% for entry in previous_entries %}
-                    <div class="{% if not loop.last %}border-bottom pb-2 mb-2{% endif %}">
-                        <small class="text-muted">{{ entry.meeting_date.strftime('%b %d, %Y') }}</small>
-                        {% if entry.next_steps %}
-                        <p class="small mb-1"><strong>Next Steps:</strong> {{ entry.next_steps[:80] }}{% if entry.next_steps|length > 80 %}...{% endif %}</p>
-                        {% endif %}
-                        {% if entry.mpr_work_targets %}
-                        <p class="small mb-0"><strong>Targets:</strong> {{ entry.mpr_work_targets[:80] }}{% if entry.mpr_work_targets|length > 80 %}...{% endif %}</p>
-                        {% endif %}
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
+            {% endfor %} {% else %}
+            <p class="text-muted mb-0">
+              <i class="bi bi-info-circle"></i> No personnel contacts recorded
+              for this company.
+            </p>
             {% endif %}
-
-            <!-- Help Panel -->
-            <div class="card bg-light">
-                <div class="card-header">
-                    <h6 class="mb-0"><i class="bi bi-question-circle"></i> Guidelines</h6>
-                </div>
-                <div class="card-body">
-                    <h6>Key Fields</h6>
-                    <ul class="small">
-                        <li><strong>Next Steps:</strong> Action items and follow-ups</li>
-                        <li><strong>Client Focus:</strong> What they're working on</li>
-                        <li><strong>MPR Targets:</strong> Our goals for this relationship</li>
-                    </ul>
-
-                    <h6 class="mt-3">Tips</h6>
-                    <ul class="small mb-0">
-                        <li>Be specific and actionable</li>
-                        <li>Include dates when possible</li>
-                        <li>Note decision makers and influencers</li>
-                        <li>Track competitive intelligence</li>
-                    </ul>
-                </div>
-            </div>
+          </div>
         </div>
+      </div>
+
+      <!-- Company Information -->
+      <div class="card mb-3">
+        <div
+          class="card-header"
+          data-bs-toggle="collapse"
+          data-bs-target="#companyInfoCollapse"
+          style="cursor: pointer"
+        >
+          <div class="d-flex justify-content-between align-items-center">
+            <h6 class="mb-0">
+              <i class="bi bi-building"></i> Company Information
+            </h6>
+            <i class="bi bi-chevron-down"></i>
+          </div>
+        </div>
+        <div id="companyInfoCollapse" class="collapse">
+          <div class="card-body">
+            {% if company.website %}
+            <div class="mb-2">
+              <small class="text-muted">Website:</small><br />
+              <a
+                href="{{ company.website }}"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {{ company.website }}
+              </a>
+            </div>
+            {% endif %} {% if company.headquarters_location %}
+            <div class="mb-2">
+              <small class="text-muted">Headquarters:</small><br />
+              {{ company.headquarters_location }}
+            </div>
+            {% endif %} {% if company.role_assignments %}
+            <div class="mb-2">
+              <small class="text-muted">Roles:</small><br />
+              {% for assignment in company.role_assignments %}
+              <span class="badge bg-primary me-1"
+                >{{ assignment.role.role_label }}</span
+              >
+              {% endfor %}
+            </div>
+            {% endif %} {% if company.is_mpr_client %}
+            <div class="mb-2">
+              <small class="text-muted">MPR Client:</small><br />
+              <span class="badge bg-success">
+                <i class="bi bi-check-circle"></i> Yes
+              </span>
+            </div>
+            {% endif %} {% if company.notes %}
+            <div class="mb-0">
+              <small class="text-muted">Notes:</small><br />
+              <span class="small">{{ company.notes }}</span>
+            </div>
+            {% endif %} {% if not company.website and not
+            company.headquarters_location and not company.role_assignments and
+            not company.notes %}
+            <p class="text-muted mb-0">
+              <i class="bi bi-info-circle"></i> No additional company
+              information available.
+            </p>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Previous Roundtable Entries -->
+      {% if previous_entries %}
+      <div class="card mb-3">
+        <div class="card-header">
+          <h6 class="mb-0">
+            <i class="bi bi-clock-history"></i> Previous Entries
+          </h6>
+        </div>
+        <div class="card-body">
+          {% for entry in previous_entries %}
+          <div class="{% if not loop.last %}border-bottom pb-2 mb-2{% endif %}">
+            <small class="text-muted"
+              >{{ entry.created_timestamp.strftime('%b %d, %Y %I:%M %p')
+              }}</small
+            >
+            {% if entry.next_steps %}
+            <p class="small mb-1">
+              <strong>Next Steps:</strong> {{ entry.next_steps[:80] }}{% if
+              entry.next_steps|length > 80 %}...{% endif %}
+            </p>
+            {% endif %} {% if entry.client_near_term_focus %}
+            <p class="small mb-1">
+              <strong>Focus:</strong> {{ entry.client_near_term_focus[:80] }}{%
+              if entry.client_near_term_focus|length > 80 %}...{% endif %}
+            </p>
+            {% endif %} {% if entry.mpr_work_targets %}
+            <p class="small mb-1">
+              <strong>Targets:</strong> {{ entry.mpr_work_targets[:80] }}{% if
+              entry.mpr_work_targets|length > 80 %}...{% endif %}
+            </p>
+            {% endif %} {% if entry.discussion %}
+            <p class="small mb-0">
+              <strong>Discussion:</strong> {{ entry.discussion[:80] }}{% if
+              entry.discussion|length > 80 %}...{% endif %}
+            </p>
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
     </div>
+  </div>
 </div>
+{% endblock %} {% block extra_js %}
+<script>
+  // Auto-resize textarea fields to fit content
+  function autoResize(textarea) {
+    // Reset height to get accurate scrollHeight
+    textarea.style.height = "auto";
+    // Set height to scrollHeight (content height) with some padding
+    textarea.style.height = textarea.scrollHeight + 2 + "px";
+  }
+
+  document.addEventListener("DOMContentLoaded", function () {
+    const fieldEditButtons = document.querySelectorAll(".field-edit-btn");
+    const editableFields = document.querySelectorAll(".editable-field");
+
+    // Apply auto-resize to all textarea fields
+    editableFields.forEach((textarea) => {
+      // Set initial height based on content
+      autoResize(textarea);
+
+      // Auto-resize on input
+      textarea.addEventListener("input", function () {
+        autoResize(this);
+      });
+
+      // Auto-resize when field becomes editable
+      textarea.addEventListener("focus", function () {
+        autoResize(this);
+      });
+    });
+
+    // If there are edit buttons (meaning there's a previous entry),
+    // set fields to readonly initially
+    if (fieldEditButtons.length > 0) {
+      editableFields.forEach((field) => {
+        field.setAttribute("readonly", "readonly");
+        field.classList.add("bg-light");
+      });
+    }
+
+    // Set up individual field edit buttons
+    fieldEditButtons.forEach((button) => {
+      button.addEventListener("click", function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const fieldId = this.getAttribute("data-field");
+        const field = document.getElementById(fieldId);
+
+        if (!field) return;
+
+        const isReadonly = field.hasAttribute("readonly");
+
+        if (isReadonly) {
+          // Make field editable
+          field.removeAttribute("readonly");
+          field.classList.remove("bg-light");
+          field.focus();
+
+          // Auto-resize the field
+          autoResize(field);
+
+          // Update button appearance
+          this.classList.remove("btn-outline-primary");
+          this.classList.add("btn-success");
+          this.innerHTML = '<i class="bi bi-check"></i>';
+          this.title = "Field is now editable";
+        } else {
+          // Make field readonly
+          field.setAttribute("readonly", "readonly");
+          field.classList.add("bg-light");
+
+          // Update button appearance
+          this.classList.remove("btn-success");
+          this.classList.add("btn-outline-primary");
+          this.innerHTML = '<i class="bi bi-pencil"></i>';
+          this.title = "Edit this field";
+        }
+      });
+    });
+
+    // Before form submission, remove readonly from all fields to ensure values are submitted
+    const form = document.querySelector("form");
+    if (form) {
+      form.addEventListener("submit", function (e) {
+        console.log("Form submitting...");
+        editableFields.forEach((field) => {
+          const wasReadonly = field.hasAttribute("readonly");
+          if (wasReadonly) {
+            console.log(
+              `Removing readonly from ${field.id} before submit. Value:`,
+              field.value
+            );
+            field.removeAttribute("readonly");
+          }
+        });
+        console.log("All readonly attributes removed for submission");
+      });
+    }
+  });
+</script>
+
+<style>
+  .editable-field[readonly] {
+    cursor: not-allowed;
+    background-color: #f8f9fa !important;
+  }
+
+  .editable-field {
+    overflow: hidden;
+    resize: none;
+    min-height: 38px;
+    box-sizing: border-box;
+  }
+</style>
 {% endblock %}

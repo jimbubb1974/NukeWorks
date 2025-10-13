@@ -1,175 +1,199 @@
-{% extends "base.html" %}
-
-{% block title %}Roundtable Meeting - NukeWorks{% endblock %}
-
-{% block content %}
+{% extends "base.html" %} {% block title %}Roundtable Meeting - NukeWorks{%
+endblock %} {% block content %}
 <div class="container-fluid">
-    <!-- Header -->
-    <div class="row mb-4">
-        <div class="col-md-8">
-            <h2><i class="bi bi-clipboard-check"></i> Roundtable Meeting <span class="badge bg-warning text-dark">NED Team Only</span></h2>
-            <p class="text-muted">Review clients and record meeting notes</p>
-            <p class="text-info"><i class="bi bi-calendar"></i> {{ today.strftime('%B %d, %Y') }}</p>
-        </div>
-        <div class="col-md-4 text-end">
-            <a href="{{ url_for('crm.dashboard') }}" class="btn btn-secondary">
-                <i class="bi bi-arrow-left"></i> Back to Dashboard
-            </a>
-        </div>
+  <!-- Header -->
+  <div class="row mb-3">
+    <div class="col-md-8">
+      <h4><i class="bi bi-clipboard-check"></i> Roundtable Meeting</h4>
     </div>
-
-    <!-- Instructions -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="alert alert-info">
-                <h5><i class="bi bi-info-circle"></i> How to Use This Page</h5>
-                <ul class="mb-0">
-                    <li>Click on each client to expand and review previous roundtable notes</li>
-                    <li>Click "Add Entry" to record notes from today's meeting</li>
-                    <li>Focus on: <strong>Next Steps, Client Near-Term Focus, MPR Work Targets</strong></li>
-                    <li>Clients are ordered by priority (Strategic/High first)</li>
-                </ul>
-            </div>
-        </div>
+    <div class="col-md-4 text-end">
+      <a href="{{ url_for('crm.dashboard') }}" class="btn btn-secondary">
+        <i class="bi bi-arrow-left"></i> Back to Dashboard
+      </a>
     </div>
+  </div>
 
-    <!-- Clients for Discussion -->
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0"><i class="bi bi-people"></i> MPR Clients for Discussion ({{ companies|length }})</h5>
-                </div>
-                <div class="card-body p-0">
-                    {% if companies %}
-                    <div class="accordion" id="companiesAccordion">
-                        {% for company in companies %}
-                        {% set latest = latest_roundtables.get(company.company_id) %}
-                        {% set profile = company.client_profile %}
-                        <div class="accordion-item">
-                            <h2 class="accordion-header" id="heading{{ company.company_id }}">
-                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ company.company_id }}" aria-expanded="false" aria-controls="collapse{{ company.company_id }}">
-                                    <div class="w-100 d-flex justify-content-between align-items-center pe-3">
-                                        <div>
-                                            <strong>{{ company.company_name }}</strong>
-                                            {% if company.company_type %}
-                                                <span class="badge bg-secondary ms-2">{{ company.company_type }}</span>
-                                            {% endif %}
-                                            {% if profile and profile.client_priority %}
-                                                <span class="badge bg-{% if profile.client_priority in ['Strategic', 'High'] %}danger{% elif profile.client_priority == 'Medium' %}warning{% else %}secondary{% endif %} ms-1">
-                                                    {{ profile.client_priority }}
-                                                </span>
-                                            {% endif %}
-                                        </div>
-                                        <div class="text-end">
-                                            {% if profile and profile.next_planned_contact_assigned_to %}
-                                                <small class="text-muted">Assigned: {{ profile.next_planned_contact_assigned_to }}</small>
-                                            {% endif %}
-                                            {% if profile and profile.last_contact_date %}
-                                                {% set days = (today - profile.last_contact_date).days %}
-                                                <br><small class="{% if days > 90 %}text-danger{% elif days > 60 %}text-warning{% else %}text-muted{% endif %}">
-                                                    Last contact: {{ days }} days ago
-                                                </small>
-                                            {% else %}
-                                                <br><small class="text-muted">Never contacted</small>
-                                            {% endif %}
-                                        </div>
-                                    </div>
-                                </button>
-                            </h2>
-                            <div id="collapse{{ company.company_id }}" class="accordion-collapse collapse" aria-labelledby="heading{{ company.company_id }}" data-bs-parent="#companiesAccordion">
-                                <div class="accordion-body">
-                                    <!-- Quick Info -->
-                                    <div class="row mb-3">
-                                        <div class="col-md-6">
-                                            <h6>Company Information</h6>
-                                            <dl class="row">
-                                                <dt class="col-sm-4">Priority:</dt>
-                                                <dd class="col-sm-8">{{ profile.client_priority if profile else '—' }}</dd>
-
-                                                <dt class="col-sm-4">Status:</dt>
-                                                <dd class="col-sm-8">{{ profile.client_status if profile else '—' }}</dd>
-
-                                                <dt class="col-sm-4">Last Contact:</dt>
-                                                <dd class="col-sm-8">
-                                                    {% if profile and profile.last_contact_date %}
-                                                        {{ profile.last_contact_date.strftime('%Y-%m-%d') }}
-                                                        {% if profile.last_contact_type %}({{ profile.last_contact_type }}){% endif %}
-                                                    {% else %}
-                                                        Never
-                                                    {% endif %}
-                                                </dd>
-                                            </dl>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <h6>Relationship Strength</h6>
-                                            <p>{{ profile.relationship_strength if profile else 'Not assessed' }}</p>
-
-                                            {% if profile and profile.relationship_notes %}
-                                            <h6>Strategy Notes</h6>
-                                            <p class="small">{{ profile.relationship_notes[:200] }}{% if profile.relationship_notes|length > 200 %}...{% endif %}</p>
-                                            {% endif %}
-                                        </div>
-                                    </div>
-
-                                    <!-- Latest Roundtable Entry -->
-                                    {% if latest %}
-                                    <div class="card bg-light mb-3">
-                                        <div class="card-header">
-                                            <strong>Last Roundtable: {{ latest.meeting_date.strftime('%B %d, %Y') }}</strong>
-                                        </div>
-                                        <div class="card-body">
-                                            {% if latest.next_steps %}
-                                            <h6>Next Steps:</h6>
-                                            <div style="white-space: pre-wrap;" class="mb-2">{{ latest.next_steps }}</div>
-                                            {% endif %}
-
-                                            {% if latest.client_near_term_focus %}
-                                            <h6>Client Near-Term Focus:</h6>
-                                            <div style="white-space: pre-wrap;" class="mb-2">{{ latest.client_near_term_focus }}</div>
-                                            {% endif %}
-
-                                            {% if latest.mpr_work_targets %}
-                                            <h6>MPR Work Targets:</h6>
-                                            <div style="white-space: pre-wrap;" class="mb-2">{{ latest.mpr_work_targets }}</div>
-                                            {% endif %}
-
-                                            {% if latest.discussion %}
-                                            <h6>Discussion:</h6>
-                                            <div style="white-space: pre-wrap;">{{ latest.discussion }}</div>
-                                            {% endif %}
-                                        </div>
-                                    </div>
-                                    {% else %}
-                                    <div class="alert alert-warning mb-3">
-                                        <i class="bi bi-info-circle"></i> No previous roundtable entries for this client.
-                                    </div>
-                                    {% endif %}
-
-                                    <!-- Action Buttons -->
-                                    <div class="d-flex justify-content-between">
-                                        <a href="{{ url_for('companies.view_company', company_id=company.company_id) }}" class="btn btn-sm btn-outline-secondary">
-                                            <i class="bi bi-eye"></i> View Full Company Details
-                                        </a>
-                                        <a href="{{ url_for('crm.add_roundtable_entry', company_id=company.company_id) }}" class="btn btn-sm btn-primary">
-                                            <i class="bi bi-plus-circle"></i> Add Roundtable Entry for This Company
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        {% endfor %}
+  <!-- Clients for Discussion -->
+  <div class="row">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-body p-0">
+          {% if companies %}
+          <div class="accordion" id="companiesAccordion">
+            {% for company in companies %} {% set latest =
+            latest_roundtables.get(company.company_id) %} {% set profile =
+            company.client_profile %}
+            <div class="accordion-item">
+              <h2 class="accordion-header" id="heading{{ company.company_id }}">
+                <button
+                  class="accordion-button collapsed"
+                  type="button"
+                  data-bs-toggle="collapse"
+                  data-bs-target="#collapse{{ company.company_id }}"
+                  aria-expanded="false"
+                  aria-controls="collapse{{ company.company_id }}"
+                >
+                  <div
+                    class="w-100 d-flex justify-content-between align-items-center pe-3"
+                  >
+                    <div>
+                      <strong>{{ company.company_name }}</strong>
+                      {% if company.company_type %}
+                      <span class="badge bg-secondary ms-2"
+                        >{{ company.company_type }}</span
+                      >
+                      {% endif %} {% if profile and profile.client_priority %}
+                      <span
+                        class="badge bg-{% if profile.client_priority in ['Strategic', 'High'] %}danger{% elif profile.client_priority == 'Medium' %}warning{% else %}secondary{% endif %} ms-1"
+                      >
+                        {{ profile.client_priority }}
+                      </span>
+                      {% endif %}
                     </div>
-                    {% else %}
-                    <div class="p-4 text-center text-muted">
-                        <i class="bi bi-inbox" style="font-size: 3rem;"></i>
-                        <p class="mt-2">No MPR clients to discuss.</p>
-                        <a href="{{ url_for('companies.create_company') }}" class="btn btn-primary">Add Your First Company</a>
+                    <div class="text-end">
+                      {% if profile and profile.next_planned_contact_assigned_to
+                      %}
+                      <small class="text-muted"
+                        >Assigned: {{ profile.next_planned_contact_assigned_to
+                        }}</small
+                      >
+                      {% endif %} {% if profile and profile.last_contact_date %}
+                      {% set days = (today - profile.last_contact_date).days %}
+                      <br /><small
+                        class="{% if days > 90 %}text-danger{% elif days > 60 %}text-warning{% else %}text-muted{% endif %}"
+                      >
+                        Last contact: {{ days }} days ago
+                      </small>
+                      {% endif %}
                     </div>
-                    {% endif %}
+                  </div>
+                </button>
+              </h2>
+              <div
+                id="collapse{{ company.company_id }}"
+                class="accordion-collapse collapse"
+                aria-labelledby="heading{{ company.company_id }}"
+                data-bs-parent="#companiesAccordion"
+              >
+                <div class="accordion-body">
+                  <!-- Quick Info -->
+                  <div class="row mb-3">
+                    <div class="col-md-6">
+                      <h6>Company Information</h6>
+                      <dl class="row">
+                        <dt class="col-sm-4">Priority:</dt>
+                        <dd class="col-sm-8">
+                          {{ profile.client_priority if profile else '—' }}
+                        </dd>
+
+                        <dt class="col-sm-4">Status:</dt>
+                        <dd class="col-sm-8">
+                          {{ profile.client_status if profile else '—' }}
+                        </dd>
+
+                        <dt class="col-sm-4">Last Contact:</dt>
+                        <dd class="col-sm-8">
+                          {% if profile and profile.last_contact_date %} {{
+                          profile.last_contact_date.strftime('%Y-%m-%d') }} {%
+                          if profile.last_contact_type %}({{
+                          profile.last_contact_type }}){% endif %} {% else %}
+                          Never {% endif %}
+                        </dd>
+                      </dl>
+                    </div>
+                    <div class="col-md-6">
+                      <h6>Relationship Strength</h6>
+                      <p>
+                        {{ profile.relationship_strength if profile else 'Not
+                        assessed' }}
+                      </p>
+
+                      {% if profile and profile.relationship_notes %}
+                      <h6>Strategy Notes</h6>
+                      <p class="small">
+                        {{ profile.relationship_notes[:200] }}{% if
+                        profile.relationship_notes|length > 200 %}...{% endif %}
+                      </p>
+                      {% endif %}
+                    </div>
+                  </div>
+
+                  <!-- Latest Roundtable Entry -->
+                  {% if latest %}
+                  <div class="card bg-light mb-3">
+                    <div class="card-header">
+                      <strong
+                        >Last Roundtable: {{
+                        latest.created_timestamp.strftime('%B %d, %Y')
+                        }}</strong
+                      >
+                    </div>
+                    <div class="card-body">
+                      {% if latest.next_steps %}
+                      <h6>Next Steps:</h6>
+                      <div style="white-space: pre-wrap" class="mb-2">
+                        {{ latest.next_steps }}
+                      </div>
+                      {% endif %} {% if latest.client_near_term_focus %}
+                      <h6>Client Near-Term Focus:</h6>
+                      <div style="white-space: pre-wrap" class="mb-2">
+                        {{ latest.client_near_term_focus }}
+                      </div>
+                      {% endif %} {% if latest.mpr_work_targets %}
+                      <h6>MPR Work Targets:</h6>
+                      <div style="white-space: pre-wrap" class="mb-2">
+                        {{ latest.mpr_work_targets }}
+                      </div>
+                      {% endif %} {% if latest.discussion %}
+                      <h6>Discussion:</h6>
+                      <div style="white-space: pre-wrap">
+                        {{ latest.discussion }}
+                      </div>
+                      {% endif %}
+                    </div>
+                  </div>
+                  {% else %}
+                  <div class="alert alert-warning mb-3">
+                    <i class="bi bi-info-circle"></i> No previous roundtable
+                    entries for this client.
+                  </div>
+                  {% endif %}
+
+                  <!-- Action Buttons -->
+                  <div class="d-flex justify-content-between">
+                    <a
+                      href="{{ url_for('companies.view_company', company_id=company.company_id) }}"
+                      class="btn btn-sm btn-outline-secondary"
+                    >
+                      <i class="bi bi-eye"></i> View Full Company Details
+                    </a>
+                    <a
+                      href="{{ url_for('crm.add_roundtable_entry', company_id=company.company_id) }}"
+                      class="btn btn-sm btn-primary"
+                    >
+                      <i class="bi bi-plus-circle"></i> Add Roundtable Entry for
+                      This Company
+                    </a>
+                  </div>
                 </div>
+              </div>
             </div>
+            {% endfor %}
+          </div>
+          {% else %}
+          <div class="p-4 text-center text-muted">
+            <i class="bi bi-inbox" style="font-size: 3rem"></i>
+            <p class="mt-2">No MPR clients to discuss.</p>
+            <a
+              href="{{ url_for('companies.create_company') }}"
+              class="btn btn-primary"
+              >Add Your First Company</a
+            >
+          </div>
+          {% endif %}
         </div>
+      </div>
     </div>
+  </div>
 </div>
 {% endblock %}

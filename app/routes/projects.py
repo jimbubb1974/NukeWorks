@@ -9,8 +9,6 @@ from app.models import (
     Company,
     CompanyRole,
     CompanyRoleAssignment,
-    PersonnelEntityRelationship,
-    EntityTeamMember
 )
 from app.forms.relationships import (
     ProjectCompanyRelationshipForm,
@@ -226,15 +224,18 @@ def view_project(project_id):
     operator_relationships = [r for r in visible_company_relationships if r.role and r.role.role_code == 'operator']
     owner_relationships = [r for r in visible_company_relationships if r.role and r.role.role_code == 'developer']
     offtaker_relationships = [r for r in visible_company_relationships if r.role and r.role.role_code == 'offtaker']
-    personnel_relationships = filter_relationships(
-        current_user,
-        db_session.query(PersonnelEntityRelationship).filter_by(entity_type='Project', entity_id=project.project_id)
-    )
-
-    team_assignments = db_session.query(EntityTeamMember).filter_by(
-        entity_type='Project',
-        entity_id=project.project_id
-    ).order_by(EntityTeamMember.is_active.desc(), EntityTeamMember.assigned_date.desc().nullslast()).all()
+    
+    # TODO: Personnel relationships feature disabled - models PersonnelEntityRelationship and EntityTeamMember removed
+    personnel_relationships = []
+    team_assignments = []
+    # personnel_relationships = filter_relationships(
+    #     current_user,
+    #     db_session.query(PersonnelEntityRelationship).filter_by(entity_type='Project', entity_id=project.project_id)
+    # )
+    # team_assignments = db_session.query(EntityTeamMember).filter_by(
+    #     entity_type='Project',
+    #     entity_id=project.project_id
+    # ).order_by(EntityTeamMember.is_active.desc(), EntityTeamMember.assigned_date.desc().nullslast()).all()
 
     can_manage = _can_manage_relationships(current_user)
 
@@ -243,11 +244,11 @@ def view_project(project_id):
         company_form = ProjectCompanyRelationshipForm()
         company_form.company_id.choices = _get_company_choices()
 
-        personnel_form = PersonnelEntityRelationshipForm()
-        personnel_form.personnel_id.choices = get_personnel_choices()
-
-        team_form = EntityTeamMemberForm()
-        team_form.personnel_id.choices = get_personnel_choices(internal_only=True, placeholder='-- Select Internal Personnel --')
+        # TODO: Personnel forms disabled - models removed
+        # personnel_form = PersonnelEntityRelationshipForm()
+        # personnel_form.personnel_id.choices = get_personnel_choices()
+        # team_form = EntityTeamMemberForm()
+        # team_form.personnel_id.choices = get_personnel_choices(internal_only=True, placeholder='-- Select Internal Personnel --')
 
     return render_template(
         'projects/detail.html',
@@ -381,174 +382,26 @@ def delete_project(project_id):
         return redirect(url_for('projects.view_project', project_id=project_id))
 
 
-@bp.route('/<int:project_id>/relationships/personnel', methods=['POST'])
-@login_required
-def add_project_personnel_relationship(project_id):
-    project = _get_project_or_404(project_id)
+# TODO: Personnel relationship routes disabled - models PersonnelEntityRelationship and EntityTeamMember removed
+# @bp.route('/<int:project_id>/relationships/personnel', methods=['POST'])
+# @login_required
+# def add_project_personnel_relationship(project_id):
+#     ... (commented out)
 
-    if not _can_manage_relationships(current_user):
-        flash('You do not have permission to modify relationships.', 'danger')
-        return redirect(url_for('projects.view_project', project_id=project_id))
+# @bp.route('/<int:project_id>/relationships/personnel/<int:relationship_id>/delete', methods=['POST'])
+# @login_required
+# def delete_project_personnel_relationship(project_id, relationship_id):
+#     ... (commented out)
 
-    form = PersonnelEntityRelationshipForm()
-    form.personnel_id.choices = get_personnel_choices()
+# @bp.route('/<int:project_id>/team', methods=['POST'])
+# @login_required
+# def add_project_team_assignment(project_id):
+#     ... (commented out)
 
-    if form.validate_on_submit():
-        personnel_id = form.personnel_id.data
-        if personnel_id == 0:
-            flash('Please select personnel.', 'warning')
-            return redirect(url_for('projects.view_project', project_id=project_id))
-
-        existing = db_session.query(PersonnelEntityRelationship).filter_by(
-            personnel_id=personnel_id,
-            entity_type='Project',
-            entity_id=project.project_id
-        ).first()
-
-        if existing:
-            flash('Personnel relationship already exists.', 'info')
-            return redirect(url_for('projects.view_project', project_id=project_id))
-
-        relationship = PersonnelEntityRelationship(
-            personnel_id=personnel_id,
-            entity_type='Project',
-            entity_id=project.project_id,
-            role_at_entity=form.role_at_entity.data or None,
-            notes=form.notes.data or None,
-            is_confidential=form.is_confidential.data,
-            created_by=current_user.user_id,
-            modified_by=current_user.user_id
-        )
-
-        try:
-            db_session.add(relationship)
-            db_session.flush()
-
-            # Sync to unified company schema
-            sync_personnel_affiliation(relationship, current_user.user_id)
-
-            db_session.commit()
-            flash('Personnel relationship added.', 'success')
-        except Exception as exc:  # pragma: no cover
-            db_session.rollback()
-            flash(f'Error adding personnel relationship: {exc}', 'danger')
-    else:
-        flash('Unable to add personnel relationship. Please check the form inputs.', 'danger')
-
-    return redirect(url_for('projects.view_project', project_id=project_id))
-
-
-@bp.route('/<int:project_id>/relationships/personnel/<int:relationship_id>/delete', methods=['POST'])
-@login_required
-def delete_project_personnel_relationship(project_id, relationship_id):
-    _get_project_or_404(project_id)
-
-    if not _can_manage_relationships(current_user):
-        flash('You do not have permission to modify relationships.', 'danger')
-        return redirect(url_for('projects.view_project', project_id=project_id))
-
-    form = ConfirmActionForm()
-
-    if form.validate_on_submit():
-        relationship = db_session.get(PersonnelEntityRelationship, relationship_id)
-        if not relationship or relationship.entity_type != 'Project' or relationship.entity_id != project_id:
-            flash('Relationship not found.', 'error')
-            return redirect(url_for('projects.view_project', project_id=project_id))
-
-        try:
-            db_session.delete(relationship)
-            db_session.commit()
-            flash('Personnel relationship removed.', 'success')
-        except Exception as exc:  # pragma: no cover
-            db_session.rollback()
-            flash(f'Error removing personnel relationship: {exc}', 'danger')
-    else:
-        flash('Action not confirmed.', 'warning')
-
-    return redirect(url_for('projects.view_project', project_id=project_id))
-
-
-@bp.route('/<int:project_id>/team', methods=['POST'])
-@login_required
-def add_project_team_assignment(project_id):
-    project = _get_project_or_404(project_id)
-
-    if not _can_manage_relationships(current_user):
-        flash('You do not have permission to modify team assignments.', 'danger')
-        return redirect(url_for('projects.view_project', project_id=project_id))
-
-    form = EntityTeamMemberForm()
-    form.personnel_id.choices = get_personnel_choices(internal_only=True, placeholder='-- Select Internal Personnel --')
-
-    if form.validate_on_submit():
-        personnel_id = form.personnel_id.data
-        if personnel_id == 0:
-            flash('Please select team personnel.', 'warning')
-            return redirect(url_for('projects.view_project', project_id=project_id))
-
-        assignment = db_session.query(EntityTeamMember).filter_by(
-            entity_type='Project',
-            entity_id=project.project_id,
-            personnel_id=personnel_id
-        ).first()
-
-        if assignment:
-            assignment.assignment_type = form.assignment_type.data or None
-            assignment.assigned_date = form.assigned_date.data
-            assignment.is_active = form.is_active.data
-        else:
-            assignment = EntityTeamMember(
-                entity_type='Project',
-                entity_id=project.project_id,
-                personnel_id=personnel_id,
-                assignment_type=form.assignment_type.data or None,
-                assigned_date=form.assigned_date.data,
-                is_active=form.is_active.data
-            )
-            db_session.add(assignment)
-
-        try:
-            db_session.commit()
-            flash('Team assignment saved.', 'success')
-        except Exception as exc:  # pragma: no cover
-            db_session.rollback()
-            flash(f'Error saving team assignment: {exc}', 'danger')
-    else:
-        flash('Unable to save team assignment. Please check the form inputs.', 'danger')
-
-    return redirect(url_for('projects.view_project', project_id=project_id))
-
-
-@bp.route('/<int:project_id>/team/<int:assignment_id>/toggle', methods=['POST'])
-@login_required
-def toggle_project_team_assignment(project_id, assignment_id):
-    _get_project_or_404(project_id)
-
-    if not _can_manage_relationships(current_user):
-        flash('You do not have permission to modify team assignments.', 'danger')
-        return redirect(url_for('projects.view_project', project_id=project_id))
-
-    form = TeamAssignmentToggleForm()
-
-    if form.validate_on_submit() and form.assignment_id.data == str(assignment_id):
-        assignment = db_session.get(EntityTeamMember, assignment_id)
-        if not assignment or assignment.entity_type != 'Project' or assignment.entity_id != project_id:
-            flash('Team assignment not found.', 'error')
-            return redirect(url_for('projects.view_project', project_id=project_id))
-
-        assignment.is_active = not assignment.is_active
-
-        try:
-            db_session.commit()
-            state = 'activated' if assignment.is_active else 'deactivated'
-            flash(f'Team assignment {state}.', 'success')
-        except Exception as exc:  # pragma: no cover
-            db_session.rollback()
-            flash(f'Error updating team assignment: {exc}', 'danger')
-    else:
-        flash('Action not confirmed.', 'warning')
-
-    return redirect(url_for('projects.view_project', project_id=project_id))
+# @bp.route('/<int:project_id>/team/<int:assignment_id>/toggle', methods=['POST'])
+# @login_required
+# def toggle_project_team_assignment(project_id, assignment_id):
+#     ... (commented out)
 
 
 @bp.route('/<int:project_id>/relationships/companies', methods=['POST'])

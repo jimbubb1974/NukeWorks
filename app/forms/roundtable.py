@@ -39,40 +39,28 @@ class RoundtableEntryForm(FlaskForm):
 class RoundtableHistoryForm(FlaskForm):
     """Form for CRM roundtable meeting entries with structured fields"""
 
-    meeting_date = DateField(
-        'Meeting Date',
-        validators=[DataRequired(message='Meeting date is required')],
-        default=date.today
-    )
-
     next_steps = TextAreaField(
         'Next Steps',
         validators=[Length(max=10000)],
-        render_kw={"rows": 4, "placeholder": "Action items and next steps for this client"}
+        render_kw={"placeholder": "Action items and next steps for this client"}
     )
 
     client_near_term_focus = TextAreaField(
         'Client Near-Term Focus Areas',
         validators=[Length(max=10000)],
-        render_kw={"rows": 4, "placeholder": "What the client is currently focused on"}
+        render_kw={"placeholder": "What the client is currently focused on"}
     )
 
     mpr_work_targets = TextAreaField(
         'MPR Work Targets / Goals',
         validators=[Length(max=10000)],
-        render_kw={"rows": 4, "placeholder": "MPR's goals and targets for this client relationship"}
+        render_kw={"placeholder": "MPR's goals and targets for this client relationship"}
     )
 
     discussion = TextAreaField(
         'General Discussion',
         validators=[Length(max=10000)],
-        render_kw={"rows": 4, "placeholder": "General discussion notes (optional)"}
+        render_kw={"placeholder": "General discussion notes (optional)"}
     )
 
     submit = SubmitField('Save Roundtable Entry')
-
-    def validate_meeting_date(self, field):
-        try:
-            validate_meeting_date(field.data)
-        except AppValidationError as exc:
-            raise ValidationError(str(exc))
