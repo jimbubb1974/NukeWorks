@@ -113,6 +113,13 @@ def _process_relationship_assignments(project: Project, form_data, user_id: int)
 @login_required
 def list_projects():
     """List all projects"""
+    # Debug: print which database the request is using
+    try:
+        from flask import g as _flask_g
+        print(f"[DBG] projects.list_projects: g.selected_db_path={getattr(_flask_g, 'selected_db_path', None)}")
+    except Exception:
+        pass
+
     projects = db_session.query(Project).order_by(Project.project_name).all()
     delete_form = ConfirmActionForm()
     return render_template('projects/list.html', projects=projects, can_manage=_can_manage_relationships(current_user), delete_form=delete_form)

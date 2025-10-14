@@ -462,8 +462,92 @@ def register_db_selector_middleware(app):
         if request.endpoint and request.endpoint.startswith('static'):
             return
 
+        # Debug logging to help trace why certain requests are redirected
+        try:
+            logger.debug(
+                "handle_db_selection called: endpoint=%s path=%s args=%s headers_accept=%s",
+                str(request.endpoint),
+                str(request.path),
+                dict(request.args),
+                str(request.headers.get('Accept')),
+            )
+            # Also print to stdout so the development server shows it reliably
+            print(f"[DBG] handle_db_selection: endpoint={request.endpoint} path={request.path} args={dict(request.args)} Accept={request.headers.get('Accept')}" )
+        except Exception:
+            try:
+                print(f"[DBG] handle_db_selection: failed to read request properties")
+            except Exception:
+                pass
+
+        # Also write a short trace to a logfile for post-mortem analysis
+        try:
+            log_dir = os.path.join(app.root_path, '..', 'logs')
+            os.makedirs(log_dir, exist_ok=True)
+            trace_file = os.path.join(log_dir, 'db_selector_debug.log')
+            with open(trace_file, 'a', encoding='utf-8') as fh:
+                fh.write(f"endpoint={request.endpoint} path={request.path} args={dict(request.args)} Accept={request.headers.get('Accept')}\n")
+        except Exception:
+            pass
+
+        # Allow explicit bypass via query param or header for AJAX helpers
+        # e.g. /select-db/mapped-drives?_skip_db_selector=1 or header X-Skip-DB-Selector: 1
+        try:
+            if request.args.get('_skip_db_selector') == '1' or request.headers.get('X-Skip-DB-Selector') == '1':
+                print(f"[DBG] handle_db_selection: bypass via param/header for path={request.path}")
+                return
+        except Exception:
+            pass
+
+        # If the client explicitly accepts JSON (AJAX), don't redirect to the
+        # selector page — allow the endpoint to return JSON (useful for mapped
+        # drives and other AJAX helpers)
+        accept_json = False
+        try:
+            accept_json = request.accept_mimetypes.accept_json
+        except Exception:
+            accept_json = False
+
+        if accept_json:
+            # For AJAX/API requests we do not want to redirect to the selector page
+            # (that would return HTML to an AJAX caller). However, we still want
+            # any existing session-selected database to be wired into the
+            # request context so `db_session` LocalProxy resolves correctly.
+            print(f"[DBG] handle_db_selection: bypass because Accept includes json for path={request.path}")
+
+            # If a database was already selected in the session, set up the
+            # per-request session so handlers (including AJAX helpers) will
+            # use the correct database connection.
+            try:
+                selected_db_path = session.get('selected_db_path')
+                if selected_db_path:
+                    abs_path = os.path.abspath(selected_db_path)
+                    engine, db_sess = get_or_create_engine_session(abs_path, app)
+                    g.db_session = db_sess
+                    g.selected_db_path = abs_path
+                    from app.utils.db_helpers import get_snapshot_dir_for_db
+                    g.snapshot_dir = get_snapshot_dir_for_db(abs_path)
+            except Exception:
+                # If anything goes wrong here, do not block the request; the
+                # caller will receive whatever the endpoint returns. We avoid
+                # raising here to keep AJAX helpers robust during debugging.
+                pass
+
+            return
+
+        # Skip for auth routes (login/logout) so authentication works even when no DB selected
+        if request.endpoint and request.endpoint.startswith('auth.'):
+            return
+
         # Skip for db_select routes
         if request.endpoint and request.endpoint.startswith('db_select.'):
+            return
+
+        # Skip API endpoints so AJAX helpers can function without redirect
+        if request.path and request.path.startswith('/api'):
+            return
+        # Also skip any direct path under /select-db (covers AJAX/OPTIONS where
+        # request.endpoint may not be set yet)
+        if request.path and request.path.startswith('/select-db'):
             return
 
         # Check if database is selected in session

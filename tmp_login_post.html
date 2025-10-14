@@ -1,0 +1,143 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login - NukeWorks</title>
+
+    <!-- Bootstrap CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+
+    <!-- Bootstrap Icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css"
+    />
+
+    <!-- Custom CSS -->
+    <link
+      rel="stylesheet"
+      href="/static/css/style.css"
+    />
+
+    
+  </head>
+  <body>
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="/dashboard"
+          >NukeWorks</a
+        >
+
+        
+      </div>
+    </nav>
+
+    <!-- Flash Messages -->
+      
+
+    <!-- Main Content -->
+    <main class="container-fluid mt-4">
+<div class="row justify-content-center mt-5">
+    <div class="col-md-5 col-lg-4">
+        <div class="card shadow">
+            <div class="card-body p-4">
+                <!-- Logo/Header -->
+                <div class="text-center mb-4">
+                    <h2 class="mb-1">NukeWorks</h2>
+                    <p class="text-muted">Nuclear Project Management System</p>
+                </div>
+
+                <!-- Login Form -->
+                <form method="POST" action="/auth/login" novalidate>
+                    <input id="csrf_token" name="csrf_token" type="hidden" value="IjIyNWFmNjZjMDYxZmQzZDg0MmZjYzBlYzczMGRhNmI1MDFlYjljYWMi.aO2Lcg.YjlX43oj0buoKJIa_BhYTcmg1E0">
+
+                    <!-- Username Field -->
+                    <div class="mb-3">
+                        <label class="form-label" for="username">Username</label>
+                        <input autofocus class="form-control form-control-lg" id="username" maxlength="80" minlength="3" name="username" placeholder="Enter your username" required type="text" value="admin">
+                        
+                    </div>
+
+                    <!-- Password Field -->
+                    <div class="mb-3">
+                        <label class="form-label" for="password">Password</label>
+                        <input class="form-control form-control-lg" id="password" name="password" placeholder="Enter your password" required type="password" value="">
+                        
+                    </div>
+
+                    <!-- Remember Me Checkbox -->
+                    <div class="mb-3 form-check">
+                        <input checked class="form-check-input" id="remember_me" name="remember_me" type="checkbox" value="y">
+                        <label class="form-check-label" for="remember_me">Remember Me</label>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="d-grid">
+                        <input class="btn btn-primary btn-lg" id="submit" name="submit" type="submit" value="Sign In">
+                    </div>
+                </form>
+
+                <!-- Additional Links -->
+                <div class="mt-3 text-center">
+                    <small class="text-muted">
+                        First time? Contact your administrator to create an account.
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Security Notice -->
+        <div class="mt-3 text-center">
+            <small class="text-muted">
+                <i class="bi bi-shield-lock me-1"></i>
+                Secure login with bcrypt password hashing
+            </small>
+        </div>
+    </div>
+</div>
+
+<style>
+    body {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+    }
+
+    .card {
+        border: none;
+        border-radius: 1rem;
+    }
+
+    .form-control-lg {
+        border-radius: 0.5rem;
+    }
+
+    .btn-lg {
+        padding: 0.75rem;
+        border-radius: 0.5rem;
+    }
+</style>
+</main>
+
+    <!-- Footer -->
+    <footer class="footer mt-auto py-3 bg-light">
+      <div class="container text-center">
+        <span class="text-muted"
+          >NukeWorks &copy; 2025 | Nuclear Project Management Database</span
+        >
+      </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Custom JS -->
+    <script src="/static/js/main.js"></script>
+
+    
+  </body>
+</html>

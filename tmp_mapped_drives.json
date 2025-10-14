@@ -1,5 +1,47 @@
-{% extends "base.html" %} {% block title %}Select Database - NukeWorks{%
-endblock %} {% block content %}
+﻿<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Select Database - NukeWorks</title>
+
+    <!-- Bootstrap CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+
+    <!-- Bootstrap Icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css"
+    />
+
+    <!-- Custom CSS -->
+    <link
+      rel="stylesheet"
+      href="/static/css/style.css"
+    />
+
+    
+  </head>
+  <body>
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="/dashboard"
+          >NukeWorks</a
+        >
+
+        
+      </div>
+    </nav>
+
+    <!-- Flash Messages -->
+      
+
+    <!-- Main Content -->
+    <main class="container-fluid mt-4">
 <div class="container mt-5">
   <div class="row justify-content-center">
     <div class="col-md-10 col-lg-8">
@@ -15,82 +57,89 @@ endblock %} {% block content %}
 
           <form
             method="POST"
-            action="{{ url_for('db_select.select_database_post') }}"
+            action="/select-db"
           >
             <!-- Suggested Default -->
-            {% if suggested_default %}
+            
             <div class="alert alert-info">
               <i class="bi bi-star-fill"></i> <strong>Suggested:</strong>
-              {{ suggested_default }}
+              C:\Users\jbubb\OneDrive - MPR Associates\NED\5 - Misc\Projects Database\nukeworks.sqlite
               <button
                 type="button"
                 class="btn btn-sm btn-outline-primary float-end"
-                onclick="document.getElementById('db_path').value='{{ suggested_default }}'"
+                onclick="document.getElementById('db_path').value='C:\Users\jbubb\OneDrive - MPR Associates\NED\5 - Misc\Projects Database\nukeworks.sqlite'"
               >
                 Use This
               </button>
             </div>
-            {% endif %}
+            
 
             <!-- Scanned Databases -->
-            {% if scanned_databases %}
+            
             <div class="mb-4">
               <h5>Available Databases</h5>
               <div class="list-group">
-                {% for db in scanned_databases %}
+                
                 <label class="list-group-item list-group-item-action">
                   <div
                     class="d-flex w-100 justify-content-between align-items-center"
                   >
                     <div class="form-check">
                       <input class="form-check-input" type="radio"
-                      name="db_path" id="db_{{ loop.index }}" value="{{ db.path
-                      }}" {% if current_selection == db.path %}checked{% endif
-                      %}>
-                      <label class="form-check-label" for="db_{{ loop.index }}">
-                        <strong>{{ db.display_name }}</strong>
+                      name="db_path" id="db_1" value="C:\Users\jbubb\Documents\CodeProjects\NukeWorks\databases\development\nukeworks.sqlite" >
+                      <label class="form-check-label" for="db_1">
+                        <strong>Test Database</strong>
                         <br />
-                        <small class="text-muted">{{ db.path }}</small>
+                        <small class="text-muted">C:\Users\jbubb\Documents\CodeProjects\NukeWorks\databases\development\nukeworks.sqlite</small>
                       </label>
                     </div>
-                    <span class="badge bg-secondary">{{ db.label }}</span>
+                    <span class="badge bg-secondary">development</span>
                   </div>
                 </label>
-                {% endfor %}
+                
               </div>
             </div>
-            {% else %}
-            <div class="alert alert-warning">
-              <i class="bi bi-exclamation-triangle"></i> No databases found in
-              <code>databases/</code> directory.
-            </div>
-            {% endif %}
+            
 
             <!-- Recent Databases -->
-            {% if recent_databases %}
+            
             <div class="mb-4">
               <h5>Recent Databases</h5>
               <div class="list-group">
-                {% for db in recent_databases %}
+                
                 <label class="list-group-item list-group-item-action">
                   <div class="form-check">
                     <input class="form-check-input" type="radio" name="db_path"
-                    id="recent_{{ loop.index }}" value="{{ db.path }}" {% if
-                    current_selection == db.path %}checked{% endif %}>
+                    id="recent_1" value="C:\Users\jbubb\OneDrive - MPR Associates\NED\5 - Misc\Projects Database\nukeworks.sqlite" >
                     <label
                       class="form-check-label"
-                      for="recent_{{ loop.index }}"
+                      for="recent_1"
                     >
-                      <strong>{{ db.display_name }}</strong>
+                      <strong>Test Database</strong>
                       <br />
-                      <small class="text-muted">{{ db.path }}</small>
+                      <small class="text-muted">C:\Users\jbubb\OneDrive - MPR Associates\NED\5 - Misc\Projects Database\nukeworks.sqlite</small>
                     </label>
                   </div>
                 </label>
-                {% endfor %}
+                
+                <label class="list-group-item list-group-item-action">
+                  <div class="form-check">
+                    <input class="form-check-input" type="radio" name="db_path"
+                    id="recent_2" value="C:\Users\jbubb\Documents\CodeProjects\NukeWorks\databases\development\nukeworks.sqlite" >
+                    <label
+                      class="form-check-label"
+                      for="recent_2"
+                    >
+                      <strong>Test Database</strong>
+                      <br />
+                      <small class="text-muted">C:\Users\jbubb\Documents\CodeProjects\NukeWorks\databases\development\nukeworks.sqlite</small>
+                    </label>
+                  </div>
+                </label>
+                
               </div>
             </div>
-            {% endif %}
+            
 
             <!-- Manual Entry -->
             <div class="mb-4">
@@ -105,7 +154,7 @@ endblock %} {% block content %}
                   id="db_path"
                   name="db_path"
                   placeholder="C:\path\to\database.sqlite or \\network\path\database.sqlite"
-                  value="{{ current_selection or '' }}"
+                  value=""
                 />
                 <button
                   class="btn btn-outline-secondary"
@@ -149,7 +198,7 @@ endblock %} {% block content %}
             <div class="d-grid gap-2 d-md-flex justify-content-md-between">
               <button
                 type="submit"
-                formaction="{{ url_for('db_select.refresh_database_list') }}"
+                formaction="/select-db/refresh"
                 class="btn btn-outline-secondary"
               >
                 <i class="bi bi-arrow-clockwise"></i> Refresh List
@@ -167,17 +216,28 @@ endblock %} {% block content %}
         </div>
       </div>
 
-      {% if current_user.is_authenticated %}
-      <div class="text-center mt-3">
-        <a href="{{ url_for('dashboard.index') }}" class="text-muted">
-          <i class="bi bi-arrow-left"></i> Back to Dashboard
-        </a>
-      </div>
-      {% endif %}
+      
     </div>
   </div>
 </div>
-{% endblock %} {% block extra_js %}
+</main>
+
+    <!-- Footer -->
+    <footer class="footer mt-auto py-3 bg-light">
+      <div class="container text-center">
+        <span class="text-muted"
+          >NukeWorks &copy; 2025 | Nuclear Project Management Database</span
+        >
+      </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Custom JS -->
+    <script src="/static/js/main.js"></script>
+
+    
 <script>
   // Allow radio buttons to be selected when clicking anywhere on the list item
   document.querySelectorAll(".list-group-item").forEach((item) => {
@@ -243,80 +303,6 @@ endblock %} {% block content %}
     }
   });
 
-  // File browser helper: displays a modal allowing navigation under a root
-  async function openFileBrowser(root, startPath) {
-    try {
-      const res = await fetch(`/api/list-files?root=${encodeURIComponent(root)}&path=${encodeURIComponent(startPath)}`);
-      if (!res.ok) throw new Error('Failed to list files');
-      const data = await res.json();
-
-      // Build modal content
-      let body = `<div class="list-group">`;
-      if (data.cwd && data.cwd !== '.') {
-        body += `<button type="button" class="list-group-item list-group-item-action" data-path=".." data-isdir="1">.. (Up)</button>`;
-      }
-      data.entries.forEach((e) => {
-        const disp = e.is_dir ? (e.name + '/') : e.name;
-        body += `<button type="button" class="list-group-item list-group-item-action" data-relpath="${encodeURIComponent(e.path)}" data-isdir="${e.is_dir?1:0}">${disp}</button>`;
-      });
-      body += `</div>`;
-
-      const modalEl = document.createElement('div');
-      modalEl.className = 'modal fade';
-      modalEl.tabIndex = -1;
-      modalEl.innerHTML = `
-        <div class="modal-dialog modal-dialog-centered modal-lg">
-          <div class="modal-content">
-            <div class="modal-header">
-              <h5 class="modal-title">Browse ${root}${data.cwd && data.cwd !== '.' ? data.cwd : ''}</h5>
-              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">${body}</div>
-            <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-            </div>
-          </div>
-        </div>`;
-
-      document.body.appendChild(modalEl);
-      const modal = new bootstrap.Modal(modalEl);
-      modal.show();
-
-      modalEl.querySelectorAll('.list-group-item').forEach(btn => {
-        btn.addEventListener('click', async function() {
-          const isdir = this.getAttribute('data-isdir') === '1' || this.getAttribute('data-path') === '..';
-          const rel = this.getAttribute('data-relpath') ? decodeURIComponent(this.getAttribute('data-relpath')) : '';
-          let newPath;
-          if (this.getAttribute('data-path') === '..') {
-            // up: compute parent path
-            const cwd = data.cwd && data.cwd !== '.' ? data.cwd : '';
-            newPath = cwd.split('\\').slice(0, -1).join('\\');
-          } else if (isdir) {
-            newPath = rel;
-          } else {
-            // File selected: 'rel' is already the path relative to the root
-            // Build full path by joining root and rel and normalizing backslashes
-            const relPath = rel.replace(/\//g, '\\');
-            const full = root + relPath;
-            dbPathInput.value = full;
-            // Clear radios
-            document.querySelectorAll('input[type="radio"][name="db_path"]').forEach((r) => (r.checked = false));
-            modal.hide(); modalEl.remove();
-            return;
-          }
-
-          // If directory navigation, reload modal for new path
-          modal.hide(); modalEl.remove();
-          openFileBrowser(root, newPath);
-        });
-      });
-
-    } catch (err) {
-      console.error(err);
-      alert('Failed to browse drive: ' + err.message);
-    }
-  }
-
   // If the user types or pastes into the manual path input, clear any
   // selected radio option so the manual path will be used when submitting.
   dbPathInput.addEventListener('input', function () {
@@ -378,7 +364,7 @@ endblock %} {% block content %}
       mappedDrivesBtn.addEventListener('click', async function (e) {
         e.preventDefault();
         try {
-    const res = await fetch('/api/mapped-drives');
+          const res = await fetch('/select-db/mapped-drives');
           if (!res.ok) throw new Error('Failed to fetch mapped drives');
           const drives = await res.json();
 
@@ -386,11 +372,8 @@ endblock %} {% block content %}
           let html = '<div class="list-group">';
           drives.forEach((d) => {
             const label = d.letter || d.root;
-            // Use the drive root (e.g., 'Q:\') as the selectable path so the server
-            // receives a normal filesystem path rather than device/driver strings.
-            const selectable = d.root || d.target || '';
             const desc = d.target || d.root;
-            html += `<button type="button" class="list-group-item list-group-item-action" data-path="${selectable}">${label} <br/><small class=\"text-muted\">${desc}</small></button>`;
+            html += `<button type="button" class="list-group-item list-group-item-action" data-path="${desc}">${label} <br/><small class=\"text-muted\">${desc}</small></button>`;
           });
           html += '</div>';
 
@@ -419,9 +402,7 @@ endblock %} {% block content %}
 
             modalEl.querySelectorAll('.list-group-item').forEach((btn) => {
               btn.addEventListener('click', function () {
-                const driveRoot = this.getAttribute('data-path');
-                // Open file browser modal for this drive root
-                openFileBrowser(driveRoot, '');
+                dbPathInput.value = this.getAttribute('data-path');
                 // Clear radios
                 document.querySelectorAll('input[type="radio"][name="db_path"]').forEach((r) => (r.checked = false));
                 modal.hide();
@@ -440,4 +421,6 @@ endblock %} {% block content %}
       });
     }
 </script>
-{% endblock %}
+
+  </body>
+</html>

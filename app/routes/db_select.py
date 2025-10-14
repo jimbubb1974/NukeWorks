@@ -6,8 +6,12 @@ import os
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
 from flask_login import current_user
 from app.utils import db_selector_cache, db_helpers
+from flask import current_app
 from app.utils.migrations import get_current_schema_version, get_required_schema_version, check_and_apply_migrations
 import logging
+import json
+import ctypes
+import string
 
 bp = Blueprint('db_select', __name__, url_prefix='')
 logger = logging.getLogger(__name__)
@@ -190,3 +194,249 @@ def refresh_database_list():
     """
     flash('Database list refreshed', 'info')
     return redirect(url_for('db_select.select_database'))
+
+
+@bp.route('/select-db/mapped-drives', methods=['GET'])
+def mapped_drives():
+    """Return a JSON list of mapped drives and their UNC roots (Windows only).
+
+    This is best-effort: returns drive letter and root path if available.
+    """
+    drives = []
+    if os.name == 'nt':
+        # Use GetLogicalDrives and GetDriveType / QueryDosDevice via ctypes
+        kernel32 = ctypes.windll.kernel32
+        bitmask = kernel32.GetLogicalDrives()
+        for i in range(26):
+            if bitmask & (1 << i):
+                letter = f"{string.ascii_uppercase[i]}:"
+                root = f"{letter}\\"
+                # Try to resolve to a UNC path using QueryDosDevice
+                target_buf = ctypes.create_string_buffer(1024)
+                res = kernel32.QueryDosDeviceA(letter.encode('ascii'), target_buf, ctypes.sizeof(target_buf))
+                unc = None
+                if res:
+                    target = target_buf.value.decode('utf-8', errors='ignore')
+                    unc = target
+                drives.append({'letter': letter, 'root': root, 'target': unc})
+    else:
+        # Non-windows: list mountpoints from /mnt, /media as a fallback
+        mounts = []
+        for base in ['/mnt', '/media']:
+            if os.path.exists(base):
+                for p in os.listdir(base):
+                    mounts.append({'letter': '', 'root': os.path.join(base, p), 'target': ''})
+        drives = mounts
+
+    return current_app.response_class(json.dumps(drives), mimetype='application/json')
+
+
+@bp.route('/api/mapped-drives', methods=['GET'])
+def api_mapped_drives():
+    """Compatibility API endpoint for mapped drives (JSON) placed under /api to avoid DB-selector middleware redirects."""
+    # Reuse the same logic as mapped_drives
+    drives = []
+    if os.name == 'nt':
+        kernel32 = ctypes.windll.kernel32
+        bitmask = kernel32.GetLogicalDrives()
+        for i in range(26):
+            if bitmask & (1 << i):
+                letter = f"{string.ascii_uppercase[i]}:"
+                root = f"{letter}\\"
+                target_buf = ctypes.create_string_buffer(1024)
+                res = kernel32.QueryDosDeviceA(letter.encode('ascii'), target_buf, ctypes.sizeof(target_buf))
+                unc = None
+                if res:
+                    target = target_buf.value.decode('utf-8', errors='ignore')
+                    unc = target
+                drives.append({'letter': letter, 'root': root, 'target': unc})
+    else:
+        mounts = []
+        for base in ['/mnt', '/media']:
+            if os.path.exists(base):
+                for p in os.listdir(base):
+                    mounts.append({'letter': '', 'root': os.path.join(base, p), 'target': ''})
+        drives = mounts
+
+    return current_app.response_class(json.dumps(drives), mimetype='application/json')
+
+
+@bp.route('/api/list-files', methods=['GET'])
+def api_list_files():
+    """List directories and files for a given root path.
+
+    Query params:
+      root - required, a drive root like 'Q:\\'
+      path - optional, relative path under the root
+
+    Returns JSON: {cwd: <absolute>, entries: [{name, is_dir, size, path}]}
+    """
+    root = request.args.get('root')
+    rel = request.args.get('path', '')
+
+    if not root:
+        return current_app.response_class(json.dumps({'error': 'root is required'}), status=400, mimetype='application/json')
+
+    # Normalize and ensure root ends with backslash on Windows
+    if os.name == 'nt':
+        if not root.endswith('\\'):
+            root = root + '\\'
+    else:
+        # for non-windows treat root as absolute path
+        pass
+
+    # Build absolute path and ensure it is under the root
+    requested = os.path.normpath(os.path.join(root, rel))
+
+    try:
+        # Prevent escaping root
+        if not os.path.commonpath([os.path.abspath(requested), os.path.abspath(root)]) == os.path.abspath(root):
+            return current_app.response_class(json.dumps({'error': 'path outside root'}), status=400, mimetype='application/json')
+
+        entries = []
+        if os.path.isdir(requested):
+            for name in sorted(os.listdir(requested)):
+                full = os.path.join(requested, name)
+                try:
+                    is_dir = os.path.isdir(full)
+                    size = os.path.getsize(full) if not is_dir else None
+                except Exception:
+                    is_dir = False
+                    size = None
+                entries.append({'name': name, 'is_dir': is_dir, 'size': size, 'path': os.path.relpath(full, root)})
+        else:
+            return current_app.response_class(json.dumps({'error': 'not a directory'}), status=400, mimetype='application/json')
+
+        return current_app.response_class(json.dumps({'cwd': os.path.relpath(requested, root), 'entries': entries}), mimetype='application/json')
+
+    except Exception as e:
+        return current_app.response_class(json.dumps({'error': str(e)}), status=500, mimetype='application/json')
+
+
+@bp.route('/select-db/db-info', methods=['GET'])
+def select_db_info():
+    """Temporary debug endpoint: return info about the currently-selected DB path.
+
+    Returns JSON with keys: selected_db_path, exists, size, integrity, tables, counts
+    """
+    sel = session.get('selected_db_path')
+    info = {'selected_db_path': sel}
+
+    if not sel:
+        return current_app.response_class(json.dumps({'error': 'no selected_db_path in session', 'info': info}), status=400, mimetype='application/json')
+
+    try:
+        exists = os.path.exists(sel)
+        info['exists'] = exists
+        if exists:
+            try:
+                info['size'] = os.path.getsize(sel)
+            except Exception:
+                info['size'] = None
+
+            # Try opening SQLite and gathering basic metadata
+            import sqlite3
+            try:
+                conn = sqlite3.connect(sel, timeout=5.0)
+                cur = conn.cursor()
+                try:
+                    cur.execute('PRAGMA integrity_check')
+                    info['integrity'] = cur.fetchone()
+                except Exception as e:
+                    info['integrity_error'] = str(e)
+
+                cur.execute("SELECT name FROM sqlite_master WHERE type='table'")
+                tables = [r[0] for r in cur.fetchall()]
+                info['tables'] = tables
+
+                for t in ['projects', 'companies', 'users', 'system_settings']:
+                    try:
+                        cur.execute(f"SELECT COUNT(*) FROM {t}")
+                        info[f'{t}_count'] = cur.fetchone()[0]
+                    except Exception as e:
+                        info[f'{t}_count_error'] = str(e)
+
+                conn.close()
+            except Exception as e:
+                info['sqlite_open_error'] = str(e)
+        else:
+            info['size'] = None
+
+        return current_app.response_class(json.dumps(info), mimetype='application/json')
+
+    except Exception as e:
+        return current_app.response_class(json.dumps({'error': str(e)}), status=500, mimetype='application/json')
+
+
+@bp.route('/api/db-info', methods=['GET'])
+def api_db_info():
+    """API: return metadata for an arbitrary database path provided as `path` query param.
+
+    Example: /api/db-info?path=Q:\\some\\dir\\nukeworks.sqlite
+    This does not depend on session and is intended for debugging.
+    """
+    p = request.args.get('path')
+    if not p:
+        return current_app.response_class(json.dumps({'error': 'path param is required'}), status=400, mimetype='application/json')
+
+    info = {'queried_path': p}
+    try:
+        exists = os.path.exists(p)
+        info['exists'] = exists
+        if exists:
+            try:
+                info['size'] = os.path.getsize(p)
+            except Exception:
+                info['size'] = None
+
+            # SQLite metadata
+            import sqlite3
+            try:
+                conn = sqlite3.connect(p, timeout=5.0)
+                cur = conn.cursor()
+                try:
+                    cur.execute('PRAGMA integrity_check')
+                    info['integrity'] = cur.fetchone()
+                except Exception as e:
+                    info['integrity_error'] = str(e)
+
+                cur.execute("SELECT name FROM sqlite_master WHERE type='table'")
+                tables = [r[0] for r in cur.fetchall()]
+                info['tables'] = tables
+
+                for t in ['projects', 'companies', 'users', 'system_settings']:
+                    try:
+                        cur.execute(f"SELECT COUNT(*) FROM {t}")
+                        info[f'{t}_count'] = cur.fetchone()[0]
+                    except Exception as e:
+                        info[f'{t}_count_error'] = str(e)
+
+                conn.close()
+            except Exception as e:
+                info['sqlite_open_error'] = str(e)
+        else:
+            info['size'] = None
+
+        return current_app.response_class(json.dumps(info), mimetype='application/json')
+
+    except Exception as e:
+        return current_app.response_class(json.dumps({'error': str(e)}), status=500, mimetype='application/json')
+
+
+@bp.route('/alive', methods=['GET'])
+def alive():
+    """Return server process info and mtime of db_select.py to help verify which code the running server loaded."""
+    try:
+        import time
+
+        pid = os.getpid()
+        file_path = os.path.join(os.path.dirname(__file__), 'db_select.py')
+        if os.path.exists(file_path):
+            mtime = os.path.getmtime(file_path)
+            mtime_iso = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(mtime))
+        else:
+            mtime_iso = None
+
+        return current_app.response_class(json.dumps({'pid': pid, 'file': file_path, 'file_mtime': mtime_iso}), mimetype='application/json')
+    except Exception as e:
+        return current_app.response_class(json.dumps({'error': str(e)}), status=500, mimetype='application/json')
