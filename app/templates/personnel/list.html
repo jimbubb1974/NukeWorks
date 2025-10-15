@@ -170,13 +170,9 @@ endblock %} {% block content %}
               <td>{{ person.role or '-' }}</td>
               <td>
                 {% if person.company %}
-                <a
-                  href="{{ url_for('companies.view_company', company_id=person.company_id) }}"
-                  class="badge bg-primary"
-                  >{{ person.company.company_name }}</a
-                >
+                  <a href="{{ url_for('companies.view_company', company_id=person.company_id) }}">{{ person.company.company_name }}</a>
                 {% else %}
-                <span class="text-muted">No company</span>
+                  <span class="text-muted">No company</span>
                 {% endif %}
               </td>
               <td class="text-end">
