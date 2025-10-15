@@ -159,7 +159,6 @@ endblock %} {% block content %}
             <tr>
               <th>Name</th>
               <th>Role</th>
-              <th>Email</th>
               <th>Company</th>
               <th class="text-end">Actions</th>
             </tr>
@@ -169,11 +168,6 @@ endblock %} {% block content %}
             <tr>
               <td>{{ person.full_name }}</td>
               <td>{{ person.role or '-' }}</td>
-              <td>
-                {% if person.email %}<a href="mailto:{{ person.email }}"
-                  >{{ person.email }}</a
-                >{% else %}-{% endif %}
-              </td>
               <td>
                 {% if person.company %}
                 <a
