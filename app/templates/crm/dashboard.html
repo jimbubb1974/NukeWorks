@@ -37,7 +37,6 @@
                                             {% endif %}
                                         </a>
                                     </th>
-                                    <th>Personnel</th>
                                     <th style="width: 60px;"></th>
                                 </tr>
                             </thead>
@@ -63,22 +62,7 @@
                                             <span class="text-muted">Not set</span>
                                         {% endif %}
                                     </td>
-                                    <td>
-                                        {% if personnel_with_connections %}
-                                            {% for item in personnel_with_connections[:2] %}
-                                                {% set person = item.person %}
-                                                <div class="small">
-                                                    {{ person.full_name }}
-                                                    {% if person.role %}<span class="text-muted"> - {{ person.role }}</span>{% endif %}
-                                                </div>
-                                            {% endfor %}
-                                            {% if personnel_with_connections|length > 2 %}
-                                                <small class="text-muted">+{{ personnel_with_connections|length - 2 }} more</small>
-                                            {% endif %}
-                                        {% else %}
-                                            <span class="text-muted">No contacts</span>
-                                        {% endif %}
-                                    </td>
+                                    
                                     <td class="text-center">
                                         <a href="{{ url_for('crm.add_roundtable_entry', company_id=company.company_id) }}" 
                                            class="btn btn-sm btn-outline-primary" 
