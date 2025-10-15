@@ -162,6 +162,114 @@
                             {% endif %}
                         </div>
 
+                        <!-- Financial Information Section -->
+                        <hr class="my-4">
+                        <h5><i class="bi bi-currency-dollar"></i> Financial Information</h5>
+
+                        <!-- CAPEX Row -->
+                        <div class="row g-2 mb-3">
+                            <div class="col-md-7">
+                                {{ form.capex.label(class="form-label") }}
+                                {{ form.capex(class="form-control" + (" is-invalid" if form.capex.errors else "")) }}
+                                {% if form.capex.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.capex.errors %}
+                                    {{ error }}
+                                    {% endfor %}
+                                </div>
+                                {% else %}
+                                <div class="form-text">Capital expenditure (total project cost)</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-5 d-flex align-items-center">
+                                <div class="form-check mt-4">
+                                    <input type="checkbox" name="capex_confidential" class="form-check-input"
+                                           id="capex_confidential" {% if capex_is_confidential %}checked{% endif %}>
+                                    <label class="form-check-label" for="capex_confidential">
+                                        <i class="bi bi-lock"></i> Mark as Confidential
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- OPEX Row -->
+                        <div class="row g-2 mb-3">
+                            <div class="col-md-7">
+                                {{ form.opex.label(class="form-label") }}
+                                {{ form.opex(class="form-control" + (" is-invalid" if form.opex.errors else "")) }}
+                                {% if form.opex.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.opex.errors %}
+                                    {{ error }}
+                                    {% endfor %}
+                                </div>
+                                {% else %}
+                                <div class="form-text">Annual operating expenditure</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-5 d-flex align-items-center">
+                                <div class="form-check mt-4">
+                                    <input type="checkbox" name="opex_confidential" class="form-check-input"
+                                           id="opex_confidential" {% if opex_is_confidential %}checked{% endif %}>
+                                    <label class="form-check-label" for="opex_confidential">
+                                        <i class="bi bi-lock"></i> Mark as Confidential
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Fuel Cost Row -->
+                        <div class="row g-2 mb-3">
+                            <div class="col-md-7">
+                                {{ form.fuel_cost.label(class="form-label") }}
+                                {{ form.fuel_cost(class="form-control" + (" is-invalid" if form.fuel_cost.errors else "")) }}
+                                {% if form.fuel_cost.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.fuel_cost.errors %}
+                                    {{ error }}
+                                    {% endfor %}
+                                </div>
+                                {% else %}
+                                <div class="form-text">Annual fuel cost</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-5 d-flex align-items-center">
+                                <div class="form-check mt-4">
+                                    <input type="checkbox" name="fuel_cost_confidential" class="form-check-input"
+                                           id="fuel_cost_confidential" {% if fuel_cost_is_confidential %}checked{% endif %}>
+                                    <label class="form-check-label" for="fuel_cost_confidential">
+                                        <i class="bi bi-lock"></i> Mark as Confidential
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- LCOE Row -->
+                        <div class="row g-2 mb-3">
+                            <div class="col-md-7">
+                                {{ form.lcoe.label(class="form-label") }}
+                                {{ form.lcoe(class="form-control" + (" is-invalid" if form.lcoe.errors else "")) }}
+                                {% if form.lcoe.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.lcoe.errors %}
+                                    {{ error }}
+                                    {% endfor %}
+                                </div>
+                                {% else %}
+                                <div class="form-text">Levelized cost of energy ($/kWh)</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-5 d-flex align-items-center">
+                                <div class="form-check mt-4">
+                                    <input type="checkbox" name="lcoe_confidential" class="form-check-input"
+                                           id="lcoe_confidential" {% if lcoe_is_confidential %}checked{% endif %}>
+                                    <label class="form-check-label" for="lcoe_confidential">
+                                        <i class="bi bi-lock"></i> Mark as Confidential
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- Relationship Management Sections -->
                         <hr class="my-4">
                         <h5><i class="bi bi-diagram-3"></i> Project Relationships</h5>

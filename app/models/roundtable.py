@@ -1,10 +1,13 @@
 """
 Roundtable History model (NED Team only)
 Matches 02_DATABASE_SCHEMA.md specification exactly
+
+NOTE: All discussion/notes fields are encrypted (NED Team only access).
 """
-from sqlalchemy import Column, Integer, Text, DateTime, ForeignKey, Index
+from sqlalchemy import Column, Integer, Text, DateTime, ForeignKey, Index, LargeBinary
 from datetime import datetime
 from .base import Base
+from app.utils.encryption import EncryptedField
 
 
 class RoundtableHistory(Base):
@@ -14,26 +17,33 @@ class RoundtableHistory(Base):
 
     Schema from 02_DATABASE_SCHEMA.md - Roundtable_History table
     Note: Does NOT use TimestampMixin - uses simpler audit fields
+
+    NOTE: All content fields are encrypted (NED Team only access).
     """
     __tablename__ = 'roundtable_history'
 
     # Primary Key
     history_id = Column(Integer, primary_key=True, autoincrement=True)
 
-    # Polymorphic Entity Reference
+    # Polymorphic Entity Reference (plain text - needed for queries)
     entity_type = Column(Text, nullable=False)  # Owner, Project, etc.
     entity_id = Column(Integer, nullable=False)
 
-    # Meeting Information
-    discussion = Column(Text)
-    action_items = Column(Text)
+    # Encrypted NED Team fields (all meeting content)
+    _discussion_encrypted = Column('discussion_encrypted', LargeBinary)
+    _action_items_encrypted = Column('action_items_encrypted', LargeBinary)
+    _next_steps_encrypted = Column('next_steps_encrypted', LargeBinary)
+    _client_near_term_focus_encrypted = Column('client_near_term_focus_encrypted', LargeBinary)
+    _mpr_work_targets_encrypted = Column('mpr_work_targets_encrypted', LargeBinary)
 
-    # CRM-specific fields (added in migration 003)
-    next_steps = Column(Text)  # Next steps for this client
-    client_near_term_focus = Column(Text)  # What the client is focusing on
-    mpr_work_targets = Column(Text)  # MPR's goals/targets for this client
+    # Properties with automatic encryption/decryption
+    discussion = EncryptedField('_discussion_encrypted', 'ned_team', '[NED Team Only]')
+    action_items = EncryptedField('_action_items_encrypted', 'ned_team', '[NED Team Only]')
+    next_steps = EncryptedField('_next_steps_encrypted', 'ned_team', '[NED Team Only]')
+    client_near_term_focus = EncryptedField('_client_near_term_focus_encrypted', 'ned_team', '[NED Team Only]')
+    mpr_work_targets = EncryptedField('_mpr_work_targets_encrypted', 'ned_team', '[NED Team Only]')
 
-    # Audit fields (simpler than TimestampMixin - entries are append-only)
+    # Audit fields (plain text - simpler than TimestampMixin - entries are append-only)
     created_by = Column(Integer, ForeignKey('users.user_id'))
     created_timestamp = Column(DateTime, nullable=False, default=datetime.now)
 

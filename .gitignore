@@ -42,6 +42,11 @@ flask_sessions/
 nukeworks_db.sqlite
 dev_nukeworks.sqlite
 
+# Unencrypted database backups (security)
+*_unencrypted.*
+databases/production/*.sqlite
+databases/production/*_plain.*
+
 # Environment Variables
 .env
 .env.local

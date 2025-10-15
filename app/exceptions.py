@@ -36,3 +36,23 @@ class SnapshotError(NukeWorksException):
 class MigrationError(NukeWorksException):
     """Raised when database migration fails"""
     pass
+
+
+class EncryptionError(NukeWorksException):
+    """Base exception for encryption-related errors"""
+    pass
+
+
+class EncryptionKeyError(EncryptionError):
+    """Raised when encryption key is invalid or missing"""
+    pass
+
+
+class DecryptionError(EncryptionError):
+    """Raised when decryption fails"""
+    pass
+
+
+class InsufficientPermissionsError(PermissionDeniedError):
+    """Raised when user lacks permission to access encrypted data"""
+    pass

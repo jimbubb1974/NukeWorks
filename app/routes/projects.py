@@ -19,7 +19,8 @@ from app.forms.relationships import (
 )
 from app.forms.projects import ProjectForm
 from app import db_session
-from app.utils.permissions import filter_relationships
+from app.utils.permissions import filter_relationships, mark_field_confidential
+from app.models.confidential import ConfidentialFieldFlag
 from app.services.company_sync import sync_personnel_affiliation
 from app.routes.relationship_utils import get_personnel_choices
 
@@ -175,6 +176,10 @@ def create_project():
             latitude=float(form.latitude.data) if form.latitude.data is not None else None,
             longitude=float(form.longitude.data) if form.longitude.data is not None else None,
             notes=form.notes.data or None,
+            capex=form.capex.data or None,
+            opex=form.opex.data or None,
+            fuel_cost=form.fuel_cost.data or None,
+            lcoe=form.lcoe.data or None,
             created_by=current_user.user_id,
             modified_by=current_user.user_id
         )
@@ -185,6 +190,23 @@ def create_project():
 
             # Process relationship assignments
             _process_relationship_assignments(project, request.form, current_user.user_id)
+
+            # Process per-field confidentiality flags for financial data
+            financial_fields = ['capex', 'opex', 'fuel_cost', 'lcoe']
+            for field in financial_fields:
+                checkbox_name = f'{field}_confidential'
+                is_confidential = request.form.get(checkbox_name) == 'on'
+
+                # Only create flag if field has data or is explicitly marked confidential
+                field_value = getattr(project, field, None)
+                if field_value is not None or is_confidential:
+                    mark_field_confidential(
+                        'projects',
+                        project.project_id,
+                        field,
+                        is_confidential,
+                        current_user.user_id
+                    )
 
             db_session.commit()
             flash('Project created successfully.', 'success')
@@ -304,11 +326,35 @@ def edit_project(project_id):
             project.latitude = float(form.latitude.data) if form.latitude.data is not None else None
             project.longitude = float(form.longitude.data) if form.longitude.data is not None else None
             project.notes = form.notes.data or None
+
+            # Update financial fields (encrypted - automatically handled by EncryptedField descriptor)
+            project.capex = form.capex.data or None
+            project.opex = form.opex.data or None
+            project.fuel_cost = form.fuel_cost.data or None
+            project.lcoe = form.lcoe.data or None
+
             project.modified_by = current_user.user_id
             project.modified_date = datetime.utcnow()
 
             # Process relationship assignments
             _process_relationship_assignments(project, request.form, current_user.user_id)
+
+            # Process per-field confidentiality flags for financial data
+            financial_fields = ['capex', 'opex', 'fuel_cost', 'lcoe']
+            for field in financial_fields:
+                checkbox_name = f'{field}_confidential'
+                is_confidential = request.form.get(checkbox_name) == 'on'
+
+                # Update or create flag for each field
+                field_value = getattr(project, field, None)
+                if field_value is not None or is_confidential:
+                    mark_field_confidential(
+                        'projects',
+                        project.project_id,
+                        field,
+                        is_confidential,
+                        current_user.user_id
+                    )
 
             db_session.commit()
 
@@ -349,6 +395,17 @@ def edit_project(project_id):
     constructor_assignments = _by_role('constructor')
     offtaker_assignments = _by_role('offtaker')
 
+    # Query current confidentiality flags for financial fields
+    financial_fields = ['capex', 'opex', 'fuel_cost', 'lcoe']
+    confidentiality_flags = {}
+    for field in financial_fields:
+        flag = db_session.query(ConfidentialFieldFlag).filter_by(
+            table_name='projects',
+            record_id=project.project_id,
+            field_name=field
+        ).first()
+        confidentiality_flags[f'{field}_is_confidential'] = flag.is_confidential if flag else False
+
     return render_template(
         'projects/form.html',
         form=form,
@@ -359,7 +416,8 @@ def edit_project(project_id):
         owner_assignments=owner_assignments,
         operator_assignments=operator_assignments,
         constructor_assignments=constructor_assignments,
-        offtaker_assignments=offtaker_assignments
+        offtaker_assignments=offtaker_assignments,
+        **confidentiality_flags
     )
 
 

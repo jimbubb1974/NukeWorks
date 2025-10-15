@@ -88,6 +88,80 @@
         </div>
 
         <div class="col-lg-6">
+            <!-- Financial Information Card -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-currency-dollar"></i> Financial Information</h5>
+                </div>
+                <div class="card-body">
+                    <dl class="row mb-0">
+                        <dt class="col-sm-4">CAPEX:</dt>
+                        <dd class="col-sm-8">
+                            {% if project.capex %}
+                                {% if project.capex == '[Confidential]' %}
+                                    <span class="badge bg-warning text-dark">
+                                        <i class="bi bi-lock"></i> {{ project.capex }}
+                                    </span>
+                                {% else %}
+                                    ${{ '{:,.0f}'.format(project.capex|float) }}
+                                {% endif %}
+                            {% else %}
+                                <span class="text-muted">Not set</span>
+                            {% endif %}
+                        </dd>
+
+                        <dt class="col-sm-4">OPEX:</dt>
+                        <dd class="col-sm-8">
+                            {% if project.opex %}
+                                {% if project.opex == '[Confidential]' %}
+                                    <span class="badge bg-warning text-dark">
+                                        <i class="bi bi-lock"></i> {{ project.opex }}
+                                    </span>
+                                {% else %}
+                                    ${{ '{:,.0f}'.format(project.opex|float) }}/year
+                                {% endif %}
+                            {% else %}
+                                <span class="text-muted">Not set</span>
+                            {% endif %}
+                        </dd>
+
+                        <dt class="col-sm-4">Fuel Cost:</dt>
+                        <dd class="col-sm-8">
+                            {% if project.fuel_cost %}
+                                {% if project.fuel_cost == '[Confidential]' %}
+                                    <span class="badge bg-warning text-dark">
+                                        <i class="bi bi-lock"></i> {{ project.fuel_cost }}
+                                    </span>
+                                {% else %}
+                                    ${{ '{:,.0f}'.format(project.fuel_cost|float) }}
+                                {% endif %}
+                            {% else %}
+                                <span class="text-muted">Not set</span>
+                            {% endif %}
+                        </dd>
+
+                        <dt class="col-sm-4">LCOE:</dt>
+                        <dd class="col-sm-8">
+                            {% if project.lcoe %}
+                                {% if project.lcoe == '[Confidential]' %}
+                                    <span class="badge bg-warning text-dark">
+                                        <i class="bi bi-lock"></i> {{ project.lcoe }}
+                                    </span>
+                                {% else %}
+                                    ${{ '%.3f'|format(project.lcoe|float) }}/kWh
+                                {% endif %}
+                            {% else %}
+                                <span class="text-muted">Not set</span>
+                            {% endif %}
+                        </dd>
+                    </dl>
+                    <div class="mt-2 small text-muted">
+                        <i class="bi bi-info-circle"></i> Financial data visible based on user permissions.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Relationship Summary Card -->
             <div class="card mb-4">
                 <div class="card-header">
                     <h5 class="mb-0"><i class="bi bi-graph-up"></i> Relationship Summary</h5>

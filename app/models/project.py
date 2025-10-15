@@ -1,10 +1,14 @@
 """
 Project model
 Matches 02_DATABASE_SCHEMA.md specification exactly with all financial fields
+
+NOTE: Financial fields (capex, opex, fuel_cost, lcoe) are encrypted for confidential access.
 """
-from sqlalchemy import Column, Integer, Text, Float, Date, ForeignKey, Index
+from sqlalchemy import Column, Integer, Text, Float, Date, ForeignKey, Index, LargeBinary
 from sqlalchemy.orm import relationship
+from sqlalchemy.ext.hybrid import hybrid_property
 from .base import Base, TimestampMixin
+from app.utils.encryption import EncryptedField
 
 
 class Project(Base, TimestampMixin):
@@ -32,11 +36,18 @@ class Project(Base, TimestampMixin):
     latitude = Column(Float)  # Decimal degrees, WGS84
     longitude = Column(Float)  # Decimal degrees, WGS84
 
-    # Financial Data (can be marked confidential via Confidential_Field_Flags table)
-    capex = Column(Float)  # Capital expenditure
-    opex = Column(Float)  # Operating expenditure
-    fuel_cost = Column(Float)
-    lcoe = Column(Float)  # Levelized cost of energy
+    # Financial Data - ENCRYPTED (requires confidential access)
+    # Encrypted columns (database storage as binary blobs)
+    _capex_encrypted = Column('capex_encrypted', LargeBinary)
+    _opex_encrypted = Column('opex_encrypted', LargeBinary)
+    _fuel_cost_encrypted = Column('fuel_cost_encrypted', LargeBinary)
+    _lcoe_encrypted = Column('lcoe_encrypted', LargeBinary)
+
+    # Properties with automatic encryption/decryption based on user permissions
+    capex = EncryptedField('_capex_encrypted', 'confidential', '[Confidential]')
+    opex = EncryptedField('_opex_encrypted', 'confidential', '[Confidential]')
+    fuel_cost = EncryptedField('_fuel_cost_encrypted', 'confidential', '[Confidential]')
+    lcoe = EncryptedField('_lcoe_encrypted', 'confidential', '[Confidential]')
 
     # Project Dates and IDs
     cod = Column(Date)  # Commercial operation date
@@ -144,15 +155,13 @@ class Project(Base, TimestampMixin):
             'modified_by': self.modified_by,
         }
 
-        # Financial fields - check confidentiality if user provided
+        # Financial fields - automatically encrypted/decrypted based on permissions
+        # Note: EncryptedField properties automatically check permissions
+        # If user lacks confidential_access, they'll see "[Confidential]"
         financial_fields = ['capex', 'opex', 'fuel_cost', 'lcoe']
         for field in financial_fields:
-            if user:
-                if can_view_field(user, 'projects', self.project_id, field):
-                    data[field] = getattr(self, field)
-                else:
-                    data[field] = '[Confidential - Access Restricted]'
-            else:
-                data[field] = getattr(self, field)
+            # EncryptedField handles permission checking automatically
+            # Just get the value - it will be redacted if user lacks permission
+            data[field] = getattr(self, field)
 
         return data

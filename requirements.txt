@@ -13,6 +13,12 @@ alembic==1.13.0
 bcrypt==4.1.2
 python-dotenv==1.0.0
 
+# Encryption
+# Note: SQLCipher requires C compilation on Windows which can be problematic
+# Alternative approach: Use Python-based SQLite encryption with cryptography
+cryptography==41.0.7
+# pysqlcipher3==1.2.0  # Commented out - requires C compiler on Windows
+
 # Forms & Validation
 WTForms==3.1.1
 email-validator==2.1.0

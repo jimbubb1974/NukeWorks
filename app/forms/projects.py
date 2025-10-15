@@ -77,6 +77,31 @@ class ProjectForm(FlaskForm):
         render_kw={'placeholder': 'e.g., -105.9381'}
     )
 
+    # Financial fields (encrypted - requires confidential access)
+    capex = StringField(
+        'CAPEX (Capital Expenditure)',
+        validators=[Optional(), Length(max=255)],
+        render_kw={'placeholder': 'e.g., 5000000'}
+    )
+
+    opex = StringField(
+        'OPEX (Operating Expenditure)',
+        validators=[Optional(), Length(max=255)],
+        render_kw={'placeholder': 'e.g., 500000 per year'}
+    )
+
+    fuel_cost = StringField(
+        'Fuel Cost',
+        validators=[Optional(), Length(max=255)],
+        render_kw={'placeholder': 'e.g., 10000'}
+    )
+
+    lcoe = StringField(
+        'LCOE (Levelized Cost of Energy)',
+        validators=[Optional(), Length(max=255)],
+        render_kw={'placeholder': 'e.g., 0.085 ($/kWh)'}
+    )
+
     submit = SubmitField('Save Project')
 
     def __init__(self, project_id=None, *args, **kwargs):

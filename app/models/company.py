@@ -1,4 +1,7 @@
-"""Unified company and relationship models for refactor"""
+"""Unified company and relationship models for refactor
+
+NOTE: ClientProfile and InternalExternalLink contain encrypted NED Team fields.
+"""
 from sqlalchemy import (
     Column,
     Integer,
@@ -8,10 +11,12 @@ from sqlalchemy import (
     ForeignKey,
     UniqueConstraint,
     Index,
+    LargeBinary,
 )
 from sqlalchemy.orm import relationship
 
 from .base import Base, TimestampMixin
+from app.utils.encryption import EncryptedField
 
 
 class Company(Base, TimestampMixin):
@@ -141,15 +146,28 @@ class CompanyRoleAssignment(Base, TimestampMixin):
 
 
 class ClientProfile(Base, TimestampMixin):
-    """Extended CRM view for MPR clients."""
+    """Extended CRM view for MPR clients.
+
+    NOTE: Relationship assessment fields are encrypted (NED Team only access).
+    """
 
     __tablename__ = 'client_profiles'
 
     company_id = Column(Integer, ForeignKey('companies.company_id'), primary_key=True)
-    relationship_strength = Column(Text)
-    relationship_notes = Column(Text)
-    client_priority = Column(Text)
-    client_status = Column(Text)
+
+    # Encrypted NED Team fields (internal relationship assessments)
+    _relationship_strength_encrypted = Column('relationship_strength_encrypted', LargeBinary)
+    _relationship_notes_encrypted = Column('relationship_notes_encrypted', LargeBinary)
+    _client_priority_encrypted = Column('client_priority_encrypted', LargeBinary)
+    _client_status_encrypted = Column('client_status_encrypted', LargeBinary)
+
+    # Properties with automatic encryption/decryption
+    relationship_strength = EncryptedField('_relationship_strength_encrypted', 'ned_team', '[NED Team Only]')
+    relationship_notes = EncryptedField('_relationship_notes_encrypted', 'ned_team', '[NED Team Only]')
+    client_priority = EncryptedField('_client_priority_encrypted', 'ned_team', '[NED Team Only]')
+    client_status = EncryptedField('_client_status_encrypted', 'ned_team', '[NED Team Only]')
+
+    # Plain text fields (contact tracking)
     last_contact_date = Column(Date)
     last_contact_type = Column(Text)
     last_contact_by = Column(Integer, ForeignKey('personnel.personnel_id'))
@@ -203,7 +221,10 @@ class PersonCompanyAffiliation(Base, TimestampMixin):
 
 
 class InternalExternalLink(Base, TimestampMixin):
-    """Relationship mapping between internal personnel and external contacts."""
+    """Relationship mapping between internal personnel and external contacts.
+
+    NOTE: Relationship assessments are encrypted (NED Team only access).
+    """
 
     __tablename__ = 'internal_external_links'
 
@@ -212,8 +233,14 @@ class InternalExternalLink(Base, TimestampMixin):
     external_person_id = Column(Integer, ForeignKey('personnel.personnel_id'), nullable=False)
     company_id = Column(Integer, ForeignKey('companies.company_id'))
     relationship_type = Column(Text)
-    relationship_strength = Column(Text)
-    notes = Column(Text)
+
+    # Encrypted NED Team fields (internal assessments)
+    _relationship_strength_encrypted = Column('relationship_strength_encrypted', LargeBinary)
+    _notes_encrypted = Column('notes_encrypted', LargeBinary)
+
+    # Properties with automatic encryption/decryption
+    relationship_strength = EncryptedField('_relationship_strength_encrypted', 'ned_team', '[NED Team Only]')
+    notes = EncryptedField('_notes_encrypted', 'ned_team', '[NED Team Only]')
 
     __table_args__ = (
         UniqueConstraint('internal_person_id', 'external_person_id', 'company_id', name='uq_internal_external_company'),
