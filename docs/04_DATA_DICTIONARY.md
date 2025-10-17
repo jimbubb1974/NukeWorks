@@ -7,6 +7,8 @@
 - `02_DATABASE_SCHEMA.md` - Table structures
 - `03_DATABASE_RELATIONSHIPS.md` - Relationships
 - `06_BUSINESS_RULES.md` - Business logic
+- `ENCRYPTION_IMPLEMENTATION_STATUS.md` - Encryption implementation phases and status
+- `FIELDS_FOR_ENCRYPTION.md` - Detailed encryption plan and field analysis
 
 ---
 
@@ -19,9 +21,10 @@ This document defines enumerations, validation rules, and field constraints for 
 ## Table of Contents
 
 1. [Enumerations](#enumerations)
-2. [Validation Rules](#validation-rules)
-3. [Field Constraints](#field-constraints)
-4. [Data Formats](#data-formats)
+2. [Encrypted Fields](#encrypted-fields) ⭐ NEW
+3. [Validation Rules](#validation-rules)
+4. [Field Constraints](#field-constraints)
+5. [Data Formats](#data-formats)
 
 ---
 
@@ -191,6 +194,67 @@ This document defines enumerations, validation rules, and field constraints for 
 
 **Database Storage:** TEXT  
 **UI Display:** Dropdown select
+
+---
+
+## Encrypted Fields
+
+**Status:** Phase 3a Complete - Project financial fields are now encrypted
+
+Certain fields are encrypted at the database level to protect sensitive data. Non-authorized users see placeholder text instead of actual values.
+
+### Project Model - Encrypted Financial Fields (ACTIVE)
+
+| Field | Database Column (Plaintext) | Database Column (Encrypted) | Encryption Key | Required Access | Display (No Access) | Type | Default |
+|-------|------|--------|--------|--------|--------|--------|--------|
+| Capital Expenditure | capex | capex_encrypted | 'confidential' | `has_confidential_access=True` | `[Confidential]` | BLOB | NULL |
+| Operating Expenditure | opex | opex_encrypted | 'confidential' | `has_confidential_access=True` | `[Confidential]` | BLOB | NULL |
+| Fuel Costs | fuel_cost | fuel_cost_encrypted | 'confidential' | `has_confidential_access=True` | `[Confidential]` | BLOB | NULL |
+| LCOE | lcoe | lcoe_encrypted | 'confidential' | `has_confidential_access=True` | `[Confidential]` | BLOB | NULL |
+
+**Access Control:**
+- Users with `has_confidential_access=True`: See actual financial values
+- Users without confidential access: See `[Confidential]` placeholder
+- Admins: Always see actual values
+
+**Data Handling:**
+- Original plaintext columns retained for backward compatibility (not yet removed)
+- All new code uses encrypted columns
+- Application transparently handles encryption/decryption via `EncryptedField` descriptors
+- Decryption only occurs for authorized users (permission check happens at read time)
+
+**Validation Rules for Encrypted Fields:**
+- Financial fields must be non-negative (0 or positive)
+- NULL values allowed (field optional)
+- Floating point precision preserved through encryption
+
+### Planned Encrypted Fields (Pending)
+
+See `ENCRYPTION_IMPLEMENTATION_STATUS.md` for detailed status of upcoming phases:
+
+**Phase 3b: ClientProfile NED Team Fields**
+- `relationship_strength`, `relationship_notes`, `client_priority`, `client_status`
+- Encryption key: 'ned_team'
+- Required access: `is_ned_team=True`
+- Status: ⏳ Ready for implementation
+
+**Phase 3c: RoundtableHistory NED Team Fields**
+- `discussion`, `action_items`, `next_steps`, `client_near_term_focus`, `mpr_work_targets`
+- Encryption key: 'ned_team'
+- Required access: `is_ned_team=True`
+- Status: ⏳ Ready for implementation
+
+**Phase 3d: CompanyRoleAssignment Notes**
+- `notes` (conditional - only if is_confidential=True)
+- Encryption key: 'confidential'
+- Required access: `has_confidential_access=True`
+- Status: ⏳ Lower priority
+
+**Phase 3e: InternalExternalLink NED Team Fields**
+- `relationship_strength`, `notes`
+- Encryption key: 'ned_team'
+- Required access: `is_ned_team=True`
+- Status: ⏳ Lower priority
 
 ---
 

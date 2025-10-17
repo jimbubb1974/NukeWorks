@@ -8,12 +8,14 @@ A multi-user web-based database application for managing nuclear project data, t
 - **Two-Tier Permission System**:
   - Tier 1: Confidential Access (business data)
   - Tier 2: NED Team Access (internal strategy notes)
+- **Per-Field Encryption** - Financial data encrypted at rest (CAPEX, OPEX, LCOE, fuel costs)
 - **Unified Company Management** with role-based organization system
 - **Client Relationship Management (CRM)** for tracking interactions
 - **Network Diagram Visualization** of relationships
 - **PDF Report Generation** with confidentiality filtering
 - **Automated Backup/Snapshot System**
 - **Database Migration System** for schema evolution
+- **Granular Access Control** with field-level and relationship-level confidentiality
 
 ## Technology Stack
 
@@ -286,11 +288,55 @@ Complete specification documents are in the `docs/` directory:
 
 - `00_MASTER_SPECIFICATION.md` - Overview and navigation
 - `01_ARCHITECTURE.md` - System architecture
-- `02_DATABASE_SCHEMA.md` - Core entity tables
+- `02_DATABASE_SCHEMA.md` - Core entity tables (with encryption documentation)
 - `03_DATABASE_RELATIONSHIPS.md` - Junction tables
-- `04_DATA_DICTIONARY.md` - Field definitions
-- `05_PERMISSION_SYSTEM.md` - Access control
-- And 17 more detailed specification documents...
+- `04_DATA_DICTIONARY.md` - Field definitions (with encrypted fields)
+- `05_PERMISSION_SYSTEM.md` - Access control and encryption integration
+- `ENCRYPTION_IMPLEMENTATION_STATUS.md` - Current encryption status by phase
+- `ENCRYPTION_IMPLEMENTATION_PLAN.md` - Detailed field analysis for encryption
+- And 12+ more detailed specification documents...
+
+See `docs/DOCUMENTATION_REFRESH_ACTION_PLAN.md` for current documentation maintenance status.
+
+## Current Project Status
+
+### Recently Completed (October 2025)
+
+✅ **Per-Field Encryption - Phase 3a**
+- Project financial fields encrypted: CAPEX, OPEX, fuel_cost, LCOE
+- Access control integrated with encryption
+- Ready for production deployment
+
+✅ **Company Unification Migration**
+- Unified company schema (Companies, CompanyRoles, CompanyRoleAssignments)
+- Backfill scripts tested in dev/staging
+- CRUD operations synced to new schema
+- Ready for production migration
+
+✅ **Documentation Refresh**
+- Clarified migration status and encryption implementation
+- Added comprehensive status documents
+- Updated master specification with current state
+- 10 obsolete phase marker files removed
+
+### Currently In Progress
+
+⏳ **Remaining Encryption Phases (3b-3e)**
+- Phase 3b: ClientProfile NED Team fields
+- Phase 3c: RoundtableHistory NED Team fields
+- Phase 3d: CompanyRoleAssignment conditional encryption
+- Phase 3e: InternalExternalLink NED Team fields
+
+⏳ **Company Unification Production Migration**
+- Staged rollout awaiting approval
+- Backfill validation scripts ready
+- Production timeline in docs/MIGRATION_PLAN.md
+
+### Known Limitations
+
+- Legacy database tables still exist during transition (planned for removal 3-6 months post-migration)
+- Database selection feature (new) not fully documented (see docs/DATABASE_SELECTION_FEATURE.md)
+- Some spec documents updated but not all Phase 1-2 features fully refreshed
 
 ## Troubleshooting
 

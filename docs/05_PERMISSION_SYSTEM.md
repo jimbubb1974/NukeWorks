@@ -6,6 +6,8 @@
 **Related Documents:**
 - `02_DATABASE_SCHEMA.md` - Users table, Confidential_Field_Flags table
 - `03_DATABASE_RELATIONSHIPS.md` - Relationship confidentiality
+- `04_DATA_DICTIONARY.md` - Encrypted fields and validation
+- `ENCRYPTION_IMPLEMENTATION_STATUS.md` - Encryption phases and status
 - `19_SECURITY.md` - Security best practices
 
 ---
@@ -27,11 +29,12 @@ These two tiers are **independent** - a user can have either, both, or neither p
 2. [User Permission Levels](#user-permission-levels)
 3. [Tier 1: Business Data Confidentiality](#tier-1-business-data-confidentiality)
 4. [Tier 2: NED Team Access](#tier-2-ned-team-access)
-5. [Permission Checking Functions](#permission-checking-functions)
-6. [Display Logic](#display-logic)
-7. [Admin Permissions](#admin-permissions)
-8. [Permission Management UI](#permission-management-ui)
-9. [Security Considerations](#security-considerations)
+5. [Encryption & Field-Level Access Control](#encryption--field-level-access-control) ⭐ NEW
+6. [Permission Checking Functions](#permission-checking-functions)
+7. [Display Logic](#display-logic)
+8. [Admin Permissions](#admin-permissions)
+9. [Permission Management UI](#permission-management-ui)
+10. [Security Considerations](#security-considerations)
 
 ---
 
@@ -407,6 +410,163 @@ ROUNDTABLE DISCUSSION (NED Team Only)
 **Important:** NED Team content is NOT flagged field-by-field. Access is all-or-nothing based on user's `is_ned_team` flag.
 
 This differs from Tier 1, where individual fields can be marked confidential.
+
+---
+
+## Encryption & Field-Level Access Control
+
+### Per-Field Encryption Overview
+
+In addition to permission-based access control, NukeWorks implements **per-field encryption** at the database level. This provides an additional layer of protection where sensitive fields are encrypted and only decrypted for authorized users.
+
+**Key Distinction:**
+- **Permissions** (this document): Control who can see data based on user roles
+- **Encryption**: Protects data at rest and enforces decryption-time access checks
+
+### How Encryption Works with Permissions
+
+**Step 1: Permission Check**
+- First, permission system checks if user is authorized to view the field category
+- Example: Is user `has_confidential_access=True`?
+
+**Step 2: Encryption/Decryption**
+- If permitted, encrypted value is decrypted before display
+- If not permitted, placeholder text shown (no decryption attempted)
+
+**Example Access Flow for Project.capex (Financial Data):**
+```
+User requests Project financials
+↓
+Permission check: has_confidential_access=True?
+├─ YES → Decrypt capex_encrypted → Display $50,000,000
+└─ NO → Display "[Confidential]" (no decryption)
+```
+
+### Active Encryption Implementation
+
+**Phase 3a: Project Financial Fields (LIVE)**
+
+Financial fields in Projects table are encrypted:
+
+| Field | Encryption Key | Required Permission | Encrypted Column |
+|-------|---|---|---|
+| capex | 'confidential' | `has_confidential_access=True` | capex_encrypted |
+| opex | 'confidential' | `has_confidential_access=True` | opex_encrypted |
+| fuel_cost | 'confidential' | `has_confidential_access=True` | fuel_cost_encrypted |
+| lcoe | 'confidential' | `has_confidential_access=True` | lcoe_encrypted |
+
+**Display Behavior:**
+```python
+# If user has confidential access AND is decrypting
+user.has_confidential_access=True → project.capex = 50000000 (actual value)
+
+# If user lacks confidential access
+user.has_confidential_access=False → project.capex = "[Confidential]" (placeholder)
+```
+
+### Planned Encryption (Phases 3b-3e)
+
+See `ENCRYPTION_IMPLEMENTATION_STATUS.md` for details on:
+
+- **Phase 3b: ClientProfile NED Team Fields** (relationship_strength, notes, priority, status)
+  - Encryption key: 'ned_team'
+  - Required permission: `is_ned_team=True`
+
+- **Phase 3c: RoundtableHistory NED Team Fields** (discussion, action_items, next_steps, etc.)
+  - Encryption key: 'ned_team'
+  - Required permission: `is_ned_team=True`
+
+- **Phase 3d: CompanyRoleAssignment Notes** (conditional)
+  - Encryption key: 'confidential'
+  - Required permission: `has_confidential_access=True` (if is_confidential=True)
+
+- **Phase 3e: InternalExternalLink NED Team Fields**
+  - Encryption key: 'ned_team'
+  - Required permission: `is_ned_team=True`
+
+### Implementation Details
+
+**Database Storage:**
+- Encrypted fields stored as BLOB type (binary data)
+- Original plaintext columns retained for backward compatibility (not yet removed)
+- Both columns present during transition period
+
+**Permission Integration:**
+```python
+# Encryption system checks permission at decryption time
+class EncryptedField:
+    def __get__(self, obj, type=None):
+        if not self.user_has_permission():
+            return self.placeholder  # e.g., "[Confidential]"
+
+        encrypted_value = getattr(obj, self.storage_column)
+        return decrypt(encrypted_value, self.key)
+
+# Permission check uses same user permission flags
+def user_has_permission(self):
+    user = current_user
+    if self.key == 'confidential':
+        return user.has_confidential_access or user.is_admin
+    elif self.key == 'ned_team':
+        return user.is_ned_team or user.is_admin
+```
+
+### Security Benefits
+
+**Double Protection:**
+1. **Permission layer**: Users must have appropriate permission flags to be authorized
+2. **Encryption layer**: Even if data accessed directly, remains encrypted without key
+3. **Access audit**: Decryption attempts logged with user, timestamp, field
+
+**At-Rest Security:**
+- Encrypted data in database is gibberish without decryption key
+- Database backups contain encrypted data
+- Improves compliance (SOC2, ISO27001, etc.)
+
+### Access Control Example: Combined Permissions + Encryption
+
+**Scenario: Viewing Project Financial Data**
+
+**User: jdoe (has_confidential_access=True, is_ned_team=False)**
+- Viewing Project Alpha details
+- capex_encrypted column exists (BLOB of encrypted $50M)
+- Permission check: ✅ has_confidential_access=True
+- Decryption: ✅ Allowed
+- **Result:** Sees actual CAPEX value ($50,000,000)
+
+**User: slee (has_confidential_access=False, is_ned_team=True)**
+- Viewing same Project Alpha details
+- capex_encrypted column exists (BLOB of encrypted $50M)
+- Permission check: ❌ has_confidential_access=False
+- Decryption: ❌ Prevented
+- **Result:** Sees placeholder ("[Confidential]")
+
+### Best Practices
+
+**For Developers:**
+1. **Use property access**: Access encrypted fields through EncryptedField properties, not columns directly
+2. **Check permissions early**: Permission checks happen at read time, not query time
+3. **Handle placeholders**: UI must handle placeholder text gracefully
+4. **Never log encrypted values**: Logs show field name, not actual values
+
+**For Administrators:**
+1. **Manage permission flags**: Grant `has_confidential_access` to appropriate users
+2. **Monitor encryption**: Check logs for decryption attempts
+3. **Backup keys safely**: Keep encryption keys secure and backed up
+4. **Test access**: Regularly verify permission logic working correctly
+
+### Troubleshooting
+
+**User sees "[Confidential]" but claims they should have access:**
+1. Check user `has_confidential_access` flag in Users table
+2. Verify permission change replicated to all servers (if distributed)
+3. Check encryption system logs for errors
+4. Try clearing user session cache
+
+**Decryption errors in logs:**
+1. Check encryption key hasn't been rotated
+2. Verify BLOB column data not corrupted
+3. Check database backup/restore completed successfully
 
 ---
 

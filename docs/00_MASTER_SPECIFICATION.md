@@ -66,6 +66,23 @@ This specification is organized into modular documents for efficient agent proce
 - **`21_TROUBLESHOOTING.md`** - Common issues and solutions
 - **`22_IMPLEMENTATION_CHECKLIST.md`** - Step-by-step development guide
 
+### Additional Documentation (October 2025)
+
+**Company Unification & Migration**
+- **`COMPANY_UNIFICATION.md`** - Unified company schema migration (WORK IN PROGRESS)
+- **`docs/MIGRATION_PLAN.md`** - Production migration procedures
+
+**Encryption Implementation**
+- **`ENCRYPTION_IMPLEMENTATION_STATUS.md`** ⭐ - Current encryption status by phase
+- **`ENCRYPTION_IMPLEMENTATION_PLAN.md`** - Detailed field analysis and implementation roadmap
+
+**Implementation Guides**
+- **`AUTH_IMPLEMENTATION.md`** - User authentication system
+- **`PERMISSION_SYSTEM_IMPLEMENTATION.md`** - Permission system implementation
+- **`VALIDATION_SYSTEM_IMPLEMENTATION.md`** - Comprehensive validation with 50+ tests
+- **`VENDOR_CRUD_IMPLEMENTATION.md`** - Complete CRUD pattern reference
+- **`CRM_CLIENTS_IMPLEMENTATION.md`** - CRM client management implementation
+
 ---
 
 ## Quick Start for Coding Agents
@@ -212,12 +229,21 @@ Expected Output:
 ✅ Migration system  
 ✅ Admin permission scrubbing  
 
-### Phase 3: Polish (Nice to Have)
-⚪ Advanced search  
-⚪ Performance optimization  
-⚪ Enhanced network layouts  
-⚪ Batch operations  
-⚪ Mobile-responsive improvements  
+### Phase 3: Encryption & Polish (In Progress)
+✅ Per-field encryption for financial data (Project model - LIVE)
+⏳ Per-field encryption for CRM notes (pending Phases 3b-3e)
+⚪ Advanced search
+⚪ Performance optimization
+⚪ Enhanced network layouts
+⚪ Batch operations
+⚪ Mobile-responsive improvements
+
+### Phase 4: Company Unification (In Progress)
+✅ Unified company schema created (Companies, CompanyRoles, CompanyRoleAssignments)
+✅ Backfill scripts prepared and tested in dev/staging
+✅ CRUD operations sync to unified schema
+⏳ Production migration (awaiting rollout approval)
+⏳ Legacy table cleanup (3-6 months post-migration)
 
 ---
 

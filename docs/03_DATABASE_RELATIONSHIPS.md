@@ -7,12 +7,20 @@
 - `02_DATABASE_SCHEMA.md` - Core entity tables
 - `04_DATA_DICTIONARY.md` - Field definitions
 - `05_PERMISSION_SYSTEM.md` - Confidentiality on relationships
+- `docs/COMPANY_UNIFICATION.md` - Migration status and timeline
+- `docs/ENCRYPTION_IMPLEMENTATION_STATUS.md` - Encryption implementation phases
 
 ---
 
 ## Overview
 
 This document defines all many-to-many (N:N) relationships using junction tables. The system uses a **unified company schema** where a single `companies` table with role-based assignments replaces legacy entity-specific tables.
+
+⚠️ **IMPORTANT: Migration Status (October 2025)**
+- **Current State:** DUAL SCHEMA ACTIVE (intentional transition period)
+- **Legacy Tables:** Still exist in database for backward compatibility
+- **New Tables:** All active and used by current code
+- **Timeline:** See `docs/COMPANY_UNIFICATION.md` for detailed migration plan and production rollout date
 
 **Key Architectural Change (October 2025):**
 - **Before:** Separate tables (Technology_Vendors, Owners_Developers, Operators, Constructors, Offtakers)

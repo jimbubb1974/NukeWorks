@@ -21,11 +21,13 @@ This document describes the **NEW unified company schema** (schema version 5+).
 **Current State (as of October 2025):**
 - ✅ New unified tables exist in database (migration 005)
 - ✅ New schema is actively used by dashboard, navigation, network diagrams
+- ✅ Project financial encryption implemented (capex, opex, fuel_cost, lcoe encrypted)
 - ⚠️ Legacy tables still exist for backward compatibility
 - ⚠️ Some code still writes to both old and new schemas
 - 🎯 **Goal:** Complete migration to use ONLY the new schema
 
-See `company_refactor_status.md` for current migration progress.
+See `docs/COMPANY_UNIFICATION.md` for current migration progress.
+See `docs/ENCRYPTION_IMPLEMENTATION_STATUS.md` for encryption implementation status.
 
 ---
 
@@ -45,9 +47,9 @@ See `company_refactor_status.md` for current migration progress.
 - ~~Constructors~~ - Use Companies with role='constructor'
 - ~~Offtakers~~ - Use Companies with role='offtaker'
 
-### Other Core Tables (Unchanged)
+### Other Core Tables (with Encryption)
 6. [Products](#products) - Reactor designs
-7. [Projects](#projects) - Nuclear project sites
+7. [Projects](#projects) - Nuclear project sites (⭐ ENCRYPTED FIELDS)
 8. [Personnel](#personnel) - People (internal & external)
 9. [Users](#users) - Application users
 
@@ -513,6 +515,10 @@ CREATE TABLE projects (
     opex REAL,
     fuel_cost REAL,
     lcoe REAL,
+    capex_encrypted BLOB,
+    opex_encrypted BLOB,
+    fuel_cost_encrypted BLOB,
+    lcoe_encrypted BLOB,
     cod DATE,
     mpr_project_id TEXT,
     notes TEXT,
@@ -532,13 +538,32 @@ CREATE TABLE projects (
 );
 ```
 
+**Encrypted Fields (Phase 3a - ACTIVE):**
+
+Financial data in Projects is encrypted for confidentiality. The original plaintext columns (capex, opex, fuel_cost, lcoe) are retained for backward compatibility. New code uses encrypted columns.
+
+| Field | Plaintext Column | Encrypted Column | Access Level | Display (No Access) |
+|-------|------------------|------------------|-------------|-------------------|
+| Capital Expenditure | capex | capex_encrypted | `has_confidential_access=True` | `[Confidential]` |
+| Operating Expenditure | opex | opex_encrypted | `has_confidential_access=True` | `[Confidential]` |
+| Fuel Costs | fuel_cost | fuel_cost_encrypted | `has_confidential_access=True` | `[Confidential]` |
+| LCOE | lcoe | lcoe_encrypted | `has_confidential_access=True` | `[Confidential]` |
+
+**Implementation Details:**
+- Encrypted columns store BLOB (binary) data
+- Encryption key: 'confidential'
+- Old plaintext columns will be removed in future migration
+- See `app/models/project.py` for EncryptedField implementation
+
 **Relationships:**
 - Company roles via company_role_assignments (context_type='Project')
 - Legacy: Still has project_vendor_relationships, project_owner_relationships, etc.
 
 **Migration Status:**
+- ✅ Project encryption implemented and active
 - ✅ New code creates company_role_assignments for project relationships
 - ⚠️ Legacy relationship tables still exist for backward compatibility
+- 📋 See `docs/ENCRYPTION_IMPLEMENTATION_STATUS.md` for encryption phase details
 
 ---
 
