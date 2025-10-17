@@ -6,11 +6,27 @@ endblock %} {% block content %}
       <div class="card shadow">
         <div class="card-header bg-primary text-white">
           <h3 class="mb-0"><i class="bi bi-database"></i> Select Database</h3>
+          {% if current_selection %}
+          <div class="mt-2">
+            <small class="text-light">
+              <i class="bi bi-check-circle-fill"></i> Currently Connected:
+              <span class="font-monospace">{{ current_selection }}</span>
+              {% if session.get('selected_db_path') %}
+              <span class="badge bg-success ms-1">Session Selected</span>
+              {% else %}
+              <span class="badge bg-info ms-1">Default Database</span>
+              {% endif %}
+            </small>
+          </div>
+          {% endif %}
         </div>
         <div class="card-body">
+          <!-- Connection status is now shown in the header -->
+
           <p class="text-muted">
-            Choose which database to use for this session. You can switch
-            databases at any time.
+            {% if current_selection %} Switch to a different database below, or
+            continue with the current one. {% else %} Select a database to
+            continue. {% endif %}
           </p>
 
           <form
@@ -155,11 +171,16 @@ endblock %} {% block content %}
                 <i class="bi bi-arrow-clockwise"></i> Refresh List
               </button>
               <div class="btn-group">
-                <button type="button" id="mappedDrivesBtn" class="btn btn-outline-info">
+                <button
+                  type="button"
+                  id="mappedDrivesBtn"
+                  class="btn btn-outline-info"
+                >
                   <i class="bi bi-hdd-network"></i> Mapped Drives
                 </button>
                 <button type="submit" class="btn btn-primary btn-lg">
-                <i class="bi bi-check-circle"></i> Continue
+                  <i class="bi bi-check-circle"></i> {% if current_selection
+                  %}Switch Database{% else %}Continue{% endif %}
                 </button>
               </div>
             </div>
@@ -169,7 +190,10 @@ endblock %} {% block content %}
 
       {% if current_user.is_authenticated %}
       <div class="text-center mt-3">
-        <a href="{{ url_for('dashboard.index') }}" class="text-muted">
+        <a
+          href="{{ url_for('dashboard.index') }}"
+          class="btn btn-outline-secondary"
+        >
           <i class="bi bi-arrow-left"></i> Back to Dashboard
         </a>
       </div>
@@ -246,29 +270,37 @@ endblock %} {% block content %}
   // File browser helper: displays a modal allowing navigation under a root
   async function openFileBrowser(root, startPath) {
     try {
-      const res = await fetch(`/api/list-files?root=${encodeURIComponent(root)}&path=${encodeURIComponent(startPath)}`);
-      if (!res.ok) throw new Error('Failed to list files');
+      const res = await fetch(
+        `/api/list-files?root=${encodeURIComponent(
+          root
+        )}&path=${encodeURIComponent(startPath)}`
+      );
+      if (!res.ok) throw new Error("Failed to list files");
       const data = await res.json();
 
       // Build modal content
       let body = `<div class="list-group">`;
-      if (data.cwd && data.cwd !== '.') {
+      if (data.cwd && data.cwd !== ".") {
         body += `<button type="button" class="list-group-item list-group-item-action" data-path=".." data-isdir="1">.. (Up)</button>`;
       }
       data.entries.forEach((e) => {
-        const disp = e.is_dir ? (e.name + '/') : e.name;
-        body += `<button type="button" class="list-group-item list-group-item-action" data-relpath="${encodeURIComponent(e.path)}" data-isdir="${e.is_dir?1:0}">${disp}</button>`;
+        const disp = e.is_dir ? e.name + "/" : e.name;
+        body += `<button type="button" class="list-group-item list-group-item-action" data-relpath="${encodeURIComponent(
+          e.path
+        )}" data-isdir="${e.is_dir ? 1 : 0}">${disp}</button>`;
       });
       body += `</div>`;
 
-      const modalEl = document.createElement('div');
-      modalEl.className = 'modal fade';
+      const modalEl = document.createElement("div");
+      modalEl.className = "modal fade";
       modalEl.tabIndex = -1;
       modalEl.innerHTML = `
         <div class="modal-dialog modal-dialog-centered modal-lg">
           <div class="modal-content">
             <div class="modal-header">
-              <h5 class="modal-title">Browse ${root}${data.cwd && data.cwd !== '.' ? data.cwd : ''}</h5>
+              <h5 class="modal-title">Browse ${root}${
+        data.cwd && data.cwd !== "." ? data.cwd : ""
+      }</h5>
               <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">${body}</div>
@@ -282,44 +314,51 @@ endblock %} {% block content %}
       const modal = new bootstrap.Modal(modalEl);
       modal.show();
 
-      modalEl.querySelectorAll('.list-group-item').forEach(btn => {
-        btn.addEventListener('click', async function() {
-          const isdir = this.getAttribute('data-isdir') === '1' || this.getAttribute('data-path') === '..';
-          const rel = this.getAttribute('data-relpath') ? decodeURIComponent(this.getAttribute('data-relpath')) : '';
+      modalEl.querySelectorAll(".list-group-item").forEach((btn) => {
+        btn.addEventListener("click", async function () {
+          const isdir =
+            this.getAttribute("data-isdir") === "1" ||
+            this.getAttribute("data-path") === "..";
+          const rel = this.getAttribute("data-relpath")
+            ? decodeURIComponent(this.getAttribute("data-relpath"))
+            : "";
           let newPath;
-          if (this.getAttribute('data-path') === '..') {
+          if (this.getAttribute("data-path") === "..") {
             // up: compute parent path
-            const cwd = data.cwd && data.cwd !== '.' ? data.cwd : '';
-            newPath = cwd.split('\\').slice(0, -1).join('\\');
+            const cwd = data.cwd && data.cwd !== "." ? data.cwd : "";
+            newPath = cwd.split("\\").slice(0, -1).join("\\");
           } else if (isdir) {
             newPath = rel;
           } else {
             // File selected: 'rel' is already the path relative to the root
             // Build full path by joining root and rel and normalizing backslashes
-            const relPath = rel.replace(/\//g, '\\');
+            const relPath = rel.replace(/\//g, "\\");
             const full = root + relPath;
             dbPathInput.value = full;
             // Clear radios
-            document.querySelectorAll('input[type="radio"][name="db_path"]').forEach((r) => (r.checked = false));
-            modal.hide(); modalEl.remove();
+            document
+              .querySelectorAll('input[type="radio"][name="db_path"]')
+              .forEach((r) => (r.checked = false));
+            modal.hide();
+            modalEl.remove();
             return;
           }
 
           // If directory navigation, reload modal for new path
-          modal.hide(); modalEl.remove();
+          modal.hide();
+          modalEl.remove();
           openFileBrowser(root, newPath);
         });
       });
-
     } catch (err) {
       console.error(err);
-      alert('Failed to browse drive: ' + err.message);
+      alert("Failed to browse drive: " + err.message);
     }
   }
 
   // If the user types or pastes into the manual path input, clear any
   // selected radio option so the manual path will be used when submitting.
-  dbPathInput.addEventListener('input', function () {
+  dbPathInput.addEventListener("input", function () {
     const val = this.value && this.value.trim();
     if (val) {
       document
@@ -372,34 +411,34 @@ endblock %} {% block content %}
     });
   }
 
-    // Mapped drives modal handling
-    const mappedDrivesBtn = document.getElementById('mappedDrivesBtn');
-    if (mappedDrivesBtn) {
-      mappedDrivesBtn.addEventListener('click', async function (e) {
-        e.preventDefault();
-        try {
-    const res = await fetch('/api/mapped-drives');
-          if (!res.ok) throw new Error('Failed to fetch mapped drives');
-          const drives = await res.json();
+  // Mapped drives modal handling
+  const mappedDrivesBtn = document.getElementById("mappedDrivesBtn");
+  if (mappedDrivesBtn) {
+    mappedDrivesBtn.addEventListener("click", async function (e) {
+      e.preventDefault();
+      try {
+        const res = await fetch("/api/mapped-drives");
+        if (!res.ok) throw new Error("Failed to fetch mapped drives");
+        const drives = await res.json();
 
-          // Build modal content
-          let html = '<div class="list-group">';
-          drives.forEach((d) => {
-            const label = d.letter || d.root;
-            // Use the drive root (e.g., 'Q:\') as the selectable path so the server
-            // receives a normal filesystem path rather than device/driver strings.
-            const selectable = d.root || d.target || '';
-            const desc = d.target || d.root;
-            html += `<button type="button" class="list-group-item list-group-item-action" data-path="${selectable}">${label} <br/><small class=\"text-muted\">${desc}</small></button>`;
-          });
-          html += '</div>';
+        // Build modal content
+        let html = '<div class="list-group">';
+        drives.forEach((d) => {
+          const label = d.letter || d.root;
+          // Use the drive root (e.g., 'Q:\') as the selectable path so the server
+          // receives a normal filesystem path rather than device/driver strings.
+          const selectable = d.root || d.target || "";
+          const desc = d.target || d.root;
+          html += `<button type="button" class="list-group-item list-group-item-action" data-path="${selectable}">${label} <br/><small class=\"text-muted\">${desc}</small></button>`;
+        });
+        html += "</div>";
 
-          // Show simple prompt modal (use prompt fallback if bootstrap modal not available)
-          if (typeof bootstrap !== 'undefined') {
-            const modalEl = document.createElement('div');
-            modalEl.className = 'modal fade';
-            modalEl.tabIndex = -1;
-            modalEl.innerHTML = `
+        // Show simple prompt modal (use prompt fallback if bootstrap modal not available)
+        if (typeof bootstrap !== "undefined") {
+          const modalEl = document.createElement("div");
+          modalEl.className = "modal fade";
+          modalEl.tabIndex = -1;
+          modalEl.innerHTML = `
               <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content">
                   <div class="modal-header">
@@ -413,31 +452,41 @@ endblock %} {% block content %}
                 </div>
               </div>`;
 
-            document.body.appendChild(modalEl);
-            const modal = new bootstrap.Modal(modalEl);
-            modal.show();
+          document.body.appendChild(modalEl);
+          const modal = new bootstrap.Modal(modalEl);
+          modal.show();
 
-            modalEl.querySelectorAll('.list-group-item').forEach((btn) => {
-              btn.addEventListener('click', function () {
-                const driveRoot = this.getAttribute('data-path');
-                // Open file browser modal for this drive root
-                openFileBrowser(driveRoot, '');
-                // Clear radios
-                document.querySelectorAll('input[type="radio"][name="db_path"]').forEach((r) => (r.checked = false));
-                modal.hide();
-                modalEl.remove();
-              });
+          modalEl.querySelectorAll(".list-group-item").forEach((btn) => {
+            btn.addEventListener("click", function () {
+              const driveRoot = this.getAttribute("data-path");
+              // Open file browser modal for this drive root
+              openFileBrowser(driveRoot, "");
+              // Clear radios
+              document
+                .querySelectorAll('input[type="radio"][name="db_path"]')
+                .forEach((r) => (r.checked = false));
+              modal.hide();
+              modalEl.remove();
             });
-          } else {
-            // Fallback: prompt user to paste a drive root
-            const pick = prompt('Mapped drives:\n' + drives.map(d => (d.letter || d.root) + ' => ' + (d.target || d.root)).join('\n') + '\n\nType or paste the desired root path:');
-            if (pick) dbPathInput.value = pick;
-          }
-        } catch (err) {
-          console.error(err);
-          alert('Failed to list mapped drives: ' + err.message);
+          });
+        } else {
+          // Fallback: prompt user to paste a drive root
+          const pick = prompt(
+            "Mapped drives:\n" +
+              drives
+                .map(
+                  (d) => (d.letter || d.root) + " => " + (d.target || d.root)
+                )
+                .join("\n") +
+              "\n\nType or paste the desired root path:"
+          );
+          if (pick) dbPathInput.value = pick;
         }
-      });
-    }
+      } catch (err) {
+        console.error(err);
+        alert("Failed to list mapped drives: " + err.message);
+      }
+    });
+  }
 </script>
 {% endblock %}

@@ -59,3 +59,6 @@ ALTER TABLE roundtable_history_new RENAME TO roundtable_history;
 CREATE INDEX idx_roundtable_entity ON roundtable_history (entity_type, entity_id);
 CREATE INDEX idx_roundtable_created ON roundtable_history (created_timestamp);
 
+
+
+

@@ -3,11 +3,66 @@ NukeWorks - Configuration Module
 Handles application configuration for different environments
 """
 import os
+import sys
 from pathlib import Path
 from datetime import timedelta
 
 # Base directory for the application
 basedir = Path(__file__).parent.absolute()
+
+
+def _runtime_root() -> Path:
+    """Return the directory where bundled resources are located."""
+    if getattr(sys, 'frozen', False):
+        return Path(getattr(sys, '_MEIPASS', basedir))
+    return basedir
+
+
+def _resource_path(relative_path: str) -> Path:
+    """
+    Resolve a resource path that may live inside a PyInstaller bundle.
+
+    Handles the onedir layout where files may be extracted into a directory
+    of the same name (e.g., "<name>/<name>").
+    """
+    relative = Path(relative_path)
+    runtime_candidate = _runtime_root() / relative
+
+    if runtime_candidate.is_file():
+        return runtime_candidate
+    if runtime_candidate.is_dir():
+        nested = runtime_candidate / relative.name
+        if nested.exists():
+            return nested
+
+    fallback = basedir / relative
+    if fallback.is_file():
+        return fallback
+    if fallback.is_dir():
+        nested = fallback / relative.name
+        if nested.exists():
+            return nested
+
+    return runtime_candidate
+
+
+def _storage_root() -> Path:
+    """Determine the writable storage root for runtime data."""
+    override = os.environ.get('NUKEWORKS_DATA_DIR')
+    if override:
+        return Path(override).expanduser()
+
+    if sys.platform.startswith('win'):
+        base = Path(os.environ.get('LOCALAPPDATA', Path.home() / 'AppData' / 'Local'))
+    else:
+        base = Path(os.environ.get('XDG_DATA_HOME', Path.home() / '.local' / 'share'))
+
+    return base / 'NukeWorks'
+
+
+STORAGE_ROOT = _storage_root()
+DEV_DB_TEMPLATE = _resource_path('dev_nukeworks.sqlite')
+MIGRATIONS_ROOT = _resource_path('migrations')
 
 
 class Config:
@@ -17,8 +72,11 @@ class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY') or os.urandom(32)
 
     # Database configuration
+    STORAGE_ROOT = STORAGE_ROOT
+    DATABASE_FILENAME = 'nukeworks_db.sqlite'
+    DEFAULT_DB_TEMPLATE = None
     DATABASE_PATH = os.environ.get('NUKEWORKS_DB_PATH') or \
-                    str(basedir / 'nukeworks_db.sqlite')
+                    str(STORAGE_ROOT / DATABASE_FILENAME)
     SQLALCHEMY_DATABASE_URI = f'sqlite:///{DATABASE_PATH}'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_ECHO = False  # Set to True to log SQL queries
@@ -34,12 +92,12 @@ class Config:
 
     # Session configuration
     SESSION_TYPE = 'filesystem'
-    SESSION_FILE_DIR = str(basedir / 'flask_sessions')
+    SESSION_FILE_DIR = str(STORAGE_ROOT / 'flask_sessions')
     PERMANENT_SESSION_LIFETIME = timedelta(hours=8)
 
     # File upload settings
     MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB max upload
-    UPLOAD_FOLDER = str(basedir / 'uploads')
+    UPLOAD_FOLDER = str(STORAGE_ROOT / 'uploads')
     ALLOWED_EXTENSIONS = {'xlsx', 'xls', 'csv', 'pdf', 'png', 'jpg', 'jpeg'}
 
     # Security settings
@@ -52,14 +110,14 @@ class Config:
 
     # Snapshot settings
     SNAPSHOT_DIR = os.environ.get('NUKEWORKS_SNAPSHOT_DIR') or \
-                   str(basedir / 'snapshots')
+                   str(STORAGE_ROOT / 'snapshots')
     AUTO_SNAPSHOT_ENABLED = True
     DAILY_SNAPSHOT_TIME = '02:00'  # 2 AM
     SNAPSHOT_RETENTION_DAYS = 30
     MAX_SNAPSHOTS = 10
 
     # Migration settings
-    MIGRATIONS_DIR = str(basedir / 'migrations')
+    MIGRATIONS_DIR = str(MIGRATIONS_ROOT)
     APPLICATION_VERSION = '1.0.0'
     REQUIRED_SCHEMA_VERSION = 9  # Updated for company field cleanup
 
@@ -70,7 +128,7 @@ class Config:
 
     # Logging
     LOG_LEVEL = 'INFO'
-    LOG_FILE = str(basedir / 'logs' / 'nukeworks.log')
+    LOG_FILE = str(STORAGE_ROOT / 'logs' / 'nukeworks.log')
 
     # Flask-specific
     JSON_SORT_KEYS = False
@@ -84,7 +142,9 @@ class DevelopmentConfig(Config):
     SQLALCHEMY_ECHO = False  # Set to True to see SQL queries
 
     # Override with local database for development
-    DATABASE_PATH = os.environ.get('DEV_DB_PATH') or str(basedir / 'dev_nukeworks.sqlite')
+    DATABASE_FILENAME = 'dev_nukeworks.sqlite'
+    DEFAULT_DB_TEMPLATE = str(DEV_DB_TEMPLATE)
+    DATABASE_PATH = os.environ.get('DEV_DB_PATH') or str(STORAGE_ROOT / DATABASE_FILENAME)
     SQLALCHEMY_DATABASE_URI = f'sqlite:///{DATABASE_PATH}'
 
 

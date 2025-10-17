@@ -317,6 +317,10 @@ If you see "database is locked" errors:
 3. Update documentation
 4. Use meaningful commit messages
 
+## Windows Installer Builds
+
+To distribute NukeWorks as a self-contained Windows application, follow the packaging workflow documented in `docs/installer_guide.md`. The helper utilities in the `installer/` directory produce a PyInstaller bundle and wrap it with an Inno Setup installer so end users do not need to install Python or other prerequisites manually.
+
 ## License
 
 Proprietary - All rights reserved

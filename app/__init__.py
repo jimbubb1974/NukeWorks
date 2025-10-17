@@ -2,6 +2,8 @@
 NukeWorks Flask Application Factory
 """
 import os
+import shutil
+from pathlib import Path
 from flask import Flask, g, session
 from flask_login import LoginManager
 from sqlalchemy import create_engine, event, text
@@ -29,7 +31,115 @@ def create_app(config_name=None):
     Returns:
         Configured Flask application
     """
-    app = Flask(__name__, instance_relative_config=True)
+    import sys
+    
+    # Determine the correct paths for templates and static files
+    # This handles both development and PyInstaller bundled scenarios
+    if getattr(sys, 'frozen', False):
+        # Running as PyInstaller bundle
+        bundle_dir = Path(sys._MEIPASS)
+        # Newer PyInstaller places our added data under "_internal"; fall back to root
+        internal_root = bundle_dir / '_internal'
+        base_root = internal_root if internal_root.exists() else bundle_dir
+        template_folder = base_root / 'app' / 'templates'
+        static_folder = base_root / 'app' / 'static'
+
+        # Production mode - no debug output
+
+        # For PyInstaller bundles, use a writable instance directory
+        # instead of the read-only bundle directory
+        import tempfile
+        instance_path = Path(tempfile.gettempdir()) / 'NukeWorks' / 'instance'
+        instance_path.mkdir(parents=True, exist_ok=True)
+        
+        app = Flask(
+            __name__,
+            instance_relative_config=True,
+            instance_path=str(instance_path),
+            template_folder=str(template_folder),
+            static_folder=str(static_folder),
+            static_url_path='/static'
+        )
+        
+        # Ensure static files are served correctly in PyInstaller bundles
+        @app.route('/static/<path:filename>')
+        def static_files(filename):
+            from flask import send_from_directory
+            return send_from_directory(str(static_folder), filename)
+
+        # Ensure Jinja searches the explicit template path. Some bundle layouts
+        # require overriding the default loader to pick up bundled files.
+        try:
+            from jinja2 import FileSystemLoader, ChoiceLoader, PackageLoader, PrefixLoader
+
+            existing_loader = getattr(app, 'jinja_loader', None)
+            fs_loader = FileSystemLoader([str(template_folder)])
+            pkg_loader = PackageLoader('app', 'templates')
+            
+            # Create a custom loader that handles PyInstaller's duplicated path issue
+            # PyInstaller creates paths like 'auth/login.html/login.html' but we need 'auth/login.html'
+            class PyInstallerTemplateLoader:
+                def __init__(self, base_loader):
+                    self.base_loader = base_loader
+                
+                def get_source(self, environment, template):
+                    # Try the original template name first
+                    try:
+                        return self.base_loader.get_source(environment, template)
+                    except:
+                        # If that fails, try with the duplicated path structure
+                        # Handle both cases: 'auth/login.html' -> 'auth/login.html/login.html'
+                        # and 'base.html' -> 'base.html/base.html'
+                        if template.endswith('.html'):
+                            if '/' in template:
+                                # e.g., 'auth/login.html' -> 'auth/login.html/login.html'
+                                parts = template.split('/')
+                                if len(parts) == 2:  # e.g., ['auth', 'login.html']
+                                    alt_template = f"{template}/{parts[1]}"
+                                    try:
+                                        return self.base_loader.get_source(environment, alt_template)
+                                    except:
+                                        pass
+                            else:
+                                # e.g., 'base.html' -> 'base.html/base.html'
+                                alt_template = f"{template}/{template}"
+                                try:
+                                    return self.base_loader.get_source(environment, alt_template)
+                                except:
+                                    pass
+                        raise
+                
+                def list_templates(self):
+                    templates = self.base_loader.list_templates()
+                    # Convert duplicated paths back to normal paths
+                    normalized = []
+                    for template in templates:
+                        if '/' in template and template.count('/') >= 2:
+                            # e.g., 'auth/login.html/login.html' -> 'auth/login.html'
+                            parts = template.split('/')
+                            if len(parts) >= 3 and parts[-1] == parts[-2]:
+                                normalized.append('/'.join(parts[:-1]))
+                            else:
+                                normalized.append(template)
+                        else:
+                            normalized.append(template)
+                    return normalized
+            
+            # Wrap the FileSystemLoader with our custom loader
+            custom_loader = PyInstallerTemplateLoader(fs_loader)
+            
+            loaders = [custom_loader, pkg_loader]
+            if existing_loader and not isinstance(existing_loader, FileSystemLoader):
+                loaders.append(existing_loader)
+            app.jinja_loader = ChoiceLoader(loaders)
+
+            # Production mode - no debug output
+        except Exception as e:
+            print(f"[BUNDLE] Failed to configure Jinja loader: {e}")
+    else:
+        # Running as normal Python script
+        pass
+        app = Flask(__name__, instance_relative_config=True)
 
     # Load configuration
     config_class = get_config(config_name)
@@ -41,10 +151,15 @@ def create_app(config_name=None):
     except OSError:
         pass
 
-    # Ensure required directories exist
-    for directory in ['flask_sessions', 'logs', 'uploads']:
-        path = os.path.join(app.root_path, '..', directory)
-        os.makedirs(path, exist_ok=True)
+    # Ensure required directories exist in writable storage
+    storage_paths = [
+        Path(app.config['SESSION_FILE_DIR']),
+        Path(app.config['UPLOAD_FOLDER']),
+        Path(app.config['SNAPSHOT_DIR']),
+        Path(app.config['LOG_FILE']).parent,
+    ]
+    for storage_path in storage_paths:
+        storage_path.mkdir(parents=True, exist_ok=True)
 
     # Initialize database
     init_db(app)
@@ -214,6 +329,25 @@ def init_db(app):
 
     # Create default engine and session (for initial setup)
     db_path = app.config['DATABASE_PATH']
+    template_path = app.config.get('DEFAULT_DB_TEMPLATE')
+
+    if (
+        template_path
+        and isinstance(template_path, str)
+        and template_path
+        and db_path
+        and db_path != ':memory:'
+    ):
+        target_path = Path(db_path).expanduser()
+        template_file = Path(template_path)
+
+        if not target_path.exists() and template_file.exists():
+            target_path.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(template_file, target_path)
+
+        app.config['DATABASE_PATH'] = str(target_path)
+        db_path = app.config['DATABASE_PATH']
+
     engine, default_session = get_or_create_engine_session(db_path, app)
 
     _default_db_session = default_session
@@ -462,22 +596,7 @@ def register_db_selector_middleware(app):
         if request.endpoint and request.endpoint.startswith('static'):
             return
 
-        # Debug logging to help trace why certain requests are redirected
-        try:
-            logger.debug(
-                "handle_db_selection called: endpoint=%s path=%s args=%s headers_accept=%s",
-                str(request.endpoint),
-                str(request.path),
-                dict(request.args),
-                str(request.headers.get('Accept')),
-            )
-            # Also print to stdout so the development server shows it reliably
-            print(f"[DBG] handle_db_selection: endpoint={request.endpoint} path={request.path} args={dict(request.args)} Accept={request.headers.get('Accept')}" )
-        except Exception:
-            try:
-                print(f"[DBG] handle_db_selection: failed to read request properties")
-            except Exception:
-                pass
+        # Production mode - no debug output
 
         # Also write a short trace to a logfile for post-mortem analysis
         try:

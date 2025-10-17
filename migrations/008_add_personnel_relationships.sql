@@ -38,3 +38,6 @@ INSERT INTO schema_version (version, applied_date, applied_by, description)
 VALUES (8, datetime('now'), 'system', 'Add personnel_relationships table');
 
 COMMIT;
+
+
+

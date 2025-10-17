@@ -17,6 +17,27 @@ bp = Blueprint('db_select', __name__, url_prefix='')
 logger = logging.getLogger(__name__)
 
 
+def get_current_database_path():
+    """
+    Get the current database path being used by the application.
+    Returns session-selected database if available, otherwise default database.
+    """
+    from flask import session
+    from flask import current_app
+    
+    # Check session first
+    session_db = session.get('selected_db_path')
+    if session_db and os.path.exists(session_db):
+        return session_db
+    
+    # Fall back to default database
+    default_db = current_app.config.get('DATABASE_PATH')
+    if default_db and os.path.exists(default_db):
+        return default_db
+    
+    return None
+
+
 @bp.route('/select-db', methods=['GET'])
 def select_database():
     """
@@ -32,8 +53,8 @@ def select_database():
     # Get last browsed directory
     last_browsed_dir = db_selector_cache.get_last_browsed_dir()
 
-    # Get current selection if any
-    current_selection = session.get('selected_db_path')
+    # Get current selection if any (session or default)
+    current_selection = get_current_database_path()
 
     # Get suggested default (user preference or global default)
     suggested_default = None

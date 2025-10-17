@@ -6,7 +6,7 @@ Flask-WTF==1.2.1
 Werkzeug==3.0.1
 
 # Database
-SQLAlchemy==2.0.23
+SQLAlchemy>=2.0.23
 alembic==1.13.0
 
 # Security
@@ -44,5 +44,5 @@ flake8==7.0.0
 # Optional: If using WeasyPrint instead of ReportLab
 # weasyprint==60.1
 
-# PyInstaller for executable creation (used during packaging)
-# pyinstaller==6.3.0
+# Packaging
+pyinstaller==6.16.0
