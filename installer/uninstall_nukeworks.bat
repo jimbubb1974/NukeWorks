@@ -28,3 +28,4 @@ powershell.exe -ExecutionPolicy Bypass -File "%~dp0uninstall_nukeworks.ps1"
 echo.
 echo Uninstall process completed.
 pause
+

@@ -190,3 +190,4 @@ catch {
     Write-Status "  - $RegistryKey"
     exit 1
 }
+

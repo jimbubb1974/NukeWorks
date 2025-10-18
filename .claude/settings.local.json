@@ -18,7 +18,8 @@
       "Bash(curl -s http://127.0.0.1:5000/projects/1/edit)",
       "Bash(curl -s http://127.0.0.1:5000/projects/1/edit -o test_output.html)",
       "Bash(git commit:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(rm:*)"
     ],
     "deny": [],
     "ask": []
