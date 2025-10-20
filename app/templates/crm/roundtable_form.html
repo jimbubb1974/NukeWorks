@@ -157,13 +157,17 @@ company.company_name }} - NukeWorks{% endblock %} {% block content %}
               class="{% if not loop.last %}border-bottom pb-2 mb-2{% endif %}"
             >
               <div>
-                {{ person.full_name }} {% if
-                personnel_mpr_map.get(person.personnel_id) %}
+                {% set last_name = person.full_name.split()[-1] if
+                person.full_name else 'Unknown' %} {{ last_name }} {% if
+                personnel_mpr_map.get(person.personnel_id) %} {% for
+                mpr_connection in personnel_mpr_map[person.personnel_id] %} {%
+                if loop.first %}
                 <span class="badge bg-primary ms-2">
-                  <i class="bi bi-person-check"></i> {{
-                  personnel_mpr_map[person.personnel_id]|join(', ') }}
+                  {{ mpr_connection.split()[-1] }}
                 </span>
-                {% endif %} {% if person.role %}
+                {% else %}
+                <span class="ms-2">{{ mpr_connection.split()[-1] }}</span>
+                {% endif %} {% endfor %} {% endif %} {% if person.role %}
                 <br />
                 <small class="text-muted">{{ person.role }}</small>
                 {% endif %}
