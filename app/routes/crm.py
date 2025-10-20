@@ -243,44 +243,78 @@ def add_roundtable_entry(company_id):
 
     if form.validate_on_submit():
         try:
-            # Create new roundtable entry
+            # Create new roundtable entry (timestamp automatically set)
             entry = RoundtableHistory(
                 entity_type='Company',
                 entity_id=company.company_id,
-                created_timestamp=datetime.combine(form.meeting_date.data, datetime.min.time()) if form.meeting_date.data else datetime.now(),
                 next_steps=form.next_steps.data,
                 client_near_term_focus=form.client_near_term_focus.data,
                 mpr_work_targets=form.mpr_work_targets.data,
                 discussion=form.discussion.data,
-                created_by=current_user.user_id,
-                # created_timestamp set above; keep created_by only
+                created_by=current_user.user_id
             )
 
             db_session.add(entry)
             db_session.commit()
 
-            flash(f'Roundtable entry added for {company.company_name}', 'success')
-            return redirect(url_for('crm.roundtable_meeting'))
+            flash(f'Roundtable entry saved successfully', 'success')
+            return redirect(url_for('crm.add_roundtable_entry', company_id=company.company_id))
 
         except Exception as e:
             db_session.rollback()
             flash(f'Error adding roundtable entry: {str(e)}', 'error')
 
     # Get previous entries (last 3)
+    # Order by created_timestamp DESC to get the most recently created entries
     previous_entries = db_session.query(RoundtableHistory).filter(
         RoundtableHistory.entity_type == 'Company',
         RoundtableHistory.entity_id == company_id
-    ).order_by(RoundtableHistory.created_timestamp.desc()).limit(3).all()
+    ).order_by(
+        RoundtableHistory.created_timestamp.desc()
+    ).limit(3).all()
 
-    # Pre-fill meeting date with today
-    if not form.meeting_date.data:
-        form.meeting_date.data = date.today()
+    # Get the most recent entry for pre-population
+    most_recent_entry = previous_entries[0] if previous_entries else None
+
+    # Pre-fill form with most recent entry data (if exists and form not submitted)
+    if not form.is_submitted() and most_recent_entry:
+        form.next_steps.data = most_recent_entry.next_steps
+        form.client_near_term_focus.data = most_recent_entry.client_near_term_focus
+        form.mpr_work_targets.data = most_recent_entry.mpr_work_targets
+        form.discussion.data = most_recent_entry.discussion
+
+    # Get external personnel for this company with their MPR relationships
+    from app.models import ExternalPersonnel, PersonnelRelationship, InternalPersonnel
+    
+    try:
+        external_personnel = db_session.query(ExternalPersonnel).filter_by(
+            company_id=company.company_id,
+            is_active=True
+        ).order_by(ExternalPersonnel.full_name).all()
+        
+        # Build a dict mapping external personnel to their MPR connections
+        personnel_mpr_map = {}
+        for person in external_personnel:
+            relationships = db_session.query(PersonnelRelationship).filter_by(
+                external_personnel_id=person.personnel_id
+            ).join(InternalPersonnel).all()
+            
+            mpr_connections = [rel.internal_personnel.full_name for rel in relationships if rel.internal_personnel]
+            personnel_mpr_map[person.personnel_id] = mpr_connections
+    except Exception as e:
+        # Fallback in case of error
+        print(f"Error loading personnel relationships: {e}")
+        external_personnel = []
+        personnel_mpr_map = {}
 
     return render_template(
         'crm/roundtable_form.html',
         form=form,
         company=company,
-        previous_entries=previous_entries
+        previous_entries=previous_entries,
+        most_recent_entry=most_recent_entry,
+        external_personnel=external_personnel,
+        personnel_mpr_map=personnel_mpr_map
     )
 
 
