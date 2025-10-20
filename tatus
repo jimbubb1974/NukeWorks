@@ -1,0 +1,34 @@
+[33mcommit 502810447ab2bc99ff2b3e526a3286850fb8bf21[m
+Author: Jim <jim@example.com>
+Date:   Sun Oct 5 23:06:23 2025 -0400
+
+    Major refactoring: Unified company system, personnel schema overhaul, and CRM improvements
+    
+    - Removed organization_type from personnel forms and schema
+    - Replaced role-specific company links with consistent view/edit/delete buttons
+    - Created company-specific CRUD routes and templates
+    - Updated technologies page to link products to companies instead of vendor schemas
+    - Overhauled personnel schema: separated internal and external personnel into distinct models
+    - Added PersonnelRelationship model for linking internal and external personnel
+    - Updated all forms, routes, and templates to reflect new personnel schema
+    - Added functionality to link external personnel to internal personnel
+    - Removed 'Internal' and 'Created' columns from companies list page
+    - Added map background layer selector to project map
+    - Added 'Add Company' button to companies page
+    - Added MPR client toggle functionality with AJAX
+    - Migrated legacy Client data to Company + ClientProfile system
+    - Added MPR client-specific fields to company edit page
+    - Converted CRM dashboard from accordion to sortable table format
+    - Added Priority column with custom sorting logic
+    - Added modal details popup to maintain sortable table functionality
+    - Fixed personnel edit routing to handle overlapping IDs between internal/external
+    - Fixed relationship form redirects to include personnel type parameter
+    - Fixed network table to use new Company-Product relationship
+    - Updated all templates and routes to use unified company system
+
+app/routes/crm.py
+app/routes/network.py
+app/routes/personnel.py
+app/templates/crm/dashboard.html
+app/templates/personnel/create.html
+app/templates/personnel/list.html

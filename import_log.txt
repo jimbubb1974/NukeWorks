@@ -1,0 +1,339 @@
+2025-10-18 15:40:24,618 - INFO - Starting import...
+2025-10-18 15:40:25,265 - INFO - Database: C:\Users\jimbu\Coding Projects\NukeWorks\dev_nukeworks.sqlite
+2025-10-18 15:40:25,266 - INFO - JSON File: C:\Users\jimbu\Coding Projects\NukeWorks\AI_RESEARCH_EXTRACTION_2025-10-18.json
+2025-10-18 15:40:25,266 - INFO - 
+2025-10-18 15:40:25,393 - INFO - Created new engine for database: C:\Users\jimbu\AppData\Local\NukeWorks\dev_nukeworks.sqlite
+2025-10-18 15:40:26,204 - INFO - Created new engine for database: C:\Users\jimbu\Coding Projects\NukeWorks\dev_nukeworks.sqlite
+2025-10-18 15:40:26,204 - INFO - Connected to database: C:\Users\jimbu\Coding Projects\NukeWorks\dev_nukeworks.sqlite
+2025-10-18 15:40:26,379 - INFO - Loaded 15 internal staff members
+2025-10-18 15:40:26,384 - INFO - Loaded JSON from C:\Users\jimbu\Coding Projects\NukeWorks\AI_RESEARCH_EXTRACTION_2025-10-18.json
+2025-10-18 15:40:26,384 - INFO - ======================================================================
+2025-10-18 15:40:26,384 - INFO - PHASE 1: Importing Companies
+2025-10-18 15:40:26,384 - INFO - ======================================================================
+2025-10-18 15:40:26,384 - INFO - Processing 9 clients...
+2025-10-18 15:40:27,169 - ERROR - Error processing company Fermi America: (sqlite3.IntegrityError) NOT NULL constraint failed: companies.modified_date
+[SQL: INSERT INTO companies (company_name, company_type, website, headquarters_country, is_mpr_client, is_internal, notes, created_date, modified_date, created_by, modified_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)]
+[parameters: ('Fermi America', 'Unknown', None, 'USA', 1, 0, '[AI_RESEARCH_EXTRACTION 2025-10-18] Fermi America - awaiting subcontractor engagement through AECOM. Focus on COLA (license renewal) and Westinghouse alignment for advanced reactor deployment.', '2025-10-18 19:40:27.167446', None, None, None)]
+(Background on this error at: https://sqlalche.me/e/20/gkpj)
+2025-10-18 15:40:27,181 - INFO - Phase 1 Complete: Created 0, Updated 8
+2025-10-18 15:40:27,181 - INFO - 
+======================================================================
+2025-10-18 15:40:27,181 - INFO - PHASE 2: Importing External Personnel
+2025-10-18 15:40:27,181 - INFO - ======================================================================
+2025-10-18 15:40:27,181 - INFO - Processing external personnel for 9 clients...
+2025-10-18 15:40:27,868 - WARNING - Company not found: Fermi America
+2025-10-18 15:40:27,914 - INFO - Phase 2 Complete: Created 52, Updated 4
+2025-10-18 15:40:27,915 - INFO - 
+======================================================================
+2025-10-18 15:40:27,915 - INFO - PHASE 3: Creating Client Profiles & Roundtable Entries
+2025-10-18 15:40:27,915 - INFO - ======================================================================
+2025-10-18 15:40:27,915 - INFO - Processing client profiles for 9 clients...
+2025-10-18 15:40:28,115 - ERROR - Error processing client profile for Elementl Power: CONFIDENTIAL_DATA_KEY not found in environment. Run scripts/generate_encryption_keys.py to generate keys.
+Traceback (most recent call last):
+  File "C:\Users\jimbu\Coding Projects\NukeWorks\import_json_to_db.py", line 297, in phase_3_client_profiles_and_roundtable
+    new_profile = ClientProfile(
+        company_id=company.company_id,
+    ...<5 lines>...
+        last_contact_type=client_profile_data.get('last_contact_type', 'Meeting/Review')
+    )
+  File "<string>", line 4, in __init__
+  File "C:\Users\jimbu\Coding Projects\NukeWorks\venv\Lib\site-packages\sqlalchemy\orm\state.py", line 571, in _initialize_instance
+    with util.safe_reraise():
+         ~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\jimbu\Coding Projects\NukeWorks\venv\Lib\site-packages\sqlalchemy\util\langhelpers.py", line 224, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "C:\Users\jimbu\Coding Projects\NukeWorks\venv\Lib\site-packages\sqlalchemy\orm\state.py", line 569, in _initialize_instance
+    manager.original_init(*mixed[1:], **kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jimbu\Coding Projects\NukeWorks\venv\Lib\site-packages\sqlalchemy\orm\decl_base.py", line 2182, in _declarative_constructor
+    setattr(self, k, kwargs[k])
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jimbu\Coding Projects\NukeWorks\app\utils\encryption.py", line 403, in __set__
+    encrypted = encrypt_value(value, self.key_type)
+  File "C:\Users\jimbu\Coding Projects\NukeWorks\app\utils\encryption.py", line 53, in encrypt_value
+    cipher = KeyManager.get_cipher(key_type)
+  File "C:\Users\jimbu\Coding Projects\NukeWorks\app\utils\key_management.py", line 101, in get_cipher
+    key = cls.get_key(key_type)
+  File "C:\Users\jimbu\Coding Projects\NukeWorks\app\utils\key_management.py", line 80, in get_key
+    keys = cls._load_keys()
+  File "C:\Users\jimbu\Coding Projects\NukeWorks\app\utils\key_management.py", line 47, in _load_keys
+    raise EncryptionKeyError(
+    ...<2 lines>...
+    )
+app.exceptions.EncryptionKeyError: CONFIDENTIAL_DATA_KEY not found in environment. Run scripts/generate_encryption_keys.py to generate keys.
+2025-10-18 15:40:28,600 - ERROR - Error processing client profile for Dominion Energy: CONFIDENTIAL_DATA_KEY not found in environment. Run scripts/generate_encryption_keys.py to generate keys.
+Traceback (most recent call last):
+  File "C:\Users\jimbu\Coding Projects\NukeWorks\import_json_to_db.py", line 297, in phase_3_client_profiles_and_roundtable
+    new_profile = ClientProfile(
+        company_id=company.company_id,
+    ...<5 lines>...
+        last_contact_type=client_profile_data.get('last_contact_type', 'Meeting/Review')
+    )
+  File "<string>", line 4, in __init__
+  File "C:\Users\jimbu\Coding Projects\NukeWorks\venv\Lib\site-packages\sqlalchemy\orm\state.py", line 571, in _initialize_instance
+    with util.safe_reraise():
+         ~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\jimbu\Coding Projects\NukeWorks\venv\Lib\site-packages\sqlalchemy\util\langhelpers.py", line 224, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "C:\Users\jimbu\Coding Projects\NukeWorks\venv\Lib\site-packages\sqlalchemy\orm\state.py", line 569, in _initialize_instance
+    manager.original_init(*mixed[1:], **kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jimbu\Coding Projects\NukeWorks\venv\Lib\site-packages\sqlalchemy\orm\decl_base.py", line 2182, in _declarative_constructor
+    setattr(self, k, kwargs[k])
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jimbu\Coding Projects\NukeWorks\app\utils\encryption.py", line 403, in __set__
+    encrypted = encrypt_value(value, self.key_type)
+  File "C:\Users\jimbu\Coding Projects\NukeWorks\app\utils\encryption.py", line 53, in encrypt_value
+    cipher = KeyManager.get_cipher(key_type)
+  File "C:\Users\jimbu\Coding Projects\NukeWorks\app\utils\key_management.py", line 101, in get_cipher
+    key = cls.get_key(key_type)
+  File "C:\Users\jimbu\Coding Projects\NukeWorks\app\utils\key_management.py", line 80, in get_key
+    keys = cls._load_keys()
+  File "C:\Users\jimbu\Coding Projects\NukeWorks\app\utils\key_management.py", line 47, in _load_keys
+    raise EncryptionKeyError(
+    ...<2 lines>...
+    )
+app.exceptions.EncryptionKeyError: CONFIDENTIAL_DATA_KEY not found in environment. Run scripts/generate_encryption_keys.py to generate keys.
+2025-10-18 15:40:28,606 - ERROR - Error processing client profile for TVA: CONFIDENTIAL_DATA_KEY not found in environment. Run scripts/generate_encryption_keys.py to generate keys.
+Traceback (most recent call last):
+  File "C:\Users\jimbu\Coding Projects\NukeWorks\import_json_to_db.py", line 297, in phase_3_client_profiles_and_roundtable
+    new_profile = ClientProfile(
+        company_id=company.company_id,
+    ...<5 lines>...
+        last_contact_type=client_profile_data.get('last_contact_type', 'Meeting/Review')
+    )
+  File "<string>", line 4, in __init__
+  File "C:\Users\jimbu\Coding Projects\NukeWorks\venv\Lib\site-packages\sqlalchemy\orm\state.py", line 571, in _initialize_instance
+    with util.safe_reraise():
+         ~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\jimbu\Coding Projects\NukeWorks\venv\Lib\site-packages\sqlalchemy\util\langhelpers.py", line 224, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "C:\Users\jimbu\Coding Projects\NukeWorks\venv\Lib\site-packages\sqlalchemy\orm\state.py", line 569, in _initialize_instance
+    manager.original_init(*mixed[1:], **kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jimbu\Coding Projects\NukeWorks\venv\Lib\site-packages\sqlalchemy\orm\decl_base.py", line 2182, in _declarative_constructor
+    setattr(self, k, kwargs[k])
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jimbu\Coding Projects\NukeWorks\app\utils\encryption.py", line 403, in __set__
+    encrypted = encrypt_value(value, self.key_type)
+  File "C:\Users\jimbu\Coding Projects\NukeWorks\app\utils\encryption.py", line 53, in encrypt_value
+    cipher = KeyManager.get_cipher(key_type)
+  File "C:\Users\jimbu\Coding Projects\NukeWorks\app\utils\key_management.py", line 101, in get_cipher
+    key = cls.get_key(key_type)
+  File "C:\Users\jimbu\Coding Projects\NukeWorks\app\utils\key_management.py", line 80, in get_key
+    keys = cls._load_keys()
+  File "C:\Users\jimbu\Coding Projects\NukeWorks\app\utils\key_management.py", line 47, in _load_keys
+    raise EncryptionKeyError(
+    ...<2 lines>...
+    )
+app.exceptions.EncryptionKeyError: CONFIDENTIAL_DATA_KEY not found in environment. Run scripts/generate_encryption_keys.py to generate keys.
+2025-10-18 15:40:28,613 - ERROR - Error processing client profile for Blue Energy: CONFIDENTIAL_DATA_KEY not found in environment. Run scripts/generate_encryption_keys.py to generate keys.
+Traceback (most recent call last):
+  File "C:\Users\jimbu\Coding Projects\NukeWorks\import_json_to_db.py", line 297, in phase_3_client_profiles_and_roundtable
+    new_profile = ClientProfile(
+        company_id=company.company_id,
+    ...<5 lines>...
+        last_contact_type=client_profile_data.get('last_contact_type', 'Meeting/Review')
+    )
+  File "<string>", line 4, in __init__
+  File "C:\Users\jimbu\Coding Projects\NukeWorks\venv\Lib\site-packages\sqlalchemy\orm\state.py", line 571, in _initialize_instance
+    with util.safe_reraise():
+         ~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\jimbu\Coding Projects\NukeWorks\venv\Lib\site-packages\sqlalchemy\util\langhelpers.py", line 224, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "C:\Users\jimbu\Coding Projects\NukeWorks\venv\Lib\site-packages\sqlalchemy\orm\state.py", line 569, in _initialize_instance
+    manager.original_init(*mixed[1:], **kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jimbu\Coding Projects\NukeWorks\venv\Lib\site-packages\sqlalchemy\orm\decl_base.py", line 2182, in _declarative_constructor
+    setattr(self, k, kwargs[k])
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jimbu\Coding Projects\NukeWorks\app\utils\encryption.py", line 403, in __set__
+    encrypted = encrypt_value(value, self.key_type)
+  File "C:\Users\jimbu\Coding Projects\NukeWorks\app\utils\encryption.py", line 53, in encrypt_value
+    cipher = KeyManager.get_cipher(key_type)
+  File "C:\Users\jimbu\Coding Projects\NukeWorks\app\utils\key_management.py", line 101, in get_cipher
+    key = cls.get_key(key_type)
+  File "C:\Users\jimbu\Coding Projects\NukeWorks\app\utils\key_management.py", line 80, in get_key
+    keys = cls._load_keys()
+  File "C:\Users\jimbu\Coding Projects\NukeWorks\app\utils\key_management.py", line 47, in _load_keys
+    raise EncryptionKeyError(
+    ...<2 lines>...
+    )
+app.exceptions.EncryptionKeyError: CONFIDENTIAL_DATA_KEY not found in environment. Run scripts/generate_encryption_keys.py to generate keys.
+2025-10-18 15:40:28,618 - ERROR - Error processing client profile for Google: CONFIDENTIAL_DATA_KEY not found in environment. Run scripts/generate_encryption_keys.py to generate keys.
+Traceback (most recent call last):
+  File "C:\Users\jimbu\Coding Projects\NukeWorks\import_json_to_db.py", line 297, in phase_3_client_profiles_and_roundtable
+    new_profile = ClientProfile(
+        company_id=company.company_id,
+    ...<5 lines>...
+        last_contact_type=client_profile_data.get('last_contact_type', 'Meeting/Review')
+    )
+  File "<string>", line 4, in __init__
+  File "C:\Users\jimbu\Coding Projects\NukeWorks\venv\Lib\site-packages\sqlalchemy\orm\state.py", line 571, in _initialize_instance
+    with util.safe_reraise():
+         ~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\jimbu\Coding Projects\NukeWorks\venv\Lib\site-packages\sqlalchemy\util\langhelpers.py", line 224, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "C:\Users\jimbu\Coding Projects\NukeWorks\venv\Lib\site-packages\sqlalchemy\orm\state.py", line 569, in _initialize_instance
+    manager.original_init(*mixed[1:], **kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jimbu\Coding Projects\NukeWorks\venv\Lib\site-packages\sqlalchemy\orm\decl_base.py", line 2182, in _declarative_constructor
+    setattr(self, k, kwargs[k])
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jimbu\Coding Projects\NukeWorks\app\utils\encryption.py", line 403, in __set__
+    encrypted = encrypt_value(value, self.key_type)
+  File "C:\Users\jimbu\Coding Projects\NukeWorks\app\utils\encryption.py", line 53, in encrypt_value
+    cipher = KeyManager.get_cipher(key_type)
+  File "C:\Users\jimbu\Coding Projects\NukeWorks\app\utils\key_management.py", line 101, in get_cipher
+    key = cls.get_key(key_type)
+  File "C:\Users\jimbu\Coding Projects\NukeWorks\app\utils\key_management.py", line 80, in get_key
+    keys = cls._load_keys()
+  File "C:\Users\jimbu\Coding Projects\NukeWorks\app\utils\key_management.py", line 47, in _load_keys
+    raise EncryptionKeyError(
+    ...<2 lines>...
+    )
+app.exceptions.EncryptionKeyError: CONFIDENTIAL_DATA_KEY not found in environment. Run scripts/generate_encryption_keys.py to generate keys.
+2025-10-18 15:40:28,622 - ERROR - Error processing client profile for Energy Northwest: CONFIDENTIAL_DATA_KEY not found in environment. Run scripts/generate_encryption_keys.py to generate keys.
+Traceback (most recent call last):
+  File "C:\Users\jimbu\Coding Projects\NukeWorks\import_json_to_db.py", line 297, in phase_3_client_profiles_and_roundtable
+    new_profile = ClientProfile(
+        company_id=company.company_id,
+    ...<5 lines>...
+        last_contact_type=client_profile_data.get('last_contact_type', 'Meeting/Review')
+    )
+  File "<string>", line 4, in __init__
+  File "C:\Users\jimbu\Coding Projects\NukeWorks\venv\Lib\site-packages\sqlalchemy\orm\state.py", line 571, in _initialize_instance
+    with util.safe_reraise():
+         ~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\jimbu\Coding Projects\NukeWorks\venv\Lib\site-packages\sqlalchemy\util\langhelpers.py", line 224, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "C:\Users\jimbu\Coding Projects\NukeWorks\venv\Lib\site-packages\sqlalchemy\orm\state.py", line 569, in _initialize_instance
+    manager.original_init(*mixed[1:], **kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jimbu\Coding Projects\NukeWorks\venv\Lib\site-packages\sqlalchemy\orm\decl_base.py", line 2182, in _declarative_constructor
+    setattr(self, k, kwargs[k])
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jimbu\Coding Projects\NukeWorks\app\utils\encryption.py", line 403, in __set__
+    encrypted = encrypt_value(value, self.key_type)
+  File "C:\Users\jimbu\Coding Projects\NukeWorks\app\utils\encryption.py", line 53, in encrypt_value
+    cipher = KeyManager.get_cipher(key_type)
+  File "C:\Users\jimbu\Coding Projects\NukeWorks\app\utils\key_management.py", line 101, in get_cipher
+    key = cls.get_key(key_type)
+  File "C:\Users\jimbu\Coding Projects\NukeWorks\app\utils\key_management.py", line 80, in get_key
+    keys = cls._load_keys()
+  File "C:\Users\jimbu\Coding Projects\NukeWorks\app\utils\key_management.py", line 47, in _load_keys
+    raise EncryptionKeyError(
+    ...<2 lines>...
+    )
+app.exceptions.EncryptionKeyError: CONFIDENTIAL_DATA_KEY not found in environment. Run scripts/generate_encryption_keys.py to generate keys.
+2025-10-18 15:40:28,626 - INFO - Client profile already exists for Duke, skipping
+2025-10-18 15:40:28,627 - ERROR - Error processing client profile for Duke: CONFIDENTIAL_DATA_KEY not found in environment. Run scripts/generate_encryption_keys.py to generate keys.
+Traceback (most recent call last):
+  File "C:\Users\jimbu\Coding Projects\NukeWorks\import_json_to_db.py", line 315, in phase_3_client_profiles_and_roundtable
+    new_roundtable = RoundtableHistory(
+        entity_type='Company',
+    ...<8 lines>...
+        created_timestamp=datetime(2025, 10, 18, 12, 0, 0)
+    )
+  File "<string>", line 4, in __init__
+  File "C:\Users\jimbu\Coding Projects\NukeWorks\venv\Lib\site-packages\sqlalchemy\orm\state.py", line 571, in _initialize_instance
+    with util.safe_reraise():
+         ~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\jimbu\Coding Projects\NukeWorks\venv\Lib\site-packages\sqlalchemy\util\langhelpers.py", line 224, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "C:\Users\jimbu\Coding Projects\NukeWorks\venv\Lib\site-packages\sqlalchemy\orm\state.py", line 569, in _initialize_instance
+    manager.original_init(*mixed[1:], **kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jimbu\Coding Projects\NukeWorks\venv\Lib\site-packages\sqlalchemy\orm\decl_base.py", line 2182, in _declarative_constructor
+    setattr(self, k, kwargs[k])
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jimbu\Coding Projects\NukeWorks\app\utils\encryption.py", line 403, in __set__
+    encrypted = encrypt_value(value, self.key_type)
+  File "C:\Users\jimbu\Coding Projects\NukeWorks\app\utils\encryption.py", line 53, in encrypt_value
+    cipher = KeyManager.get_cipher(key_type)
+  File "C:\Users\jimbu\Coding Projects\NukeWorks\app\utils\key_management.py", line 101, in get_cipher
+    key = cls.get_key(key_type)
+  File "C:\Users\jimbu\Coding Projects\NukeWorks\app\utils\key_management.py", line 80, in get_key
+    keys = cls._load_keys()
+  File "C:\Users\jimbu\Coding Projects\NukeWorks\app\utils\key_management.py", line 47, in _load_keys
+    raise EncryptionKeyError(
+    ...<2 lines>...
+    )
+app.exceptions.EncryptionKeyError: CONFIDENTIAL_DATA_KEY not found in environment. Run scripts/generate_encryption_keys.py to generate keys.
+2025-10-18 15:40:28,632 - WARNING - Company not found: Fermi America
+2025-10-18 15:40:28,634 - ERROR - Error processing client profile for American Electric Power (AEP): CONFIDENTIAL_DATA_KEY not found in environment. Run scripts/generate_encryption_keys.py to generate keys.
+Traceback (most recent call last):
+  File "C:\Users\jimbu\Coding Projects\NukeWorks\import_json_to_db.py", line 297, in phase_3_client_profiles_and_roundtable
+    new_profile = ClientProfile(
+        company_id=company.company_id,
+    ...<5 lines>...
+        last_contact_type=client_profile_data.get('last_contact_type', 'Meeting/Review')
+    )
+  File "<string>", line 4, in __init__
+  File "C:\Users\jimbu\Coding Projects\NukeWorks\venv\Lib\site-packages\sqlalchemy\orm\state.py", line 571, in _initialize_instance
+    with util.safe_reraise():
+         ~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\jimbu\Coding Projects\NukeWorks\venv\Lib\site-packages\sqlalchemy\util\langhelpers.py", line 224, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "C:\Users\jimbu\Coding Projects\NukeWorks\venv\Lib\site-packages\sqlalchemy\orm\state.py", line 569, in _initialize_instance
+    manager.original_init(*mixed[1:], **kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jimbu\Coding Projects\NukeWorks\venv\Lib\site-packages\sqlalchemy\orm\decl_base.py", line 2182, in _declarative_constructor
+    setattr(self, k, kwargs[k])
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jimbu\Coding Projects\NukeWorks\app\utils\encryption.py", line 403, in __set__
+    encrypted = encrypt_value(value, self.key_type)
+  File "C:\Users\jimbu\Coding Projects\NukeWorks\app\utils\encryption.py", line 53, in encrypt_value
+    cipher = KeyManager.get_cipher(key_type)
+  File "C:\Users\jimbu\Coding Projects\NukeWorks\app\utils\key_management.py", line 101, in get_cipher
+    key = cls.get_key(key_type)
+  File "C:\Users\jimbu\Coding Projects\NukeWorks\app\utils\key_management.py", line 80, in get_key
+    keys = cls._load_keys()
+  File "C:\Users\jimbu\Coding Projects\NukeWorks\app\utils\key_management.py", line 47, in _load_keys
+    raise EncryptionKeyError(
+    ...<2 lines>...
+    )
+app.exceptions.EncryptionKeyError: CONFIDENTIAL_DATA_KEY not found in environment. Run scripts/generate_encryption_keys.py to generate keys.
+2025-10-18 15:40:28,637 - INFO - Phase 3 Complete: Created 0 profiles, 0 roundtable entries
+2025-10-18 15:40:28,637 - INFO - 
+======================================================================
+2025-10-18 15:40:28,637 - INFO - PHASE 4: Linking Internal-External Relationships
+2025-10-18 15:40:28,638 - INFO - ======================================================================
+2025-10-18 15:40:28,638 - INFO - Processing relationships for 9 clients...
+2025-10-18 15:40:28,961 - WARNING - Could not find internal staff member: Galloway
+2025-10-18 15:40:29,072 - WARNING - Could not find internal staff member: Steiman
+2025-10-18 15:40:29,122 - WARNING - Company not found: Fermi America
+2025-10-18 15:40:29,145 - INFO - Phase 4 Complete: Created 126 relationships
+2025-10-18 15:40:29,146 - INFO - 
+======================================================================
+2025-10-18 15:40:29,146 - INFO - IMPORT COMPLETE
+2025-10-18 15:40:29,146 - INFO - ======================================================================
+2025-10-18 15:40:29,146 - INFO - 
+======================================================================
+2025-10-18 15:40:29,146 - INFO - IMPORT SUMMARY
+2025-10-18 15:40:29,146 - INFO - ======================================================================
+2025-10-18 15:40:29,147 - INFO - Companies Created:        0
+2025-10-18 15:40:29,147 - INFO - Companies Updated:        8
+2025-10-18 15:40:29,147 - INFO - Personnel Created:        52
+2025-10-18 15:40:29,147 - INFO - Personnel Updated:        4
+2025-10-18 15:40:29,147 - INFO - Client Profiles Created:  0
+2025-10-18 15:40:29,147 - INFO - Roundtable Entries:       0
+2025-10-18 15:40:29,147 - INFO - Relationships Created:    126
+2025-10-18 15:40:29,147 - INFO - Total Errors:             9
+2025-10-18 15:40:29,148 - INFO - 
+Errors encountered:
+2025-10-18 15:40:29,148 - INFO -   - Company 'Fermi America': (sqlite3.IntegrityError) NOT NULL constraint failed: companies.modified_date
+[SQL: INSERT INTO companies (company_name, company_type, website, headquarters_country, is_mpr_client, is_internal, notes, created_date, modified_date, created_by, modified_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)]
+[parameters: ('Fermi America', 'Unknown', None, 'USA', 1, 0, '[AI_RESEARCH_EXTRACTION 2025-10-18] Fermi America - awaiting subcontractor engagement through AECOM. Focus on COLA (license renewal) and Westinghouse alignment for advanced reactor deployment.', '2025-10-18 19:40:27.167446', None, None, None)]
+(Background on this error at: https://sqlalche.me/e/20/gkpj)
+2025-10-18 15:40:29,148 - INFO -   - Client Profile 'Elementl Power': CONFIDENTIAL_DATA_KEY not found in environment. Run scripts/generate_encryption_keys.py to generate keys.
+2025-10-18 15:40:29,148 - INFO -   - Client Profile 'Dominion Energy': CONFIDENTIAL_DATA_KEY not found in environment. Run scripts/generate_encryption_keys.py to generate keys.
+2025-10-18 15:40:29,148 - INFO -   - Client Profile 'TVA': CONFIDENTIAL_DATA_KEY not found in environment. Run scripts/generate_encryption_keys.py to generate keys.
+2025-10-18 15:40:29,148 - INFO -   - Client Profile 'Blue Energy': CONFIDENTIAL_DATA_KEY not found in environment. Run scripts/generate_encryption_keys.py to generate keys.
+2025-10-18 15:40:29,148 - INFO -   - Client Profile 'Google': CONFIDENTIAL_DATA_KEY not found in environment. Run scripts/generate_encryption_keys.py to generate keys.
+2025-10-18 15:40:29,148 - INFO -   - Client Profile 'Energy Northwest': CONFIDENTIAL_DATA_KEY not found in environment. Run scripts/generate_encryption_keys.py to generate keys.
+2025-10-18 15:40:29,149 - INFO -   - Client Profile 'Duke': CONFIDENTIAL_DATA_KEY not found in environment. Run scripts/generate_encryption_keys.py to generate keys.
+2025-10-18 15:40:29,149 - INFO -   - Client Profile 'American Electric Power (AEP)': CONFIDENTIAL_DATA_KEY not found in environment. Run scripts/generate_encryption_keys.py to generate keys.
+2025-10-18 15:40:29,149 - INFO - ======================================================================
+2025-10-18 15:40:29,149 - INFO - 
+Import script completed successfully!

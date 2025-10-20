@@ -12,6 +12,7 @@ from app.models import (
     # Product,  # Removed in Phase 4 cleanup - technology data consolidated into companies
 )
 from app import db_session
+from app.utils.permissions import can_view_relationship
 
 bp = Blueprint("network", __name__)
 
@@ -62,8 +63,8 @@ def network_data():
     return jsonify(data)
 
 
-def _get_project_relationships(project_id):
-    """Get all relationships for a project using unified schema"""
+def _get_project_relationships(user, project_id):
+    """Get all relationships for a project using unified schema, with confidentiality redaction"""
     relationships = {
         'owners': [],
         'vendors': [],
@@ -86,10 +87,17 @@ def _get_project_relationships(project_id):
         if not company or not role:
             continue
 
-        company_info = {
-            'id': company.company_id,
-            'name': company.company_name
-        }
+        # Redact company details if user cannot view this confidential relationship
+        if can_view_relationship(user, assignment):
+            company_info = {
+                'id': company.company_id,
+                'name': company.company_name
+            }
+        else:
+            company_info = {
+                'id': -1,  # sentinel to avoid leaking real company id
+                'name': '[Confidential]'
+            }
 
         # Map role to relationship category
         if role.role_code == 'developer':
@@ -121,7 +129,7 @@ def _build_grouped_data(group_by, selected_columns):
 
     # First, add all projects to their respective groups
     for project in projects:
-        project_rels = _get_project_relationships(project.project_id)
+        project_rels = _get_project_relationships(current_user, project.project_id)
 
         # Determine grouping
         if group_by == 'project':
@@ -215,7 +223,7 @@ def network_table():
     """
     # Get parameters
     group_by = request.args.get('group_by', 'project')
-    columns_param = request.args.get('columns', 'project,owner,vendor')  # removed 'technology' in Phase 4 cleanup
+    columns_param = request.args.get('columns', 'project,owner,vendor,operator,offtaker,constructor')  # broader default to show public roles
 
     # Parse selected columns
     selected_columns = [col.strip() for col in columns_param.split(',') if col.strip()]

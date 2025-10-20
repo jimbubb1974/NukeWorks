@@ -118,7 +118,7 @@ def set_db_display_name(db_path: str, display_name: str) -> bool:
 
 def scan_databases_directory() -> list:
     """
-    Scan databases/ directory for nukeworks.sqlite files
+    Recursively scan databases/ directory for any *.sqlite files.
 
     Returns:
         list: List of dicts with keys: path, label, display_name
@@ -134,25 +134,31 @@ def scan_databases_directory() -> list:
         logger.warning(f"Databases directory does not exist: {databases_dir}")
         return results
 
-    # Walk through databases/*/ looking for nukeworks.sqlite
-    for label_dir in databases_dir.iterdir():
-        if not label_dir.is_dir():
-            continue
+    # Recursively walk and include any *.sqlite file
+    for root, dirs, files in os.walk(databases_dir):
+        # Exclude any snapshots directories from recursion
+        dirs[:] = [d for d in dirs if d.lower() != 'snapshots']
+        for fname in files:
+            if fname.lower().endswith('.sqlite'):
+                db_file = Path(root) / fname
+                # Try to get display name from the DB
+                display_name = get_db_display_name(str(db_file))
+                if not display_name:
+                    # Fall back to the directory name containing the DB, or filename if not under a label dir
+                    display_name = Path(root).name or db_file.stem
 
-        db_file = label_dir / 'nukeworks.sqlite'
-        if db_file.exists():
-            # Try to get display name from database
-            display_name = get_db_display_name(str(db_file))
+                # Label is the immediate parent directory under databases/
+                try:
+                    rel = Path(root).resolve().relative_to(databases_dir.resolve())
+                    label = rel.parts[0] if len(rel.parts) > 0 else databases_dir.name
+                except Exception:
+                    label = databases_dir.name
 
-            # Fall back to label (directory name) if no display name
-            if not display_name:
-                display_name = label_dir.name
-
-            results.append({
-                'path': str(db_file.resolve()),
-                'label': label_dir.name,
-                'display_name': display_name
-            })
+                results.append({
+                    'path': str(db_file.resolve()),
+                    'label': label,
+                    'display_name': display_name
+                })
 
     return sorted(results, key=lambda x: x['display_name'])
 

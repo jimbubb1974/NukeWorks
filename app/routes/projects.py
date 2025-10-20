@@ -12,8 +12,6 @@ from app.models import (
 )
 from app.forms.relationships import (
     ProjectCompanyRelationshipForm,
-    PersonnelEntityRelationshipForm,
-    EntityTeamMemberForm,
     TeamAssignmentToggleForm,
     ConfirmActionForm
 )
@@ -21,8 +19,7 @@ from app.forms.projects import ProjectForm
 from app import db_session
 from app.utils.permissions import filter_relationships, mark_field_confidential
 from app.models.confidential import ConfidentialFieldFlag
-from app.services.company_sync import sync_personnel_affiliation
-from app.routes.relationship_utils import get_personnel_choices
+# Legacy personnel sync and utilities removed during unification cleanup
 
 bp = Blueprint('projects', __name__, url_prefix='/projects')
 
@@ -114,13 +111,6 @@ def _process_relationship_assignments(project: Project, form_data, user_id: int)
 @login_required
 def list_projects():
     """List all projects"""
-    # Debug: print which database the request is using
-    try:
-        from flask import g as _flask_g
-        print(f"[DBG] projects.list_projects: g.selected_db_path={getattr(_flask_g, 'selected_db_path', None)}")
-    except Exception:
-        pass
-
     projects = db_session.query(Project).order_by(Project.project_name).all()
     delete_form = ConfirmActionForm()
     return render_template('projects/list.html', projects=projects, can_manage=_can_manage_relationships(current_user), delete_form=delete_form)
@@ -247,11 +237,18 @@ def view_project(project_id):
     # Apply confidentiality filter so users without access do not see confidential relationships
     visible_company_relationships = filter_relationships(current_user, company_relationships)
 
+    # Compute hidden count to inform UI when some relationships are not shown
+    hidden_company_relationships_count = max(0, len(company_relationships) - len(visible_company_relationships))
+
     # Group relationships by role type (only visible ones)
     vendor_relationships = [r for r in visible_company_relationships if r.role and r.role.role_code == 'vendor']
     constructor_relationships = [r for r in visible_company_relationships if r.role and r.role.role_code == 'constructor']
     operator_relationships = [r for r in visible_company_relationships if r.role and r.role.role_code == 'operator']
-    owner_relationships = [r for r in visible_company_relationships if r.role and r.role.role_code == 'developer']
+    # Treat legacy 'owner' as alias of 'developer' for display
+    owner_relationships = [
+        r for r in visible_company_relationships
+        if r.role and r.role.role_code in ('developer', 'owner')
+    ]
     offtaker_relationships = [r for r in visible_company_relationships if r.role and r.role.role_code == 'offtaker']
     
     # TODO: Personnel relationships feature disabled - models PersonnelEntityRelationship and EntityTeamMember removed
@@ -294,7 +291,8 @@ def view_project(project_id):
         team_form=team_form,
         toggle_form=TeamAssignmentToggleForm(),
         delete_form=ConfirmActionForm(),
-        can_manage_relationships=can_manage
+        can_manage_relationships=can_manage,
+        hidden_company_relationships_count=hidden_company_relationships_count
     )
 
 
@@ -368,6 +366,7 @@ def edit_project(project_id):
     companies = db_session.query(Company).order_by(Company.company_name).all()
 
     # Build relationship assignments from unified schema for form display
+    # Use same permission filtering as detail page so admins see confidential relationships
     assignments_all = (
         db_session.query(CompanyRoleAssignment)
         .join(CompanyRole)
@@ -377,10 +376,15 @@ def edit_project(project_id):
         )
         .all()
     )
+    
+    # Do NOT filter here: we want non-confidential users to still see that a
+    # confidential relationship exists. The template will redact company/notes
+    # when can_view_confidential is False.
 
     def _by_role(code: str):
         return [
             {
+                'assignment_id': a.assignment_id,
                 'company_id': a.company_id,
                 'is_confidential': bool(getattr(a, 'is_confidential', False)),
                 'notes': a.notes or ''
@@ -406,6 +410,10 @@ def edit_project(project_id):
         ).first()
         confidentiality_flags[f'{field}_is_confidential'] = flag.is_confidential if flag else False
 
+    # Create forms for company relationship management
+    company_form = ProjectCompanyRelationshipForm()
+    company_form.company_id.choices = _get_company_choices()
+    
     return render_template(
         'projects/form.html',
         form=form,
@@ -417,6 +425,9 @@ def edit_project(project_id):
         operator_assignments=operator_assignments,
         constructor_assignments=constructor_assignments,
         offtaker_assignments=offtaker_assignments,
+        can_view_confidential=bool(getattr(current_user, 'is_admin', False)),
+        company_form=company_form,
+        delete_form=ConfirmActionForm(),
         **confidentiality_flags
     )
 
@@ -484,25 +495,32 @@ def add_project_company_relationship(project_id):
     
     if form.validate_on_submit():
         try:
+            # Normalize owner/developer alias
+            normalized_role_code = 'developer' if form.role_type.data in ('owner', 'developer') else form.role_type.data
+
             # Check if this company already has this role for this project
             existing_relationship = db_session.query(CompanyRoleAssignment).filter_by(
                 company_id=form.company_id.data,
                 context_type='Project',
                 context_id=project.project_id
-            ).join(CompanyRole).filter(CompanyRole.role_code == form.role_type.data).first()
+            ).join(CompanyRole).filter(CompanyRole.role_code == normalized_role_code).first()
             
             if existing_relationship:
                 company_name = db_session.query(Company).filter_by(company_id=form.company_id.data).first().company_name
-                flash(f'{company_name} already has a {form.role_type.data} role for this project.', 'warning')
+                # Optional debug kept minimal; comment out if noisy
+                # print(f"[DEBUG] Blocking relationship: company_id={form.company_id.data}, role={normalized_role_code}, confidential={getattr(existing_relationship, 'is_confidential', False)}, notes={existing_relationship.notes}")
+                # Clarify that the existing role may be confidential and not visible in the list
+                visibility_note = ' (may be confidential and hidden)' if not existing_relationship or getattr(existing_relationship, 'is_confidential', False) else ''
+                flash(f'{company_name} already has a {normalized_role_code} role for this project{visibility_note}.', 'warning')
                 return redirect(url_for('projects.view_project', project_id=project_id))
             
             # Get or create the role
-            role = db_session.query(CompanyRole).filter_by(role_code=form.role_type.data).first()
+            role = db_session.query(CompanyRole).filter_by(role_code=normalized_role_code).first()
             if not role:
                 role = CompanyRole(
-                    role_code=form.role_type.data,
-                    role_label=form.role_type.data.title(),
-                    description=f"Role for {form.role_type.data} relationships"
+                    role_code=normalized_role_code,
+                    role_label=normalized_role_code.title(),
+                    description=f"Role for {normalized_role_code} relationships"
                 )
                 db_session.add(role)
                 db_session.flush()  # Get the role_id

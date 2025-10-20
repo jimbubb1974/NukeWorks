@@ -1,0 +1,1538 @@
+{
+  "metadata": {
+    "template_version": "2.0",
+    "purpose": "AI research agent extraction - High Priority Clients",
+    "source_documents": [
+      {
+        "filename": "test clients stuff.pdf",
+        "date_extracted": "2025-10-18",
+        "extraction_confidence": 0.85,
+        "notes": "MPR client meeting notes with strategic objectives and team assignments"
+      }
+    ],
+    "extracted_by": "AI Research Agent",
+    "extraction_date": "2025-10-18",
+    "review_status": "pending_human_review"
+  },
+  "database_references": {
+    "description": "Existing data in the NukeWorks database to help match and link extracted information",
+    "last_synced": "2025-10-18"
+  },
+  "clients": [
+    {
+      "external_client": {
+        "company_name": "Elementl Power",
+        "company_id": 31,
+        "db_match_confidence": 0.95,
+        "db_match_reason": "Exact company name match in database. Company ID 31 confirmed.",
+        "notes": "Project Developer/IPP focused on 1GW by 2030, 10GW by 2035, 100GW by 2040. Technology agnostic. Google Agreement for 3 multi-unit sites (Widows Creek TVA, Barnwell TBD, Apple Grove TBD). META potential project at Hope Creek Site. Dominion North Anna awaiting response.",
+        "website": null,
+        "headquarters_country": "USA"
+      },
+      "internal_contacts": [
+        {
+          "employee_name": "Fowler",
+          "employee_title": "Client Lead",
+          "employee_id": null,
+          "db_match_confidence": null,
+          "db_match_reason": "MPR client lead mentioned in PDF. Full name and email not provided in document.",
+          "relationship_type": "primary_contact",
+          "relationship_notes": "Primary client lead for Elementl Power"
+        },
+        {
+          "employee_name": "Klein",
+          "employee_title": "Client Team Member",
+          "employee_id": null,
+          "db_match_confidence": null,
+          "db_match_reason": "MPR team member mentioned in PDF. Full name and email not provided in document.",
+          "relationship_type": "supporting_contact",
+          "relationship_notes": "Supporting team member for Elementl"
+        },
+        {
+          "employee_name": "Coward",
+          "employee_title": "Client Team Member",
+          "employee_id": null,
+          "db_match_confidence": null,
+          "db_match_reason": "MPR team member mentioned in PDF. Full name and email not provided in document.",
+          "relationship_type": "supporting_contact",
+          "relationship_notes": "Supporting team member for Elementl"
+        }
+      ],
+      "external_personnel": [
+        {
+          "contact_name": "Chris Colbert",
+          "contact_title": "CEO",
+          "contact_email": null,
+          "contact_phone": null,
+          "company_name": "Elementl Power",
+          "company_id": 31,
+          "personnel_id": 17,
+          "db_match_confidence": 0.95,
+          "db_match_reason": "Exact name match in database (personnel_id 17). CEO title confirmed in PDF organizational chart.",
+          "relationship_to_mpr": "Primary decision maker for MPR engagement"
+        },
+        {
+          "contact_name": "David Faherty",
+          "contact_title": "Founder, CCO",
+          "contact_email": null,
+          "contact_phone": null,
+          "company_name": "Elementl Power",
+          "company_id": 31,
+          "personnel_id": 18,
+          "db_match_confidence": 0.95,
+          "db_match_reason": "Exact name match in database (personnel_id 18). Title confirmed in PDF org chart.",
+          "relationship_to_mpr": "Key strategic contact"
+        },
+        {
+          "contact_name": "Ryan Mills",
+          "contact_title": "Founder, COO",
+          "contact_email": null,
+          "contact_phone": null,
+          "company_name": "Elementl Power",
+          "company_id": 31,
+          "personnel_id": 19,
+          "db_match_confidence": 0.95,
+          "db_match_reason": "Exact name match in database (personnel_id 19). Title confirmed in PDF org chart.",
+          "relationship_to_mpr": "Key strategic contact"
+        },
+        {
+          "contact_name": "Dan Faherty",
+          "contact_title": "Founder, CFO",
+          "contact_email": null,
+          "contact_phone": null,
+          "company_name": "Elementl Power",
+          "company_id": 31,
+          "personnel_id": null,
+          "db_match_confidence": 0.70,
+          "db_match_reason": "Name appears in PDF org chart with CFO title. No exact match in existing_external_personnel database.",
+          "relationship_to_mpr": "Financial decision maker"
+        },
+        {
+          "contact_name": "Shawn Hughes",
+          "contact_title": "Chief Development Officer (CDO)",
+          "contact_email": null,
+          "contact_phone": null,
+          "company_name": "Elementl Power",
+          "company_id": 31,
+          "personnel_id": 20,
+          "db_match_confidence": 0.85,
+          "db_match_reason": "Name found in database as personnel_id 20 with title 'Chief Development Officer'. PDF confirms CDO role.",
+          "relationship_to_mpr": "Development strategy lead"
+        },
+        {
+          "contact_name": "Tom Mundy",
+          "contact_title": "VP PMO",
+          "contact_email": null,
+          "contact_phone": null,
+          "company_name": "Elementl Power",
+          "company_id": 31,
+          "personnel_id": 21,
+          "db_match_confidence": 0.95,
+          "db_match_reason": "Exact name match in database (personnel_id 21) with VP-PMO title confirmed.",
+          "relationship_to_mpr": "Project management contact"
+        },
+        {
+          "contact_name": "Mirela Gavrilas",
+          "contact_title": "VP Regulatory Affairs",
+          "contact_email": null,
+          "contact_phone": null,
+          "company_name": "Elementl Power",
+          "company_id": 31,
+          "personnel_id": 22,
+          "db_match_confidence": 0.95,
+          "db_match_reason": "Exact name match in database (personnel_id 22) with VP-Reg Affairs title confirmed.",
+          "relationship_to_mpr": "Regulatory strategy contact"
+        },
+        {
+          "contact_name": "Jeff Perry",
+          "contact_title": "Head of Early Site Development",
+          "contact_email": null,
+          "contact_phone": null,
+          "company_name": "Elementl Power",
+          "company_id": 31,
+          "personnel_id": 23,
+          "db_match_confidence": 0.95,
+          "db_match_reason": "Exact name match in database (personnel_id 23) with matching title confirmed.",
+          "relationship_to_mpr": "Site development lead"
+        },
+        {
+          "contact_name": "Chris Spencer",
+          "contact_title": "Controller",
+          "contact_email": null,
+          "contact_phone": null,
+          "company_name": "Elementl Power",
+          "company_id": 31,
+          "personnel_id": 24,
+          "db_match_confidence": 0.85,
+          "db_match_reason": "Name found in database (personnel_id 24) with Controller title confirmed in PDF org chart.",
+          "relationship_to_mpr": "Financial controller"
+        }
+      ],
+      "roundtable_entry": {
+        "meeting_context": "High Priority Client Strategic Review - Elementl Power",
+        "meeting_date": "2025-10-18",
+        "fields": {
+          "next_steps": [
+            "Fowler/Reynolds - Kick door open with workshop",
+            "Coward - Connect with Colbert",
+            "Klein - Reach out to Mills to set up mtg",
+            "Lubnow - Set up mtg to get big picture after RFP project (Klein to follow up with Tom)"
+          ],
+          "client_near_term_focus_areas": [
+            "Securing next round of funding",
+            "Development of Widows Creek Site",
+            "PDO/PMO Standup - infrastructure and staffing"
+          ],
+          "mpr_work_targets_goals": [
+            "PDO/PMO Standup",
+            "Risk Management",
+            "Technology Due Diligence"
+          ],
+          "client_strategic_objectives_priorities": [
+            "Project Developer/IPP for 1GW by 2030, 10GW by 2035, 100GW by 2040",
+            "Focused on datacenter power needs",
+            "Technology agnostic approach",
+            "Google Agreement - 3 multi-unit sites (Widows Creek TVA, Barnwell TBD, Apple Grove TBD)",
+            "META - Potential project at Hope Creek Site (2026 earliest start)",
+            "Dominion North Anna - Awaiting response",
+            "Gen III+ FOA - On TVA team",
+            "VC Summer - Finalist to take over Unit 2 and 3 site"
+          ],
+          "general_discussion": "Elementl is a major project developer with aggressive deployment targets. Google partnership is strategic anchor with multiple sites. Need to secure role on deployment team and support PMO infrastructure."
+        }
+      },
+      "client_profile": {
+        "client_priority": "Strategic",
+        "client_status": "Active",
+        "relationship_strength": "Developing",
+        "relationship_notes": "Active engagement with PMO standup and multi-site deployment planning. Google partnership provides strategic opportunity.",
+        "last_contact_date": "2025-10-18",
+        "last_contact_type": "Meeting/Review",
+        "next_planned_contact_date": null,
+        "next_planned_contact_type": null
+      },
+      "additional_context": {
+        "projects_involved": [
+          "Widows Creek deployment (TVA partnership with Google)",
+          "Barnwell site development",
+          "Apple Grove site development",
+          "Hope Creek site (META partnership)",
+          "North Anna evaluation",
+          "VC Summer site"
+        ],
+        "key_achievements": "Secured Google partnership for 3 multi-unit sites with significant deployment capacity",
+        "risks_concerns": "Funding acquisition, site selection complexity with multiple partners, technology agnosticism may create vendor coordination challenges",
+        "competitive_landscape": "Competing with TerraPower and other IPPs for major utility partnerships and datacenter off-take agreements",
+        "opportunities": "Lead role on deployment team, PMO support services, risk management consulting, potential expansion to additional Google sites"
+      }
+    },
+    {
+      "external_client": {
+        "company_name": "Dominion Energy",
+        "company_id": 19,
+        "db_match_confidence": 0.95,
+        "db_match_reason": "Exact company name match in database. Company ID 19 confirmed.",
+        "notes": "Large U.S. utility meeting growing power demands in Virginia, mainly from datacenter growth. Assessing SMR options. MOU with Amazon to deploy SMR near North Anna site.",
+        "website": null,
+        "headquarters_country": "USA"
+      },
+      "internal_contacts": [
+        {
+          "employee_name": "Fowler",
+          "employee_title": "Client Lead",
+          "employee_id": null,
+          "db_match_confidence": null,
+          "db_match_reason": "MPR client lead mentioned in PDF. Full name and email not provided.",
+          "relationship_type": "primary_contact",
+          "relationship_notes": "Primary client lead for Dominion Energy"
+        },
+        {
+          "employee_name": "Coward",
+          "employee_title": "Client Team Member",
+          "employee_id": null,
+          "db_match_confidence": null,
+          "db_match_reason": "MPR team member mentioned in PDF. Full name and email not provided.",
+          "relationship_type": "supporting_contact",
+          "relationship_notes": "Supporting team member, marked with red text indicating status change"
+        },
+        {
+          "employee_name": "Lubnow",
+          "employee_title": "Client Team Member",
+          "employee_id": null,
+          "db_match_confidence": null,
+          "db_match_reason": "MPR team member mentioned in PDF. Full name and email not provided.",
+          "relationship_type": "supporting_contact",
+          "relationship_notes": "Recently visited Emil Avram; report pending"
+        },
+        {
+          "employee_name": "Klein",
+          "employee_title": "Client Team Member",
+          "employee_id": null,
+          "db_match_confidence": null,
+          "db_match_reason": "MPR team member mentioned in PDF. Full name and email not provided.",
+          "relationship_type": "supporting_contact",
+          "relationship_notes": "Supporting team member for business development"
+        }
+      ],
+      "external_personnel": [
+        {
+          "contact_name": "Robert Blue",
+          "contact_title": "Chairman, President, CEO",
+          "contact_email": null,
+          "contact_phone": null,
+          "company_name": "Dominion Energy",
+          "company_id": 19,
+          "personnel_id": null,
+          "db_match_confidence": 0.70,
+          "db_match_reason": "Name found in PDF client leads table. No exact match in database. LinkedIn profile indicates correct title.",
+          "relationship_to_mpr": "Executive decision maker"
+        },
+        {
+          "contact_name": "Eric Carr",
+          "contact_title": "CNO & President Nuclear Operations",
+          "contact_email": null,
+          "contact_phone": null,
+          "company_name": "Dominion Energy",
+          "company_id": 19,
+          "personnel_id": null,
+          "db_match_confidence": 0.70,
+          "db_match_reason": "Name found in PDF client leads table. No match in database, but title indicates nuclear operations leadership.",
+          "relationship_to_mpr": "Nuclear strategy lead"
+        },
+        {
+          "contact_name": "James Holloway",
+          "contact_title": "VP, Nuclear Engineering",
+          "contact_email": null,
+          "contact_phone": null,
+          "company_name": "Dominion Energy",
+          "company_id": 19,
+          "personnel_id": null,
+          "db_match_confidence": 0.70,
+          "db_match_reason": "Name found in PDF client leads table. No match in database. Title suggests engineering leadership.",
+          "relationship_to_mpr": "Technical/engineering contact"
+        },
+        {
+          "contact_name": "Adina LaFrance",
+          "contact_title": "Director, Advanced Reactor Group",
+          "contact_email": null,
+          "contact_phone": null,
+          "company_name": "Dominion Energy",
+          "company_id": 19,
+          "personnel_id": null,
+          "db_match_confidence": 0.70,
+          "db_match_reason": "Name found in PDF client leads table with AR Group attribution. No database match. LinkedIn profile shows this role.",
+          "relationship_to_mpr": "Advanced reactor strategy lead"
+        },
+        {
+          "contact_name": "Ellery Baker",
+          "contact_title": "Program Manager, Advanced Reactor Group",
+          "contact_email": null,
+          "contact_phone": null,
+          "company_name": "Dominion Energy",
+          "company_id": 19,
+          "personnel_id": null,
+          "db_match_confidence": 0.50,
+          "db_match_reason": "Name found in PDF with PM role in AR Group. Limited confidence - no external confirmation available.",
+          "relationship_to_mpr": "Program management - developing strength"
+        },
+        {
+          "contact_name": "Ed Baine",
+          "contact_title": "President, Utility Operations",
+          "contact_email": null,
+          "contact_phone": null,
+          "company_name": "Dominion Energy",
+          "company_id": 19,
+          "personnel_id": null,
+          "db_match_confidence": 0.70,
+          "db_match_reason": "Name found in PDF client leads. Lubnow and Klein listed as leads. LinkedIn shows this role.",
+          "relationship_to_mpr": "Operations strategy contact"
+        },
+        {
+          "contact_name": "Emil Avram",
+          "contact_title": "VP, Business Development",
+          "contact_email": null,
+          "contact_phone": null,
+          "company_name": "Dominion Energy",
+          "company_id": 19,
+          "personnel_id": null,
+          "db_match_confidence": 0.85,
+          "db_match_reason": "Name found in PDF with clear Lubnow/Klein leads. LinkedIn confirms VP BD title. Recently visited by Lubnow.",
+          "relationship_to_mpr": "Key business development contact"
+        },
+        {
+          "contact_name": "Todd Flowers",
+          "contact_title": "Director, Business Development",
+          "contact_email": null,
+          "contact_phone": null,
+          "company_name": "Dominion Energy",
+          "company_id": 19,
+          "personnel_id": null,
+          "db_match_confidence": 0.70,
+          "db_match_reason": "Name found in PDF client leads. LinkedIn confirms BD title.",
+          "relationship_to_mpr": "Business development contact"
+        },
+        {
+          "contact_name": "Erich Fritz",
+          "contact_title": "Manager, Business Development",
+          "contact_email": null,
+          "contact_phone": null,
+          "company_name": "Dominion Energy",
+          "company_id": 19,
+          "personnel_id": null,
+          "db_match_confidence": 0.70,
+          "db_match_reason": "Name found in PDF client leads. LinkedIn confirms Mgr BD role.",
+          "relationship_to_mpr": "Business development manager contact"
+        }
+      ],
+      "roundtable_entry": {
+        "meeting_context": "High Priority Client Strategic Review - Dominion Energy",
+        "meeting_date": "2025-10-18",
+        "fields": {
+          "next_steps": [
+            "Watch to see who they pick for SMR developer, then adjust posture accordingly",
+            "Expecting announcement next 2 weeks",
+            "Lubnow visited Emil last week; report pending"
+          ],
+          "client_near_term_focus_areas": [
+            "Select SMR project developer for North Anna Site",
+            "Secure agreements for SMR development at the North Anna Site"
+          ],
+          "mpr_work_targets_goals": [
+            "Operations Agreement Development"
+          ],
+          "client_strategic_objectives_priorities": [
+            "Meeting growing power demands in VA, mainly from datacenter growth",
+            "Assessing options for SMR development at North Anna site",
+            "MOU with Amazon to deploy SMR near North Anna site"
+          ],
+          "general_discussion": "Dominion is evaluating SMR project developers for North Anna. Will link with either Elementl or TerraPower. If TerraPower selected, focus shifts to Dominion. If Elementl selected, work may flow through Elementl. Possible DOD angle to monitor."
+        }
+      },
+      "client_profile": {
+        "client_priority": "Strategic",
+        "client_status": "Active",
+        "relationship_strength": "Developing",
+        "relationship_notes": "Active evaluation phase for SMR developer selection. Amazon partnership provides validation and capital support.",
+        "last_contact_date": "2025-10-18",
+        "last_contact_type": "Meeting/Review",
+        "next_planned_contact_date": null,
+        "next_planned_contact_type": null
+      },
+      "additional_context": {
+        "projects_involved": [
+          "North Anna SMR deployment (Amazon partnership)",
+          "Advanced Reactor program",
+          "Datacenter power supply strategy"
+        ],
+        "key_achievements": "Secured Amazon MOU for SMR deployment; established advanced reactor capability",
+        "risks_concerns": "Developer selection pending - unclear if preference for Elementl or TerraPower; DOD considerations may impact strategy",
+        "competitive_landscape": "Elementl and TerraPower competing for project developer role; other utilities also evaluating SMRs",
+        "opportunities": "Support operations agreement development, act as prime technical advisor depending on developer selection, potential DOD energy security angle"
+      }
+    },
+    {
+      "external_client": {
+        "company_name": "TVA",
+        "company_id": 38,
+        "db_match_confidence": 0.95,
+        "db_match_reason": "Exact company name match in database. Company ID 38 confirmed.",
+        "notes": "Tennessee Valley Authority - major public power utility. Leading Gen III+ FOA proposal team. Clinch River SMR project slowly advancing. Engaged with project developers to expand capacity given debt limit constraints.",
+        "website": null,
+        "headquarters_country": "USA"
+      },
+      "internal_contacts": [
+        {
+          "employee_name": "Fowler",
+          "employee_title": "Client Lead",
+          "employee_id": null,
+          "db_match_confidence": null,
+          "db_match_reason": "MPR client lead mentioned in PDF. Full name and email not provided.",
+          "relationship_type": "primary_contact",
+          "relationship_notes": "Primary client lead for TVA"
+        },
+        {
+          "employee_name": "Klein",
+          "employee_title": "Client Team Member",
+          "employee_id": null,
+          "db_match_confidence": null,
+          "db_match_reason": "MPR team member mentioned in PDF. Full name and email not provided.",
+          "relationship_type": "supporting_contact",
+          "relationship_notes": "Supporting team member"
+        },
+        {
+          "employee_name": "Blackmon",
+          "employee_title": "Client Team Member",
+          "employee_id": null,
+          "db_match_confidence": null,
+          "db_match_reason": "MPR team member mentioned in PDF. Full name and email not provided.",
+          "relationship_type": "supporting_contact",
+          "relationship_notes": "To build rapport with TVA; part of next tier strategy"
+        },
+        {
+          "employee_name": "Galloway",
+          "employee_title": "Client Team Member",
+          "employee_id": null,
+          "db_match_confidence": null,
+          "db_match_reason": "MPR team member mentioned in PDF. Full name and email not provided.",
+          "relationship_type": "supporting_contact",
+          "relationship_notes": "Supporting team member"
+        }
+      ],
+      "external_personnel": [
+        {
+          "contact_name": "Don Moul",
+          "contact_title": "President & CEO",
+          "contact_email": null,
+          "contact_phone": null,
+          "company_name": "TVA",
+          "company_id": 38,
+          "personnel_id": null,
+          "db_match_confidence": 0.70,
+          "db_match_reason": "Name found in PDF client leads and org chart. No match in database.",
+          "relationship_to_mpr": "Executive decision maker"
+        },
+        {
+          "contact_name": "Bob Deacy",
+          "contact_title": "SVP, Clinch River Project",
+          "contact_email": null,
+          "contact_phone": null,
+          "company_name": "TVA",
+          "company_id": 38,
+          "personnel_id": null,
+          "db_match_confidence": 0.70,
+          "db_match_reason": "Name found in PDF client leads. Clinch River project leadership confirmed.",
+          "relationship_to_mpr": "Clinch River project leadership"
+        },
+        {
+          "contact_name": "Greg Boerschig",
+          "contact_title": "VP, Clinch River Project",
+          "contact_email": null,
+          "contact_phone": null,
+          "company_name": "TVA",
+          "company_id": 38,
+          "personnel_id": null,
+          "db_match_confidence": 0.70,
+          "db_match_reason": "Name found in PDF client leads and org chart.",
+          "relationship_to_mpr": "Clinch River project VP"
+        },
+        {
+          "contact_name": "Scott Hunnewell",
+          "contact_title": "VP, New Nuclear Program",
+          "contact_email": null,
+          "contact_phone": null,
+          "company_name": "TVA",
+          "company_id": 38,
+          "personnel_id": null,
+          "db_match_confidence": 0.70,
+          "db_match_reason": "Name found in PDF client leads. No database match.",
+          "relationship_to_mpr": "New nuclear program leadership"
+        },
+        {
+          "contact_name": "Mike Durr",
+          "contact_title": "Director, Advanced Nuclear Engineering",
+          "contact_email": null,
+          "contact_phone": null,
+          "company_name": "TVA",
+          "company_id": 38,
+          "personnel_id": null,
+          "db_match_confidence": 0.70,
+          "db_match_reason": "Name found in PDF client leads. Advanced reactor technology expertise indicated.",
+          "relationship_to_mpr": "Technical/engineering contact"
+        }
+      ],
+      "roundtable_entry": {
+        "meeting_context": "High Priority Client Strategic Review - TVA",
+        "meeting_date": "2025-10-18",
+        "fields": {
+          "next_steps": [
+            "Blackmon/Fowler - Build rapport with TVA",
+            "Move these guys to next tier lower - still need to feel out if these guys are for real",
+            "Might move them down to lower priority"
+          ],
+          "client_near_term_focus_areas": [
+            "TBD",
+            "Evaluating alternatives for nuclear generation capacity growth"
+          ],
+          "mpr_work_targets_goals": [
+            "Unclear - figure out tactics"
+          ],
+          "client_strategic_objectives_priorities": [
+            "Meet growing power demands - constrained by debt limit",
+            "Clinch River Project - Slowly advancing SMR project",
+            "Gen III+ FOA - lead for proposal team",
+            "Engaged with project developers to expand capacity given debt limit"
+          ],
+          "general_discussion": "TVA's commitment to SMR development unclear. Uncertain if really married to GE or other vendors. Need to clarify their strategy before committing significant resources. May downgrade priority if commitment cannot be confirmed."
+        }
+      },
+      "client_profile": {
+        "client_priority": "Strategic",
+        "client_status": "Active",
+        "relationship_strength": "New",
+        "relationship_notes": "Evaluating TVA's true commitment to SMR development. Debt constraints may limit deployment speed.",
+        "last_contact_date": "2025-10-18",
+        "last_contact_type": "Meeting/Review",
+        "next_planned_contact_date": null,
+        "next_planned_contact_type": null
+      },
+      "additional_context": {
+        "projects_involved": [
+          "Clinch River SMR project",
+          "Gen III+ FOA proposal",
+          "Advanced reactor evaluation"
+        ],
+        "key_achievements": "Leading Gen III+ FOA proposal team demonstrates commitment to nuclear innovation",
+        "risks_concerns": "Debt limit constraints may slow deployment; unclear vendor commitment; need to verify genuine SMR interest vs. token participation",
+        "competitive_landscape": "Multiple vendors competing for TVA role; GE possibly favored but unconfirmed",
+        "opportunities": "Support Gen III+ FOA proposal, technical advisory for Clinch River, OE role if project advances"
+      }
+    },
+    {
+      "external_client": {
+        "company_name": "Blue Energy",
+        "company_id": 32,
+        "db_match_confidence": 0.95,
+        "db_match_reason": "Exact company name match in database. Company ID 32 confirmed.",
+        "notes": "US startup (spun out of MIT in 2023) pioneering shipyard-fabricated modular nuclear plants. Reactor-agnostic plant design. Raised $45M Series A in Oct 2024. LOI with unnamed data center operator for first plant.",
+        "website": null,
+        "headquarters_country": "USA"
+      },
+      "internal_contacts": [
+        {
+          "employee_name": "Bubb",
+          "employee_title": "Client Lead",
+          "employee_id": null,
+          "db_match_confidence": null,
+          "db_match_reason": "MPR client lead mentioned in PDF. Full name and email not provided.",
+          "relationship_type": "primary_contact",
+          "relationship_notes": "Primary client lead for Blue Energy"
+        },
+        {
+          "employee_name": "Roberts",
+          "employee_title": "Client Team Member",
+          "employee_id": null,
+          "db_match_confidence": null,
+          "db_match_reason": "MPR team member mentioned in PDF. Full name and email not provided.",
+          "relationship_type": "supporting_contact",
+          "relationship_notes": "Supporting team member"
+        },
+        {
+          "employee_name": "Coward",
+          "employee_title": "Client Team Member",
+          "employee_id": null,
+          "db_match_confidence": null,
+          "db_match_reason": "MPR team member mentioned in PDF. Full name and email not provided.",
+          "relationship_type": "supporting_contact",
+          "relationship_notes": "Supporting team member"
+        }
+      ],
+      "external_personnel": [
+        {
+          "contact_name": "Jake Jurewicz",
+          "contact_title": "CEO",
+          "contact_email": null,
+          "contact_phone": null,
+          "company_name": "Blue Energy",
+          "company_id": 32,
+          "personnel_id": null,
+          "db_match_confidence": 0.70,
+          "db_match_reason": "Name found in PDF client leads. Bubb listed as lead contact. No exact database match.",
+          "relationship_to_mpr": "Chief executive and key decision maker"
+        },
+        {
+          "contact_name": "CJ Fong",
+          "contact_title": "VP Licensing / Regulatory Affairs",
+          "contact_email": null,
+          "contact_phone": null,
+          "company_name": "Blue Energy",
+          "company_id": 32,
+          "personnel_id": null,
+          "db_match_confidence": 0.70,
+          "db_match_reason": "Name found in PDF with good strength rating. Fowler listed as lead. Regulatory expertise key to deployment.",
+          "relationship_to_mpr": "Regulatory/licensing strategy contact"
+        },
+        {
+          "contact_name": "Charlie Bowser",
+          "contact_title": "VP, Delivery",
+          "contact_email": null,
+          "contact_phone": null,
+          "company_name": "Blue Energy",
+          "company_id": 32,
+          "personnel_id": null,
+          "db_match_confidence": 0.70,
+          "db_match_reason": "Name found in PDF with good strength rating. Bubb listed as lead. Delivery strategy critical.",
+          "relationship_to_mpr": "Delivery/deployment strategy lead"
+        },
+        {
+          "contact_name": "Jared Conway",
+          "contact_title": "Mechanical Engineer",
+          "contact_email": null,
+          "contact_phone": null,
+          "company_name": "Blue Energy",
+          "company_id": 32,
+          "personnel_id": null,
+          "db_match_confidence": 0.70,
+          "db_match_reason": "Name found in PDF client leads with good strength. Roberts listed as lead. Technical engineering contact.",
+          "relationship_to_mpr": "Technical/engineering contact"
+        },
+        {
+          "contact_name": "Tom Oneil",
+          "contact_title": null,
+          "contact_email": null,
+          "contact_phone": null,
+          "company_name": "Blue Energy",
+          "company_id": 32,
+          "personnel_id": null,
+          "db_match_confidence": 0.50,
+          "db_match_reason": "Name listed in PDF but no title provided. Limited information available.",
+          "relationship_to_mpr": "Unknown role"
+        }
+      ],
+      "roundtable_entry": {
+        "meeting_context": "High Priority Client Strategic Review - Blue Energy",
+        "meeting_date": "2025-10-18",
+        "fields": {
+          "next_steps": [
+            "Stay in touch and do good work",
+            "Maybe an angle with the two Korean providers"
+          ],
+          "client_near_term_focus_areas": [
+            "Struggling with OEMs",
+            "Not getting traction with customers",
+            "Talking about some crazy nat gas hybrid"
+          ],
+          "mpr_work_targets_goals": [
+            "Get an OEM"
+          ],
+          "client_strategic_objectives_priorities": [
+            "Develop novel new nuclear deployment platform",
+            "Speed to deployment",
+            "Separation",
+            "No aircraft impact"
+          ],
+          "general_discussion": "Blue Energy faces near-term challenges in OEM relationships and customer acquisition. Novel shipyard-fabricated approach shows promise but needs manufacturing partnership. Korean OEM partnerships may be key unlock."
+        }
+      },
+      "client_profile": {
+        "client_priority": "Strategic",
+        "client_status": "Active",
+        "relationship_strength": "Developing",
+        "relationship_notes": "Early-stage startup with promising technology but execution risks. Recent Series A funding improves position.",
+        "last_contact_date": "2025-10-18",
+        "last_contact_type": "Meeting/Review",
+        "next_planned_contact_date": null,
+        "next_planned_contact_type": null
+      },
+      "additional_context": {
+        "projects_involved": [
+          "Shipyard-fabricated modular reactors",
+          "Datacenter off-take agreement (via LOI)"
+        ],
+        "key_achievements": "Secured $45M Series A funding; established LOI with data center operator; MIT pedigree provides technical credibility",
+        "risks_concerns": "OEM relationships not established; customer acquisition lagging; technology not yet proven at scale; manufacturing capacity uncertain",
+        "competitive_landscape": "Competing with Elementl and TerraPower for IPP/deployment roles; unique shipyard approach differentiates but unproven",
+        "opportunities": "Help secure OEM partnerships (particularly Korean vendors), support customer acquisition strategy, manufacturing process optimization support"
+      }
+    },
+    {
+      "external_client": {
+        "company_name": "Google",
+        "company_id": 45,
+        "db_match_confidence": 0.95,
+        "db_match_reason": "Exact company name match in database. Company ID 45 confirmed.",
+        "notes": "Alphabet/Google - aims for 24/7 carbon-free energy by 2030. Major nuclear investor and PPA offtaker. Multiple partnerships: Kairos Power (50MW Hermes 2), Elementl Power (site development), Holtec evaluations.",
+        "website": null,
+        "headquarters_country": "USA"
+      },
+      "internal_contacts": [
+        {
+          "employee_name": "Bubb",
+          "employee_title": "Client Lead",
+          "employee_id": null,
+          "db_match_confidence": null,
+          "db_match_reason": "MPR client lead mentioned in PDF. Full name and email not provided.",
+          "relationship_type": "primary_contact",
+          "relationship_notes": "Primary client lead for Google"
+        },
+        {
+          "employee_name": "Coward",
+          "employee_title": "Client Team Member",
+          "employee_id": null,
+          "db_match_confidence": null,
+          "db_match_reason": "MPR team member mentioned in PDF. Full name and email not provided.",
+          "relationship_type": "supporting_contact",
+          "relationship_notes": "Supporting team member"
+        }
+      ],
+      "external_personnel": [
+        {
+          "contact_name": "Lucia Tian",
+          "contact_title": "Investment",
+          "contact_email": null,
+          "contact_phone": null,
+          "company_name": "Google",
+          "company_id": 45,
+          "personnel_id": null,
+          "db_match_confidence": 0.70,
+          "db_match_reason": "Name found in PDF client leads with okay strength. Bubb listed as lead. Investment decision maker.",
+          "relationship_to_mpr": "Investment strategy lead"
+        },
+        {
+          "contact_name": "Nestor Sepulveda",
+          "contact_title": "Commercial",
+          "contact_email": null,
+          "contact_phone": null,
+          "company_name": "Google",
+          "company_id": 45,
+          "personnel_id": 13,
+          "db_match_confidence": 0.95,
+          "db_match_reason": "Exact name match in database (personnel_id 13). PDF confirms Commercial role. Bubb listed as lead.",
+          "relationship_to_mpr": "Commercial strategy lead"
+        },
+        {
+          "contact_name": "Adam Forni",
+          "contact_title": "Technical",
+          "contact_email": null,
+          "contact_phone": null,
+          "company_name": "Google",
+          "company_id": 45,
+          "personnel_id": 14,
+          "db_match_confidence": 0.95,
+          "db_match_reason": "Exact name match in database (personnel_id 14). PDF confirms Technical role. Bubb listed as lead.",
+          "relationship_to_mpr": "Technical advisory lead"
+        },
+        {
+          "contact_name": "Patrick Taylor",
+          "contact_title": "Commercial",
+          "contact_email": null,
+          "contact_phone": null,
+          "company_name": "Google",
+          "company_id": 45,
+          "personnel_id": 15,
+          "db_match_confidence": 0.95,
+          "db_match_reason": "Exact name match in database (personnel_id 15). PDF confirms Commercial role. Bubb listed as lead.",
+          "relationship_to_mpr": "Commercial contact"
+        }
+      ],
+      "roundtable_entry": {
+        "meeting_context": "High Priority Client Strategic Review - Google",
+        "meeting_date": "2025-10-18",
+        "fields": {
+          "next_steps": [
+            "Jim and Bob to think through strategy re: Lucia and Google",
+            "Keep working for them, keep meeting others on their team",
+            "Multiple angles: Holtec, Karios?, Other vendors?"
+          ],
+          "client_near_term_focus_areas": [
+            "Holtec Diligence",
+            "TerraPower Diligence",
+            "Karios Investment",
+            "GE connection?",
+            "Site development and utility interactions (e.g. AEP, Elementl)"
+          ],
+          "mpr_work_targets_goals": [
+            "Strategic Consultant on nuclear ambitions",
+            "Leverage Google investments insights to help other developers and investors",
+            "Use Google relationship to open doors to OEM/developers"
+          ],
+          "client_strategic_objectives_priorities": [
+            "Invest in projects to deliver firm carbon free power for datacenters",
+            "Invest in technologies to deliver firm carbon free power for datacenters",
+            "24/7 carbon-free energy by 2030"
+          ],
+          "general_discussion": "Google is a strategic anchor customer evaluating multiple vendors and technologies. Their purchasing power and long-term commitment provides visibility and credibility in the market. Key is to be strategic advisor across multiple technology pathways."
+        }
+      },
+      "client_profile": {
+        "client_priority": "Strategic",
+        "client_status": "Active",
+        "relationship_strength": "Strong",
+        "relationship_notes": "Google's capital and purchasing commitment provides strategic opportunity. Multiple technical pathways being evaluated.",
+        "last_contact_date": "2025-10-18",
+        "last_contact_type": "Meeting/Review",
+        "next_planned_contact_date": null,
+        "next_planned_contact_type": null
+      },
+      "additional_context": {
+        "projects_involved": [
+          "Kairos Power partnership (50MW Hermes 2, 500MW fleet)",
+          "Elementl Power site development",
+          "Holtec technology evaluation",
+          "TerraPower evaluation",
+          "Karios investment consideration"
+        ],
+        "key_achievements": "First-ever corporate PPA for new nuclear; multi-vendor evaluation strategy; significant capital deployment planned",
+        "risks_concerns": "Multiple vendor evaluation may delay decision; GE connection unclear; needs clear vendor prioritization",
+        "competitive_landscape": "Kairos appears favored but Holtec, TerraPower also under consideration; Elementl providing site development support",
+        "opportunities": "Strategic advisor role across vendor portfolio, support site development with Elementl, technology advisory on multiple platforms, potential expansion to additional Google facilities"
+      }
+    },
+    {
+      "external_client": {
+        "company_name": "Energy Northwest",
+        "company_id": 15,
+        "db_match_confidence": 0.95,
+        "db_match_reason": "Exact company name match in database. Company ID 15 confirmed.",
+        "notes": "Washington State joint operating agency operating Columbia Generating Station. JDA with X-Energy for Xe-100 reactors. Amazon partnership for 4 initial units (320 MW) with option to 960 MW.",
+        "website": null,
+        "headquarters_country": "USA"
+      },
+      "internal_contacts": [
+        {
+          "employee_name": "Bubb",
+          "employee_title": "Client Lead",
+          "employee_id": null,
+          "db_match_confidence": null,
+          "db_match_reason": "MPR client lead mentioned in PDF. Full name and email not provided.",
+          "relationship_type": "primary_contact",
+          "relationship_notes": "Primary client lead for Energy Northwest"
+        },
+        {
+          "employee_name": "Steiman",
+          "employee_title": "Client Team Member",
+          "employee_id": null,
+          "db_match_confidence": null,
+          "db_match_reason": "MPR team member mentioned in PDF. Full name and email not provided.",
+          "relationship_type": "supporting_contact",
+          "relationship_notes": "Supporting team member"
+        },
+        {
+          "employee_name": "Coward",
+          "employee_title": "Client Team Member",
+          "employee_id": null,
+          "db_match_confidence": null,
+          "db_match_reason": "MPR team member mentioned in PDF. Full name and email not provided.",
+          "relationship_type": "supporting_contact",
+          "relationship_notes": "Supporting team member"
+        }
+      ],
+      "external_personnel": [
+        {
+          "contact_name": "Bob Schuetz",
+          "contact_title": "CEO",
+          "contact_email": null,
+          "contact_phone": null,
+          "company_name": "Energy Northwest",
+          "company_id": 15,
+          "personnel_id": null,
+          "db_match_confidence": 0.70,
+          "db_match_reason": "Name found in PDF client leads. Coward listed as lead. CEO title confirmed.",
+          "relationship_to_mpr": "Chief executive and decision maker"
+        },
+        {
+          "contact_name": "Cristina Reyff",
+          "contact_title": "CFO",
+          "contact_email": null,
+          "contact_phone": null,
+          "company_name": "Energy Northwest",
+          "company_id": 15,
+          "personnel_id": null,
+          "db_match_confidence": 0.70,
+          "db_match_reason": "Name found in PDF client leads. Bubb listed as lead. CFO title confirmed. Note: 'might remember me'.",
+          "relationship_to_mpr": "Financial decision maker"
+        },
+        {
+          "contact_name": "Greg Cullen",
+          "contact_title": "VP Development",
+          "contact_email": null,
+          "contact_phone": null,
+          "company_name": "Energy Northwest",
+          "company_id": 15,
+          "personnel_id": null,
+          "db_match_confidence": 0.70,
+          "db_match_reason": "Name found in PDF client leads. Bubb listed as lead with 'okay' strength.",
+          "relationship_to_mpr": "Development strategy lead"
+        },
+        {
+          "contact_name": "Ken Langdon",
+          "contact_title": "Project Director",
+          "contact_email": null,
+          "contact_phone": null,
+          "company_name": "Energy Northwest",
+          "company_id": 15,
+          "personnel_id": null,
+          "db_match_confidence": 0.50,
+          "db_match_reason": "Name found in PDF client leads with poor strength rating. Noted as key contact for situational awareness.",
+          "relationship_to_mpr": "Project management - poor relationship strength"
+        },
+        {
+          "contact_name": "Jared Knode",
+          "contact_title": null,
+          "contact_email": null,
+          "contact_phone": null,
+          "company_name": "Energy Northwest",
+          "company_id": 15,
+          "personnel_id": null,
+          "db_match_confidence": 0.70,
+          "db_match_reason": "Name found in PDF client leads with good strength. Bubb listed as lead. Title not specified.",
+          "relationship_to_mpr": "Key contact - good relationship"
+        },
+        {
+          "contact_name": "Jessica and Marie",
+          "contact_title": "Project Managers",
+          "contact_email": null,
+          "contact_phone": null,
+          "company_name": "Energy Northwest",
+          "company_id": 15,
+          "personnel_id": null,
+          "db_match_confidence": 0.70,
+          "db_match_reason": "Names found in PDF client leads as project managers. Fowler listed as lead with good strength.",
+          "relationship_to_mpr": "Project management team"
+        },
+        {
+          "contact_name": "Jeff Windham",
+          "contact_title": "Strategic Finance Manager",
+          "contact_email": null,
+          "contact_phone": null,
+          "company_name": "Energy Northwest",
+          "company_id": 15,
+          "personnel_id": null,
+          "db_match_confidence": 0.70,
+          "db_match_reason": "Name found in PDF client leads. Federline listed as lead with good strength. Finance role confirmed.",
+          "relationship_to_mpr": "Financial strategy contact"
+        },
+        {
+          "contact_name": "Lisa Williams, Denise Brandon",
+          "contact_title": "Licensing, Engineering",
+          "contact_email": null,
+          "contact_phone": null,
+          "company_name": "Energy Northwest",
+          "company_id": 15,
+          "personnel_id": null,
+          "db_match_confidence": 0.70,
+          "db_match_reason": "Names found in PDF client leads. Bubb listed as lead with okay strength.",
+          "relationship_to_mpr": "Technical/licensing contacts"
+        },
+        {
+          "contact_name": "Patrick Leonard",
+          "contact_title": "Amazon Representative",
+          "contact_email": null,
+          "contact_phone": null,
+          "company_name": "Energy Northwest",
+          "company_id": 15,
+          "personnel_id": 16,
+          "db_match_confidence": 0.70,
+          "db_match_reason": "Database has 'Mr Amazon' (personnel_id 16). PDF names Patrick Leonard as Amazon representative. Bubb listed as lead.",
+          "relationship_to_mpr": "Amazon partnership liaison"
+        }
+      ],
+      "roundtable_entry": {
+        "meeting_context": "High Priority Client Strategic Review - Energy Northwest",
+        "meeting_date": "2025-10-18",
+        "fields": {
+          "next_steps": [
+            "Who owns the Schuetz relationship from MPR side?",
+            "Jim and Sam go to Richland",
+            "Sam to help get more situational awareness from folks in Richland (Langdon)",
+            "Try to get Federline to help"
+          ],
+          "client_near_term_focus_areas": [
+            "Engagement with EPC Partner",
+            "PPA Negotiations with Amazon",
+            "LPO Application",
+            "Buttressing the experience and bandwidth of EN Team"
+          ],
+          "mpr_work_targets_goals": [
+            "Need a more capable team",
+            "Figure out how to make the PDB work",
+            "Don't have faith in Xe",
+            "Mitigate risks of being a FOAK project"
+          ],
+          "client_strategic_objectives_priorities": [
+            "Deploy X-e technology at CGS Station",
+            "Position CGS for future reactors deployment"
+          ],
+          "general_discussion": "Energy Northwest is executing first-of-a-kind X-Energy project with Amazon backing. Key challenges include building capable team, PDB development, and managing FOAK risks. Amazon partnership provides capital support and off-take certainty."
+        }
+      },
+      "client_profile": {
+        "client_priority": "Strategic",
+        "client_status": "Active",
+        "relationship_strength": "Developing",
+        "relationship_notes": "Active deployment project with Amazon partnership. Team capacity building is critical need.",
+        "last_contact_date": "2025-10-18",
+        "last_contact_type": "Meeting/Review",
+        "next_planned_contact_date": null,
+        "next_planned_contact_type": null
+      },
+      "additional_context": {
+        "projects_involved": [
+          "X-Energy Xe-100 deployment at Columbia Generating Station",
+          "Amazon partnership (4 units initial, 960 MW option)",
+          "EPC partner engagement",
+          "PPA negotiations"
+        ],
+        "key_achievements": "Secured Amazon partnership for 320 MW (expandable to 960 MW); JDA with X-Energy; LPO application underway",
+        "risks_concerns": "First-of-a-kind project risks; team capacity gaps; confidence in X-Energy technology unclear; PDB development challenges",
+        "competitive_landscape": "X-Energy sole technology provider; Amazon partnership is competitive differentiator",
+        "opportunities": "Team capability building support, FOAK risk mitigation, PDB optimization, potential expansion role in project delivery"
+      }
+    },
+    {
+      "external_client": {
+        "company_name": "Duke",
+        "company_id": 37,
+        "db_match_confidence": 0.95,
+        "db_match_reason": "Exact company name match in database. Company ID 37 confirmed.",
+        "notes": "Duke Energy - major U.S. utility. Evaluating technology options for nuclear expansion. Target: 10 GW of nuclear by 2050 as 'fast follower' in technology adoption.",
+        "website": null,
+        "headquarters_country": "USA"
+      },
+      "internal_contacts": [
+        {
+          "employee_name": "Hardtmayer",
+          "employee_title": "Client Lead",
+          "employee_id": null,
+          "db_match_confidence": null,
+          "db_match_reason": "MPR client lead mentioned in PDF. Full name and email not provided.",
+          "relationship_type": "primary_contact",
+          "relationship_notes": "Primary client lead for Duke"
+        }
+      ],
+      "external_personnel": [
+        {
+          "contact_name": "Harry Sedaris",
+          "contact_title": null,
+          "contact_email": null,
+          "contact_phone": null,
+          "company_name": "Duke",
+          "company_id": 37,
+          "personnel_id": null,
+          "db_match_confidence": 0.50,
+          "db_match_reason": "Name found in PDF client leads. No one listed as lead. Limited information.",
+          "relationship_to_mpr": "Duke contact - no lead assigned"
+        },
+        {
+          "contact_name": "Preston",
+          "contact_title": null,
+          "contact_email": null,
+          "contact_phone": null,
+          "company_name": "Duke",
+          "company_id": 37,
+          "personnel_id": null,
+          "db_match_confidence": 0.50,
+          "db_match_reason": "Name listed in PDF client leads. No title or lead specified.",
+          "relationship_to_mpr": "Duke contact"
+        },
+        {
+          "contact_name": "Kelvin Henderson",
+          "contact_title": null,
+          "contact_email": null,
+          "contact_phone": null,
+          "company_name": "Duke",
+          "company_id": 37,
+          "personnel_id": null,
+          "db_match_confidence": 0.50,
+          "db_match_reason": "Name listed in PDF with okay strength rating.",
+          "relationship_to_mpr": "Duke contact - okay relationship"
+        },
+        {
+          "contact_name": "Steve Capps",
+          "contact_title": null,
+          "contact_email": null,
+          "contact_phone": null,
+          "company_name": "Duke",
+          "company_id": 37,
+          "personnel_id": null,
+          "db_match_confidence": 0.70,
+          "db_match_reason": "Name found in PDF client leads. Noonan (Jim to leverage) listed as lead with okay strength. Key for technology decision.",
+          "relationship_to_mpr": "Technology decision lead - to be leveraged"
+        },
+        {
+          "contact_name": "Rountte Nader",
+          "contact_title": null,
+          "contact_email": null,
+          "contact_phone": null,
+          "company_name": "Duke",
+          "company_id": 37,
+          "personnel_id": null,
+          "db_match_confidence": 0.70,
+          "db_match_reason": "Name found in PDF client leads. Bubb listed as lead with okay strength. Key decision maker.",
+          "relationship_to_mpr": "Key contact - meeting planned Sept"
+        },
+        {
+          "contact_name": "Kevin Murray",
+          "contact_title": null,
+          "contact_email": null,
+          "contact_phone": null,
+          "company_name": "Duke",
+          "company_id": 37,
+          "personnel_id": null,
+          "db_match_confidence": 0.50,
+          "db_match_reason": "Name listed in PDF with okay strength rating.",
+          "relationship_to_mpr": "Duke contact - okay relationship"
+        },
+        {
+          "contact_name": "Finich",
+          "contact_title": null,
+          "contact_email": null,
+          "contact_phone": null,
+          "company_name": "Duke",
+          "company_id": 37,
+          "personnel_id": 12,
+          "db_match_confidence": 0.85,
+          "db_match_reason": "Database has 'Paul Finch' (personnel_id 12) at Duke. PDF may reference same contact. Hardtmayer listed as lead with good strength.",
+          "relationship_to_mpr": "Contact with good relationship"
+        },
+        {
+          "contact_name": "Chris Nolan",
+          "contact_title": null,
+          "contact_email": null,
+          "contact_phone": null,
+          "company_name": "Duke",
+          "company_id": 37,
+          "personnel_id": null,
+          "db_match_confidence": 0.50,
+          "db_match_reason": "Name listed in PDF with eh (weak) strength rating.",
+          "relationship_to_mpr": "Duke contact - weak relationship"
+        },
+        {
+          "contact_name": "Norm Knunkle",
+          "contact_title": null,
+          "contact_email": null,
+          "contact_phone": null,
+          "company_name": "Duke",
+          "company_id": 37,
+          "personnel_id": null,
+          "db_match_confidence": 0.70,
+          "db_match_reason": "Name found in PDF client leads. Hardtmayer listed as lead with good strength. Note: Retiring soon?",
+          "relationship_to_mpr": "Key contact - retiring soon?"
+        },
+        {
+          "contact_name": "Medhi",
+          "contact_title": null,
+          "contact_email": null,
+          "contact_phone": null,
+          "company_name": "Duke",
+          "company_id": 37,
+          "personnel_id": null,
+          "db_match_confidence": 0.50,
+          "db_match_reason": "Name listed in PDF with okay strength rating.",
+          "relationship_to_mpr": "Duke contact - okay relationship"
+        }
+      ],
+      "roundtable_entry": {
+        "meeting_context": "High Priority Client Strategic Review - Duke",
+        "meeting_date": "2025-10-18",
+        "fields": {
+          "next_steps": [
+            "Impress Rounette and Capps (meeting planning in Sept)",
+            "Find a way to get onto Duke network",
+            "Doug to crystal ball Duke 2026 revenue (before October)"
+          ],
+          "client_near_term_focus_areas": [
+            "Make a technology decision (95% done)"
+          ],
+          "mpr_work_targets_goals": [
+            "Make a technology decision (95% done)",
+            "Get them to make a tech decision by 4Q25",
+            "Get on the deployment team"
+          ],
+          "client_strategic_objectives_priorities": [
+            "10 GW of nuclear by 2050",
+            "'Fast follower' (do they really believe this or is that the political line)"
+          ],
+          "general_discussion": "Duke is 95% complete on technology decision. Critical to impress Rounette and Capps. Unclear if fast follower strategy is genuine or political messaging. Need to secure deployment team role."
+        }
+      },
+      "client_profile": {
+        "client_priority": "Strategic",
+        "client_status": "Active",
+        "relationship_strength": "New",
+        "relationship_notes": "Technology decision imminent. Need to build network and impress key decision makers.",
+        "last_contact_date": "2025-10-18",
+        "last_contact_type": "Meeting/Review",
+        "next_planned_contact_date": null,
+        "next_planned_contact_type": null
+      },
+      "additional_context": {
+        "projects_involved": [
+          "Technology evaluation for 10 GW nuclear expansion"
+        ],
+        "key_achievements": "Near completion of technology evaluation process",
+        "risks_concerns": "Strategy clarity uncertain (fast follower vs. genuine commitment); limited MPR network penetration; decision criteria unclear; Knunkle retiring may impact relationships",
+        "competitive_landscape": "Multiple technology vendors competing for Duke selection",
+        "opportunities": "Support technology evaluation, secure deployment team role, leverage Steve Capps relationship, position for potential operator/advisor role post-decision"
+      }
+    },
+    {
+      "external_client": {
+        "company_name": "Fermi America",
+        "company_id": 95,
+        "db_match_confidence": 0.95,
+        "db_match_reason": "Exact company name match in database. Company ID 95 confirmed.",
+        "notes": "Fermi America - awaiting subcontractor engagement through AECOM. Focus on COLA (license renewal) and Westinghouse alignment for advanced reactor deployment.",
+        "website": null,
+        "headquarters_country": "USA"
+      },
+      "internal_contacts": [
+        {
+          "employee_name": "Hardtmayer",
+          "employee_title": "Client Lead",
+          "employee_id": null,
+          "db_match_confidence": null,
+          "db_match_reason": "MPR client lead mentioned in PDF. Full name and email not provided.",
+          "relationship_type": "primary_contact",
+          "relationship_notes": "Primary client lead for Fermi America"
+        },
+        {
+          "employee_name": "Lubnow",
+          "employee_title": "Client Team Member",
+          "employee_id": null,
+          "db_match_confidence": null,
+          "db_match_reason": "MPR team member mentioned in PDF. Full name and email not provided.",
+          "relationship_type": "supporting_contact",
+          "relationship_notes": "Supporting team member"
+        }
+      ],
+      "external_personnel": [
+        {
+          "contact_name": "Kevin Taylor",
+          "contact_title": "AECOM Representative",
+          "contact_email": null,
+          "contact_phone": null,
+          "company_name": "Fermi America",
+          "company_id": 95,
+          "personnel_id": null,
+          "db_match_confidence": 0.70,
+          "db_match_reason": "Name found in PDF client leads. No specific lead assigned in document.",
+          "relationship_to_mpr": "AECOM project interface"
+        },
+        {
+          "contact_name": "Matt Kavanah",
+          "contact_title": "AECOM Representative",
+          "contact_email": null,
+          "contact_phone": null,
+          "company_name": "Fermi America",
+          "company_id": 95,
+          "personnel_id": null,
+          "db_match_confidence": 0.70,
+          "db_match_reason": "Name found in PDF client leads. Lubnow listed as lead.",
+          "relationship_to_mpr": "AECOM project interface - Lubnow lead"
+        },
+        {
+          "contact_name": "Toby",
+          "contact_title": null,
+          "contact_email": null,
+          "contact_phone": null,
+          "company_name": "Fermi America",
+          "company_id": 95,
+          "personnel_id": null,
+          "db_match_confidence": 0.50,
+          "db_match_reason": "Name listed in PDF with TBD lead status.",
+          "relationship_to_mpr": "Fermi America contact - TBD lead"
+        },
+        {
+          "contact_name": "Larry Kellerman",
+          "contact_title": null,
+          "contact_email": null,
+          "contact_phone": null,
+          "company_name": "Fermi America",
+          "company_id": 95,
+          "personnel_id": null,
+          "db_match_confidence": 0.70,
+          "db_match_reason": "Name found in PDF client leads. Lubnow listed as lead.",
+          "relationship_to_mpr": "Key contact - Lubnow lead"
+        },
+        {
+          "contact_name": "Rick Johnston",
+          "contact_title": null,
+          "contact_email": null,
+          "contact_phone": null,
+          "company_name": "Fermi America",
+          "company_id": 95,
+          "personnel_id": null,
+          "db_match_confidence": 0.50,
+          "db_match_reason": "Name listed in PDF with uncertainty (?).",
+          "relationship_to_mpr": "Fermi America contact"
+        },
+        {
+          "contact_name": "Masut Azman",
+          "contact_title": null,
+          "contact_email": null,
+          "contact_phone": null,
+          "company_name": "Fermi America",
+          "company_id": 95,
+          "personnel_id": null,
+          "db_match_confidence": 0.70,
+          "db_match_reason": "Name found in PDF client leads. Hardtmayer listed as lead.",
+          "relationship_to_mpr": "Key contact - Hardtmayer lead"
+        }
+      ],
+      "roundtable_entry": {
+        "meeting_context": "High Priority Client Strategic Review - Fermi America",
+        "meeting_date": "2025-10-18",
+        "fields": {
+          "next_steps": [
+            "Hoping something breaks loose in 2 weeks",
+            "Start early planning on MPR team formation"
+          ],
+          "client_near_term_focus_areas": [
+            "COLA (License renewal)",
+            "Align with Westinghouse"
+          ],
+          "mpr_work_targets_goals": [
+            "TBD"
+          ],
+          "client_strategic_objectives_priorities": [
+            "TBD"
+          ],
+          "general_discussion": "Fermi America engagement currently on hold pending AECOM subcontractor approval. Expecting decision within 2 weeks. Focus on COLA activities and Westinghouse partnership alignment. Early MPR team planning should commence if AECOM engagement approved."
+        }
+      },
+      "client_profile": {
+        "client_priority": "Strategic",
+        "client_status": "Prospect",
+        "relationship_strength": "New",
+        "relationship_notes": "Awaiting subcontractor engagement confirmation. Early-stage opportunity.",
+        "last_contact_date": "2025-10-18",
+        "last_contact_type": "Meeting/Review",
+        "next_planned_contact_date": null,
+        "next_planned_contact_type": null
+      },
+      "additional_context": {
+        "projects_involved": [
+          "COLA (license renewal) support",
+          "Westinghouse alignment",
+          "Fermi site redevelopment planning"
+        ],
+        "key_achievements": "AECOM engagement under negotiation",
+        "risks_concerns": "Engagement status uncertain; waiting for AECOM subcontractor approval; limited contact clarity; strategic objectives unclear",
+        "competitive_landscape": "Westinghouse partnership may limit vendor options",
+        "opportunities": "COLA technical support, site redevelopment advisory, potential team augmentation if AECOM engagement approved"
+      }
+    },
+    {
+      "external_client": {
+        "company_name": "American Electric Power (AEP)",
+        "company_id": 21,
+        "db_match_confidence": 0.95,
+        "db_match_reason": "Exact company name match in database. Company ID 21 confirmed.",
+        "notes": "Large U.S. utility (Midwest/Texas). Evaluating SMRs to replace retiring coal by 2030s. Subsidiary SWEPCO's 2023 IRP includes SMR resource post-2030. Seeking federal grants for SMR siting at coal sites.",
+        "website": null,
+        "headquarters_country": "USA"
+      },
+      "internal_contacts": [
+        {
+          "employee_name": "Hardtmayer",
+          "employee_title": "Client Lead",
+          "employee_id": null,
+          "db_match_confidence": null,
+          "db_match_reason": "MPR client lead mentioned in PDF. Full name and email not provided.",
+          "relationship_type": "primary_contact",
+          "relationship_notes": "Primary client lead for AEP"
+        }
+      ],
+      "external_personnel": [
+        {
+          "contact_name": "Fehrman",
+          "contact_title": "President and CEO",
+          "contact_email": null,
+          "contact_phone": null,
+          "company_name": "American Electric Power (AEP)",
+          "company_id": 21,
+          "personnel_id": null,
+          "db_match_confidence": 0.70,
+          "db_match_reason": "Name found in PDF client leads. Note: 'Bob has this relationship' - implies Bob Wilson may be primary contact.",
+          "relationship_to_mpr": "CEO - executive decision maker"
+        },
+        {
+          "contact_name": "Alicia Knapp",
+          "contact_title": "President, Nuclear Development",
+          "contact_email": null,
+          "contact_phone": null,
+          "company_name": "American Electric Power (AEP)",
+          "company_id": 21,
+          "personnel_id": null,
+          "db_match_confidence": 0.70,
+          "db_match_reason": "Name found in PDF client leads. Nuclear development leadership confirmed.",
+          "relationship_to_mpr": "Nuclear development strategy lead"
+        },
+        {
+          "contact_name": "Shane Lies",
+          "contact_title": "EVP, Nuclear Development",
+          "contact_email": null,
+          "contact_phone": null,
+          "company_name": "American Electric Power (AEP)",
+          "company_id": 21,
+          "personnel_id": null,
+          "db_match_confidence": 0.70,
+          "db_match_reason": "Name found in PDF client leads. Klein listed as lead. Note: 'Carlone knows her, may not be that involved'.",
+          "relationship_to_mpr": "Executive VP Nuclear Development"
+        },
+        {
+          "contact_name": "Kelly Ferneau",
+          "contact_title": "EVP and CNO",
+          "contact_email": null,
+          "contact_phone": null,
+          "company_name": "American Electric Power (AEP)",
+          "company_id": 21,
+          "personnel_id": null,
+          "db_match_confidence": 0.70,
+          "db_match_reason": "Name found in PDF client leads with TBD lead status.",
+          "relationship_to_mpr": "Chief Nuclear Officer"
+        },
+        {
+          "contact_name": "Joe Yaegler",
+          "contact_title": null,
+          "contact_email": null,
+          "contact_phone": null,
+          "company_name": "American Electric Power (AEP)",
+          "company_id": 21,
+          "personnel_id": null,
+          "db_match_confidence": 0.70,
+          "db_match_reason": "Name found in PDF client leads. Hardtmayer listed as lead.",
+          "relationship_to_mpr": "Key contact - Hardtmayer lead"
+        },
+        {
+          "contact_name": "Randall Munsel",
+          "contact_title": null,
+          "contact_email": null,
+          "contact_phone": null,
+          "company_name": "American Electric Power (AEP)",
+          "company_id": 21,
+          "personnel_id": null,
+          "db_match_confidence": 0.70,
+          "db_match_reason": "Name found in PDF client leads. Hardtmayer listed as lead.",
+          "relationship_to_mpr": "Key contact - Hardtmayer lead"
+        }
+      ],
+      "roundtable_entry": {
+        "meeting_context": "High Priority Client Strategic Review - AEP",
+        "meeting_date": "2025-10-18",
+        "fields": {
+          "next_steps": [],
+          "client_near_term_focus_areas": [],
+          "mpr_work_targets_goals": [],
+          "client_strategic_objectives_priorities": [
+            "Evaluating SMRs to replace retiring coal by 2030s",
+            "SWEPCO 2023 IRP includes SMR resource post-2030",
+            "Seeking federal grants for SMR siting at coal sites"
+          ],
+          "general_discussion": "AEP is strategically interested in SMRs for coal replacement. SWEPCO subsidiary provides near-term development pathway. Federal grant opportunities under consideration for coal-to-SMR transition projects."
+        }
+      },
+      "client_profile": {
+        "client_priority": "Strategic",
+        "client_status": "Active",
+        "relationship_strength": "Developing",
+        "relationship_notes": "Early-stage exploration of SMR opportunities for coal replacement. Federal grant pathway may be catalyst.",
+        "last_contact_date": "2025-10-18",
+        "last_contact_type": "Meeting/Review",
+        "next_planned_contact_date": null,
+        "next_planned_contact_type": null
+      },
+      "additional_context": {
+        "projects_involved": [
+          "Coal-to-SMR replacement strategy",
+          "SWEPCO IRP implementation",
+          "Federal grant applications"
+        ],
+        "key_achievements": "SWEPCO IRP includes SMR post-2030; pursuing federal grant opportunities",
+        "risks_concerns": "Timeline unclear - post-2030 focus; vendor selection not determined; coal plant retirement timeline may vary; federal grant availability uncertain",
+        "competitive_landscape": "Multiple vendors could serve AEP; SWEPCO subsidiary offers near-term entry point",
+        "opportunities": "Coal-to-SMR transition advisory, federal grant support, site development for coal plant conversion, SWEPCO partnership opportunity"
+      }
+    }
+  ]
+}

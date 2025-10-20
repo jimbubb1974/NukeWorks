@@ -12,112 +12,26 @@ from wtforms import (
 from wtforms.validators import DataRequired, Length, Optional
 
 
-class VendorSupplierRelationshipForm(FlaskForm):
-    """Create a vendor-supplier relationship"""
-
-    supplier_id = SelectField('Supplier', coerce=int, validators=[DataRequired()])
-    component_type = StringField('Component Type', validators=[Optional(), Length(max=255)])
-    notes = TextAreaField('Notes', validators=[Optional(), Length(max=2000)])
-    is_confidential = BooleanField('Confidential')
-    submit = SubmitField('Add Supplier')
-
-
-class VendorOwnerRelationshipForm(FlaskForm):
-    """Link a vendor to an owner/developer"""
-
-    owner_id = SelectField('Owner / Developer', coerce=int, validators=[DataRequired()])
-    relationship_type = StringField('Relationship Type', validators=[Optional(), Length(max=255)])
-    notes = TextAreaField('Notes', validators=[Optional(), Length(max=2000)])
-    is_confidential = BooleanField('Confidential')
-    submit = SubmitField('Add Owner Relationship')
-
-
-class OwnerVendorRelationshipForm(FlaskForm):
-    """Link an owner/developer to a vendor"""
-
-    vendor_id = SelectField('Technology Vendor', coerce=int, validators=[DataRequired()])
-    relationship_type = StringField('Relationship Type', validators=[Optional(), Length(max=255)])
-    notes = TextAreaField('Notes', validators=[Optional(), Length(max=2000)])
-    is_confidential = BooleanField('Confidential')
-    submit = SubmitField('Add Vendor Relationship')
-
-
-class VendorProjectRelationshipForm(FlaskForm):
-    """Associate a vendor with a project"""
-
-    project_id = SelectField('Project', coerce=int, validators=[DataRequired()])
-    notes = TextAreaField('Notes', validators=[Optional(), Length(max=2000)])
-    is_confidential = BooleanField('Confidential')
-    submit = SubmitField('Add Project Relationship')
-
-
 class ProjectCompanyRelationshipForm(FlaskForm):
     """Associate a project with a company"""
 
     company_id = SelectField('Company', coerce=int, validators=[DataRequired()])
-    role_type = SelectField('Role Type', coerce=str, validators=[DataRequired()], 
-                           choices=[('vendor', 'Vendor'), ('constructor', 'Constructor'), 
-                                   ('operator', 'Operator'), ('owner', 'Owner/Developer'),
-                                   ('offtaker', 'Offtaker')])
+    role_type = SelectField(
+        'Role Type',
+        coerce=str,
+        validators=[DataRequired()],
+        # Normalize Owner/Developer to submit 'developer' internally
+        choices=[
+            ('vendor', 'Vendor'),
+            ('constructor', 'Constructor'),
+            ('operator', 'Operator'),
+            ('developer', 'Owner/Developer'),
+            ('offtaker', 'Offtaker')
+        ]
+    )
     notes = TextAreaField('Notes', validators=[Optional(), Length(max=2000)])
     is_confidential = BooleanField('Confidential')
     submit = SubmitField('Add Company Relationship')
-
-
-class ProjectConstructorRelationshipForm(FlaskForm):
-    """Link a project with a constructor"""
-
-    constructor_id = SelectField('Constructor', coerce=int, validators=[DataRequired()])
-    notes = TextAreaField('Notes', validators=[Optional(), Length(max=2000)])
-    is_confidential = BooleanField('Confidential')
-    submit = SubmitField('Add Constructor')
-
-
-class ProjectOperatorRelationshipForm(FlaskForm):
-    """Link a project with an operator"""
-
-    operator_id = SelectField('Operator', coerce=int, validators=[DataRequired()])
-    notes = TextAreaField('Notes', validators=[Optional(), Length(max=2000)])
-    is_confidential = BooleanField('Confidential')
-    submit = SubmitField('Add Operator')
-
-
-class ProjectOwnerLinkForm(FlaskForm):
-    """Link a project with an owner"""
-
-    owner_id = SelectField('Owner / Developer', coerce=int, validators=[DataRequired()])
-    notes = TextAreaField('Notes', validators=[Optional(), Length(max=2000)])
-    is_confidential = BooleanField('Confidential')
-    submit = SubmitField('Add Owner')
-
-
-class OwnerProjectRelationshipForm(FlaskForm):
-    """Associate an owner with a project"""
-
-    project_id = SelectField('Project', coerce=int, validators=[DataRequired()])
-    notes = TextAreaField('Notes', validators=[Optional(), Length(max=2000)])
-    is_confidential = BooleanField('Confidential')
-    submit = SubmitField('Add Project Relationship')
-
-
-class ProjectOfftakerRelationshipForm(FlaskForm):
-    """Associate a project with an energy off-taker"""
-
-    offtaker_id = SelectField('Off-taker', coerce=int, validators=[DataRequired()])
-    agreement_type = StringField('Agreement Type', validators=[Optional(), Length(max=255)])
-    contracted_volume = StringField('Contracted Volume', validators=[Optional(), Length(max=255)])
-    notes = TextAreaField('Notes', validators=[Optional(), Length(max=2000)])
-    is_confidential = BooleanField('Confidential')
-    submit = SubmitField('Add Off-taker')
-
-
-class VendorPreferredConstructorForm(FlaskForm):
-    """Assign a preferred constructor to a vendor"""
-
-    constructor_id = SelectField('Constructor', coerce=int, validators=[DataRequired()])
-    preference_reason = TextAreaField('Preference Reason', validators=[Optional(), Length(max=2000)])
-    is_confidential = BooleanField('Confidential')
-    submit = SubmitField('Add Preferred Constructor')
 
 
 class PersonnelEntityRelationshipForm(FlaskForm):
@@ -166,22 +80,3 @@ class ConfirmActionForm(FlaskForm):
     """Simple form used to confirm destructive actions"""
 
     submit = SubmitField('Confirm')
-
-
-class CompanyLinkForm(FlaskForm):
-    """Create a company-to-company link using unified role assignments."""
-
-    # Select the other company to link to
-    target_company_id = SelectField('Target Company', coerce=int, validators=[DataRequired()])
-    # Directional link intent from the perspective of current company
-    # If 'vendor' is selected, you are linking this company to a preferred Vendor (target is vendor).
-    # If 'developer' is selected, you are linking this company to a Developer (target is developer).
-    link_role = SelectField(
-        'Link Type',
-        coerce=str,
-        validators=[DataRequired()],
-        choices=[('vendor', 'Preferred Vendor'), ('developer', 'Preferred Developer')]
-    )
-    notes = TextAreaField('Notes', validators=[Optional(), Length(max=2000)])
-    is_confidential = BooleanField('Confidential')
-    submit = SubmitField('Add Link')

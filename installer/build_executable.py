@@ -27,9 +27,12 @@ DEFAULT_DIST_DIR = PROJECT_ROOT / "dist"
 
 def ensure_supported_python() -> None:
     """Validate that the active interpreter is supported for packaging."""
-    # Python 3.13 support: SQLAlchemy 2.0.36+ supports Python 3.13
-    # No version check needed anymore
-    pass
+    if sys.version_info >= (3, 13):
+        raise SystemExit(
+            "PyInstaller packaging must run under Python 3.12 or earlier. "
+            "The pinned SQLAlchemy==2.0.23 release is not yet compatible with "
+            "Python 3.13+, which causes runtime import failures during the build."
+        )
 
 
 def ensure_pyinstaller() -> None:

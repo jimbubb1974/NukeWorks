@@ -1,97 +1,27 @@
 {% extends "base.html" %}
 
-{% block title %}Client Management - NukeWorks{% endblock %}
+{% block title %}CRM Dashboard - NukeWorks{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
     <!-- Header -->
     <div class="row mb-4">
-        <div class="col-md-12">
-            <h2><i class="bi bi-people-fill"></i> Client Management</h2>
+        <div class="col-md-8">
+            <h2><i class="bi bi-people-fill"></i> CRM Dashboard</h2>
+            <p class="text-muted">Client Relationship Management and Roundtable Tracking</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{{ url_for('crm.roundtable_meeting') }}" class="btn btn-primary">
+                <i class="bi bi-clipboard-check"></i> Roundtable Meeting
+            </a>
+            <a href="{{ url_for('companies.create_company') }}" class="btn btn-success">
+                <i class="bi bi-plus-circle"></i> Add Company
+            </a>
         </div>
     </div>
 
-    <!-- MPR Clients Table -->
+    <!-- Filters and Client List -->
     <div class="row mb-3">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-body p-0">
-                    {% if companies_with_details %}
-                    <div class="table-responsive">
-                        <table class="table table-hover mb-0">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>
-                                        <a href="{{ url_for('crm.dashboard', sort_by='company_name', sort_order='asc' if sort_by != 'company_name' or sort_order == 'desc' else 'desc', priority=request.args.get('priority', ''), status=request.args.get('status', ''), poc=request.args.get('poc', '')) }}" class="text-decoration-none text-dark">
-                                            Company Name
-                                            {% if sort_by == 'company_name' %}
-                                                <i class="bi bi-arrow-{% if sort_order == 'asc' %}up{% else %}down{% endif %}"></i>
-                                            {% endif %}
-                                        </a>
-                                    </th>
-                                    <th>
-                                        <a href="{{ url_for('crm.dashboard', sort_by='priority', sort_order='asc' if sort_by != 'priority' or sort_order == 'desc' else 'desc', priority=request.args.get('priority', ''), status=request.args.get('status', ''), poc=request.args.get('poc', '')) }}" class="text-decoration-none text-dark">
-                                            Priority
-                                            {% if sort_by == 'priority' %}
-                                                <i class="bi bi-arrow-{% if sort_order == 'asc' %}up{% else %}down{% endif %}"></i>
-                                            {% endif %}
-                                        </a>
-                                    </th>
-                                    <th style="width: 60px;"></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for company_data in companies_with_details %}
-                                {% set company = company_data.company %}
-                                {% set profile = company.client_profile %}
-                                {% set personnel_with_connections = company_data.personnel_with_connections %}
-                                {% set recent_roundtables = company_data.recent_roundtables %}
-                                <tr>
-                                    <td>
-                                        <strong>{{ company.company_name }}</strong>
-                                        {% if not profile %}
-                                            <br><small class="text-warning"><i class="bi bi-exclamation-triangle"></i> No CRM data yet</small>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        {% if profile and profile.client_priority %}
-                                            <span class="badge bg-{% if profile.client_priority in ['Strategic', 'High'] %}danger{% elif profile.client_priority == 'Medium' %}warning{% else %}secondary{% endif %}">
-                                                {{ profile.client_priority }}
-                                            </span>
-                                        {% else %}
-                                            <span class="text-muted">Not set</span>
-                                        {% endif %}
-                                    </td>
-                                    
-                                    <td class="text-center">
-                                        <a href="{{ url_for('crm.add_roundtable_entry', company_id=company.company_id) }}" 
-                                           class="btn btn-sm btn-outline-primary" 
-                                           title="Add Roundtable Discussion">
-                                            <i class="bi bi-clipboard-check"></i>
-                                        </a>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                    {% else %}
-                    <div class="text-center py-5">
-                        <i class="bi bi-people text-muted" style="font-size: 3rem;"></i>
-                        <h5 class="text-muted mt-3">No MPR Clients Found</h5>
-                        <p class="text-muted">No companies are currently flagged as MPR clients.</p>
-                        <a href="{{ url_for('companies.list_companies') }}" class="btn btn-primary">
-                            <i class="bi bi-plus-circle"></i> Add Companies
-                        </a>
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Filters -->
-    <div class="row">
         <div class="col-12">
             <div class="card">
                 <div class="card-header">
@@ -142,6 +72,170 @@
             </div>
         </div>
     </div>
+
+    <!-- MPR Clients Table -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="bi bi-people"></i> MPR Clients ({{ mpr_companies|length }})</h5>
+                    <a href="{{ url_for('companies.list_companies') }}" class="btn btn-sm btn-outline-primary">
+                        View All Companies
+                    </a>
+                </div>
+                <div class="card-body p-0">
+                    {% if companies_with_details %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>
+                                        <a href="{{ url_for('crm.dashboard', sort_by='company_name', sort_order='asc' if sort_by != 'company_name' or sort_order == 'desc' else 'desc', priority=request.args.get('priority', ''), status=request.args.get('status', ''), poc=request.args.get('poc', '')) }}" class="text-decoration-none text-dark">
+                                            Company Name
+                                            {% if sort_by == 'company_name' %}
+                                                <i class="bi bi-arrow-{% if sort_order == 'asc' %}up{% else %}down{% endif %}"></i>
+                                            {% endif %}
+                                        </a>
+                                    </th>
+                                    <th>
+                                        <a href="{{ url_for('crm.dashboard', sort_by='priority', sort_order='asc' if sort_by != 'priority' or sort_order == 'desc' else 'desc', priority=request.args.get('priority', ''), status=request.args.get('status', ''), poc=request.args.get('poc', '')) }}" class="text-decoration-none text-dark">
+                                            Priority
+                                            {% if sort_by == 'priority' %}
+                                                <i class="bi bi-arrow-{% if sort_order == 'asc' %}up{% else %}down{% endif %}"></i>
+                                            {% endif %}
+                                        </a>
+                                    </th>
+                                    <th>Personnel</th>
+                                    <th>Recent Activity</th>
+                                    <th class="text-end">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for company_data in companies_with_details %}
+                                {% set company = company_data.company %}
+                                {% set profile = company.client_profile %}
+                                {% set personnel_with_connections = company_data.personnel_with_connections %}
+                                {% set recent_roundtables = company_data.recent_roundtables %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ company.company_name }}</strong>
+                                        {% if not profile %}
+                                            <br><small class="text-warning"><i class="bi bi-exclamation-triangle"></i> No CRM data yet</small>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if profile and profile.client_priority %}
+                                            <span class="badge bg-{% if profile.client_priority in ['Strategic', 'High'] %}danger{% elif profile.client_priority == 'Medium' %}warning{% else %}secondary{% endif %}">
+                                                {{ profile.client_priority }}
+                                            </span>
+                                        {% else %}
+                                            <span class="text-muted">Not set</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if personnel_with_connections %}
+                                            {% for item in personnel_with_connections[:2] %}
+                                                {% set person = item.person %}
+                                                <div class="small">
+                                                    <strong>{{ person.full_name }}</strong>
+                                                    {% if person.role %}<span class="text-muted"> - {{ person.role }}</span>{% endif %}
+                                                </div>
+                                            {% endfor %}
+                                            {% if personnel_with_connections|length > 2 %}
+                                                <small class="text-muted">+{{ personnel_with_connections|length - 2 }} more</small>
+                                            {% endif %}
+                                        {% else %}
+                                            <span class="text-muted">No contacts</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if recent_roundtables %}
+                                            <div class="small">
+                                                <strong>{{ recent_roundtables[0].created_timestamp.strftime('%m/%d/%Y') }}</strong>
+                                                {% if recent_roundtables[0].next_steps %}
+                                                <br>{{ recent_roundtables[0].next_steps[:50] }}{% if recent_roundtables[0].next_steps|length > 50 %}...{% endif %}
+                                                {% endif %}
+                                            </div>
+                                        {% else %}
+                                            <span class="text-muted">No recent activity</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end">
+                                        <button type="button" class="btn btn-sm btn-outline-info me-1" title="View Details" data-bs-toggle="modal" data-bs-target="#detailsModal{{ company.company_id }}">
+                                            <i class="bi bi-info-circle"></i>
+                                        </button>
+                                        <a href="{{ url_for('companies.view_company', company_id=company.company_id) }}" class="btn btn-sm btn-outline-primary me-1" title="View Company">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        <a href="{{ url_for('companies.edit_company', company_id=company.company_id) }}" class="btn btn-sm btn-outline-secondary" title="Edit">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        {% if not profile %}
+                                            <span class="badge bg-warning ms-1" title="Add CRM data to track this client"><i class="bi bi-plus-circle"></i> Add CRM</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-people text-muted" style="font-size: 3rem;"></i>
+                        <h5 class="text-muted mt-3">No MPR Clients Found</h5>
+                        <p class="text-muted">No companies are currently flagged as MPR clients.</p>
+                        <a href="{{ url_for('companies.list_companies') }}" class="btn btn-primary">
+                            <i class="bi bi-plus-circle"></i> Add Companies
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Roundtable Entries -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="bi bi-clock-history"></i> Recent Roundtable Entries</h5>
+                    <a href="{{ url_for('crm.roundtable_meeting') }}" class="btn btn-sm btn-outline-primary">
+                        Go to Roundtable Meeting
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if recent_roundtables %}
+                    <div class="list-group">
+                        {% for entry in recent_roundtables %}
+                        {% set company = roundtable_companies.get(entry.entity_id) %}
+                        <div class="list-group-item">
+                            <div class="d-flex justify-content-between">
+                                <h6 class="mb-1">
+                                    {% if company %}
+                                    <a href="{{ url_for('companies.view_company', company_id=company.company_id) }}">{{ company.company_name }}</a>
+                                    {% else %}
+                                    Unknown Company
+                                    {% endif %}
+                                </h6>
+                                <small>{{ entry.created_timestamp.strftime('%B %d, %Y') }}</small>
+                            </div>
+                            {% if entry.next_steps %}
+                            <p class="mb-1"><strong>Next Steps:</strong> {{ entry.next_steps[:100] }}{% if entry.next_steps|length > 100 %}...{% endif %}</p>
+                            {% endif %}
+                            {% if entry.mpr_work_targets %}
+                            <p class="mb-1"><strong>MPR Targets:</strong> {{ entry.mpr_work_targets[:100] }}{% if entry.mpr_work_targets|length > 100 %}...{% endif %}</p>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="text-muted mb-0">No roundtable entries yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <!-- Detail Modals -->
@@ -170,7 +264,7 @@
                     <div class="d-flex justify-content-between align-items-start mb-3 p-2 border rounded">
                         <div class="flex-grow-1">
                             <div class="d-flex align-items-center mb-1">
-                                {{ person.full_name }}
+                                <strong>{{ person.full_name }}</strong>
                                 {% if person.role %}
                                     <span class="badge bg-secondary ms-2">{{ person.role }}</span>
                                 {% endif %}
@@ -185,11 +279,15 @@
                             </div>
                             {% if mpr_connections %}
                                 <div class="small">
-                                    MPR Connections:
+                                    <strong>MPR Connections:</strong>
                                     {% for connection in mpr_connections %}
                                         {% if connection.personnel %}
                                             {% set last_name = connection.personnel.full_name.split()[-1] if connection.personnel.full_name else 'Unknown' %}
-                                            {{ last_name }}{% if not loop.last %}, {% endif %}
+                                            {% if connection.is_primary %}
+                                                <strong>{{ last_name }}</strong>{% if not loop.last %}, {% endif %}
+                                            {% else %}
+                                                {{ last_name }}{% if not loop.last %}, {% endif %}
+                                            {% endif %}
                                         {% endif %}
                                     {% endfor %}
                                 </div>
@@ -217,7 +315,7 @@
                     <div class="card bg-light mb-2">
                         <div class="card-body p-2">
                             <div class="d-flex justify-content-between align-items-start mb-1">
-                                <strong>{{ entry.created_timestamp.strftime('%B %d, %Y %I:%M %p') }}</strong>
+                                <strong>{{ entry.created_timestamp.strftime('%B %d, %Y') }}</strong>
                             </div>
                             {% if entry.next_steps %}
                             <div class="small mb-1">

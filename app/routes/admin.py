@@ -15,8 +15,8 @@ from app.models import (
     ContactLog,
     Project,
     Company,
+    CompanyRole,
     CompanyRoleAssignment,
-    # PersonnelEntityRelationship,  # Removed in Phase 4 cleanup
     DatabaseSnapshot,
     AuditLog,
 )
@@ -60,57 +60,27 @@ def _parse_timestamp(value: str | None):
         return None
 
 
-def _format_company_role_label(rel):
-    """Format label for company role assignment showing actual entity name."""
-    if not rel:
-        return 'Unknown Relationship'
-
-    company_name = rel.company.company_name if rel.company else 'Company'
-    role_label = rel.role.role_label if rel.role else 'Role'
-
-    # Get the actual entity name based on context
-    context_name = 'Unknown'
-    if rel.context_type == 'Project' and rel.context_id:
-        project = db_session.get(Project, rel.context_id)
-        context_name = f"Project: {project.project_name}" if project else f"Project #{rel.context_id}"
-    elif rel.context_type == 'Company' and rel.context_id:
-        company = db_session.get(Company, rel.context_id)
-        context_name = f"Company: {company.company_name}" if company else f"Company #{rel.context_id}"
-    elif rel.context_type == 'Global':
-        # Global context assignments (company-level roles, no specific context)
-        context_name = 'Global (company-level)'
-    elif rel.context_type:
-        context_name = f"{rel.context_type} #{rel.context_id}" if rel.context_id else rel.context_type
-
-    return f"{company_name} ({role_label}) → {context_name}"
-
-
-# Removed in Phase 4 cleanup - PersonnelEntityRelationship no longer exists
-# def _format_personnel_entity_label(rel):
-#     """Format label for personnel-entity relationship showing actual entity name."""
-#     if not rel:
-#         return 'Unknown Relationship'
-#
-#     personnel_name = rel.personnel.full_name if rel.personnel else 'Personnel'
-#     role = rel.role_at_entity or 'N/A'
-#
-#     # Get the actual entity name
-#     entity_name = 'Unknown'
-#     if rel.entity_type == 'Project' and rel.entity_id:
-#         project = db_session.get(Project, rel.entity_id)
-#         entity_name = f"Project: {project.project_name}" if project else f"Project #{rel.entity_id}"
-#     elif rel.entity_type == 'Company' and rel.entity_id:
-#         company = db_session.get(Company, rel.entity_id)
-#         entity_name = f"Company: {company.company_name}" if company else f"Company #{rel.entity_id}"
-#     elif rel.entity_type:
-#         entity_name = f"{rel.entity_type} #{rel.entity_id}" if rel.entity_id else rel.entity_type
-#
-#     return f"{personnel_name} ↔ {entity_name} (Role: {role})"
-
-
 RELATIONSHIP_CONFIG = {
-    'company_role_assignment': (CompanyRoleAssignment, _format_company_role_label),
-    # 'personnel_entity': Removed in Phase 4 cleanup - replaced by PersonnelRelationship
+    'project_vendor': (
+        CompanyRoleAssignment,
+        'vendor',
+        lambda rel: f"Project #{rel.context_id} ↔ {rel.company.company_name if rel and rel.company else 'Company'} (Vendor)"
+    ),
+    'project_constructor': (
+        CompanyRoleAssignment,
+        'constructor',
+        lambda rel: f"Project #{rel.context_id} ↔ {rel.company.company_name if rel and rel.company else 'Company'} (Constructor)"
+    ),
+    'project_operator': (
+        CompanyRoleAssignment,
+        'operator',
+        lambda rel: f"Project #{rel.context_id} ↔ {rel.company.company_name if rel and rel.company else 'Company'} (Operator)"
+    ),
+    'project_owner': (
+        CompanyRoleAssignment,
+        'developer',
+        lambda rel: f"Project #{rel.context_id} ↔ {rel.company.company_name if rel and rel.company else 'Company'} (Owner)"
+    ),
 }
 
 
@@ -163,58 +133,25 @@ def _resolve_field_display(flag: ConfidentialFieldFlag):
         obj = db_session.get(Company, record_id)
         if obj:
             entity_label = obj.company_name or entity_label
-    elif table == 'contact_log':
-        obj = db_session.get(ContactLog, record_id)
-        if obj:
-            entity_label = f"Contact #{record_id}"
 
     return entity_label, flag.field_name
 
 
-def _collect_relationship_entries(filter_company_id=None, filter_project_id=None):
+def _collect_relationship_entries():
     entries = []
-    for key, (model, label_func) in RELATIONSHIP_CONFIG.items():
-        # Get the primary key field name based on model
-        if key == 'company_role_assignment':
-            pk_field = 'assignment_id'
-            order_field = CompanyRoleAssignment.assignment_id
-            query = db_session.query(model)
-
-            # Apply filters for company_role_assignment
-            if filter_company_id:
-                query = query.filter(CompanyRoleAssignment.company_id == filter_company_id)
-            if filter_project_id:
-                query = query.filter(
-                    CompanyRoleAssignment.context_type == 'Project',
-                    CompanyRoleAssignment.context_id == filter_project_id
-                )
-
-            items = query.order_by(order_field).all()
-        elif key == 'personnel_entity':
-            pk_field = 'relationship_id'
-            order_field = PersonnelEntityRelationship.relationship_id
-            query = db_session.query(model)
-
-            # Apply filters for personnel_entity
-            if filter_company_id:
-                query = query.filter(
-                    PersonnelEntityRelationship.entity_type == 'Company',
-                    PersonnelEntityRelationship.entity_id == filter_company_id
-                )
-            if filter_project_id:
-                query = query.filter(
-                    PersonnelEntityRelationship.entity_type == 'Project',
-                    PersonnelEntityRelationship.entity_id == filter_project_id
-                )
-
-            items = query.order_by(order_field).all()
-        else:
-            continue
-
+    for key, (model, role_code, label_func) in RELATIONSHIP_CONFIG.items():
+        # Filter to Project context and matching role code
+        items = (
+            db_session.query(model)
+            .join(CompanyRole, model.role_id == CompanyRole.role_id)
+            .filter(model.context_type == 'Project', CompanyRole.role_code == role_code)
+            .order_by(model.assignment_id)
+            .all()
+        )
         for rel in items:
             entries.append({
                 'type': key,
-                'id': getattr(rel, pk_field),
+                'id': rel.assignment_id,
                 'label': label_func(rel),
                 'notes': getattr(rel, 'notes', None),
                 'is_confidential': bool(getattr(rel, 'is_confidential', False)),
@@ -443,8 +380,6 @@ def audit_log():
 @admin_required
 def permission_scrubbing():
     view = request.args.get('view', 'confidential')
-    filter_company_id = request.args.get('filter_company', type=int)
-    filter_project_id = request.args.get('filter_project', type=int)
 
     flags = db_session.query(ConfidentialFieldFlag).order_by(ConfidentialFieldFlag.marked_date.desc()).all()
     confidential_field_count = sum(1 for flag in flags if flag.is_confidential)
@@ -460,7 +395,7 @@ def permission_scrubbing():
             'field_name': field_name,
         })
 
-    relationship_entries_all = _collect_relationship_entries(filter_company_id, filter_project_id)
+    relationship_entries_all = _collect_relationship_entries()
     relationship_confidential = sum(1 for entry in relationship_entries_all if entry['is_confidential'])
     if view == 'confidential':
         relationship_entries = [entry for entry in relationship_entries_all if entry['is_confidential']]
@@ -468,10 +403,6 @@ def permission_scrubbing():
         relationship_entries = relationship_entries_all
 
     contact_logs = _collect_confidential_contacts()
-
-    # Get companies and projects for filter dropdowns
-    companies = db_session.query(Company).order_by(Company.company_name).all()
-    projects = db_session.query(Project).order_by(Project.project_name).all()
 
     field_form = ConfirmActionForm()
     field_toggle_form = ConfirmActionForm()
@@ -486,10 +417,6 @@ def permission_scrubbing():
         confidential_field_count=confidential_field_count,
         relationship_confidential=relationship_confidential,
         view=view,
-        filter_company_id=filter_company_id,
-        filter_project_id=filter_project_id,
-        companies=companies,
-        projects=projects,
         field_form=field_form,
         field_toggle_form=field_toggle_form,
         relationship_toggle_form=relationship_toggle_form,
@@ -555,7 +482,7 @@ def set_relationship_confidential(rel_type, relationship_id):
         flash('Unknown relationship type.', 'warning')
         return redirect(url_for('admin.permission_scrubbing'))
 
-    model, _ = config
+    model, role_code, _ = config
     relationship = db_session.get(model, relationship_id)
     if not relationship:
         flash('Relationship not found.', 'warning')
@@ -622,11 +549,6 @@ def manage_users():
     active_users = db_session.query(User).filter_by(is_active=True).count()
     inactive_users = total_users - active_users
 
-    # Create forms for CSRF protection
-    from app.forms.relationships import ConfirmActionForm
-    deactivate_form = ConfirmActionForm()
-    activate_form = ConfirmActionForm()
-
     return render_template(
         'admin/users.html',
         users=users,
@@ -635,8 +557,8 @@ def manage_users():
         total_users=total_users,
         active_users=active_users,
         inactive_users=inactive_users,
-        deactivate_form=deactivate_form,
-        activate_form=activate_form
+        deactivate_form=ConfirmActionForm(),
+        activate_form=ConfirmActionForm()
     )
 
 

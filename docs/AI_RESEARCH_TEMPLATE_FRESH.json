@@ -1,0 +1,455 @@
+{
+  "metadata": {
+    "template_version": "2.0",
+    "purpose": "AI research agent extraction template with existing database references",
+    "source_documents": [
+      {
+        "filename": "your_client_research.pdf",
+        "date_extracted": "2025-10-18",
+        "extraction_confidence": null,
+        "notes": "Add your source document details here"
+      }
+    ],
+    "extracted_by": "AI Research Agent",
+    "extraction_date": "2025-10-18",
+    "review_status": "pending_human_review"
+  },
+  "database_references": {
+    "description": "Existing data in the NukeWorks database to help match and link extracted information",
+    "last_synced": "2025-10-18",
+    "existing_companies": [
+      {
+        "company_id": 21,
+        "company_name": "American Electric Power (AEP)",
+        "is_mpr_client": true,
+        "company_type": "IOU",
+        "headquarters_country": "Unknown",
+        "website": null,
+        "notes": "Large U.S. utility (Midwest/Texas). In 2023 AEP began evaluating SMRs to replace retiring coal by 2030s. Subsidiary SWEPCO\u2019s 2023 IRP includes a ~SMR resource post-2030. AEP has sought federal grants to study SMR siting at coal sites:contentReference[oaicite:59]{index=59}:contentReference[oaicite:60]{index=60}. No specific vendor publicly chosen yet.\n\nSources:\nhttps://content.govdelivery.com/attachments/OHPR/2023/03/27/file_attachments/2440800/OPSB%20SMR%20presentation.pdf\nhttps://energy.virginia.gov/renewable-energy/documents/FINAL%20LENOWISCO%20SMR%20Feasibility%20Study%20-%20DEI%2020230520%20.pdf#:~:text=AEP's%20interest%20in%20the%20nuclear%20space%20is%20currently%20focused%20on%20larger%20SMRs.%20(>300%20MW)"
+      },
+      {
+        "company_id": 32,
+        "company_name": "Blue Energy",
+        "is_mpr_client": true,
+        "company_type": "IPP",
+        "headquarters_country": "Unknown",
+        "website": null,
+        "notes": "US startup (spun out of MIT in 2023) pioneering shipyard-fabricated modular nuclear plants. Reactor-agnostic plant design built in sections at existing shipyards to cut cost to ~$2000/kW and build time to ~2 years:contentReference[oaicite:81]{index=81}. Raised $45M Series A in Oct 2024:contentReference[oaicite:82]{index=82}. Has an LOI with an unnamed data center operator to be off-taker for its first plant:contentReference[oaicite:83]{index=83}. Exploring both microreactor and SMR-scale implementations (including possible offshore deployment).\n\nSources:\nhttps://www.world-nuclear-news.org/Articles/US-startup-aims-for-shipyard-SMR-construction#:~:text=Blue%20Energy%27s%20innovation%20is%20a%20modular%2C%20reactor%2Dagnostic%20power%20plant%20architecture...which%20it%20says%20can%20reduce%20the%20capital%20costs%20from%20USD10%2C000%20per%20kW%20to%20USD2000%20per%20kW%20and%20build%20times%20from%2010%20years%20to%202%20years. :contentReference[oaicite:84]{index=84}\nhttps://www.world-nuclear-news.org/Articles/US-startup-aims-for-shipyard-SMR-construction#:~:text=It%20said%20it%20had%20signed%20a%20letter%20of%20intent%20with%20a%20data%20centre%20and%20cloud%20provider%20to%20serve%20as%20the%20off%2Dtaker%20for%20the%20first%20plant. :contentReference[oaicite:85]{index=85}"
+      },
+      {
+        "company_id": 19,
+        "company_name": "Dominion Energy",
+        "is_mpr_client": true,
+        "company_type": "IOU",
+        "headquarters_country": "Unknown",
+        "website": null,
+        "notes": "U.S. utility (Virginia, SC, etc.) operating 4 nuclear units. Studying SMRs to meet Virginia\u2019s growing data center load. In Oct 2024, Dominion and AWS (Amazon) agreed to explore a ~300 MW SMR at North Anna by 2032:contentReference[oaicite:57]{index=57}. Dominion is also extending existing reactors for 20 more years and involved in national SMR discussions (e.g., joined SCOUT SMR utility group).\n\nSources:\nhttps://www.aboutamazon.com/news/sustainability/amazon-nuclear-small-modular-reactor-net-carbon-zero#:~:text=In%20Virginia%2C%20we%E2%80%99ve%20signed%20an%20agreement%20with%20utility%20company%20Dominion%20Energy%20to%20explore%20the%20development%20of%20an%20SMR%20project%20near%20Dominion%E2%80%99s%20existing%20North%20Anna%20nuclear%20power%20station.%20This%20will%20bring%20at%20least%20300%20megawatts%20of%20power\nhttps://www.richmond.com/news/state-regional/government-politics/virginia-small-nuclear-reactors-youngkin-north-anna/article_a1b4454c-d43e-11ed-8ef3-5fdf3b2ccf3e.html"
+      },
+      {
+        "company_id": 37,
+        "company_name": "Duke",
+        "is_mpr_client": true,
+        "company_type": "Utility",
+        "headquarters_country": "Unknown",
+        "website": null,
+        "notes": "test client"
+      },
+      {
+        "company_id": 31,
+        "company_name": "Elementl Power",
+        "is_mpr_client": true,
+        "company_type": "IPP",
+        "headquarters_country": "Unknown",
+        "website": null,
+        "notes": "Stealth nuclear development company (Greer, SC) founded 2022. Contracted by Google in 2024 to identify and prepare at least three U.S. sites for ~600 MW advanced nuclear installations, with Google as an option PPA off-taker:contentReference[oaicite:78]{index=78}. Goal is to bring 10 GW of new nuclear online by 2035:contentReference[oaicite:79]{index=79}. Backed by Breakwater North and Energy Impact Partners. Working closely with Kairos Power (Google\u2019s other nuclear partner) on siting and deployment strategies.\n\nSources:\nhttps://trellis.net/article/amazon-google-meta-and-microsoft-go-nuclear/#:~:text=Elementl%20Power...contracted%20by%20Google%20to%20prepare%20at%20least%20three%20sites%20...%20Each%20installation%20would%20have%20a%20generation%20capacity%20of%20at%20least%20600%20megawatts :contentReference[oaicite:80]{index=80}\nhttps://www.energy.gov/gain/downloads/elementl-power-llc"
+      },
+      {
+        "company_id": 15,
+        "company_name": "Energy Northwest",
+        "is_mpr_client": true,
+        "company_type": "Public Power",
+        "headquarters_country": "Unknown",
+        "website": null,
+        "notes": "Washington State joint operating agency (owns Columbia Generating Station). Partnered via JDA with X-energy to develop up to twelve Xe-100 reactors (first unit by 2030) at a site near the Columbia plant:contentReference[oaicite:42]{index=42}:contentReference[oaicite:43]{index=43}. Also received Amazon support for four initial units (320 MW) with option up to 960 MW:contentReference[oaicite:44]{index=44}.\n\nSources:\nhttps://x-energy.com/media/news-releases/energy-northwest-x-energy-joint-development-agreement-xe-100#:~:text=up%20to%2012%20Xe%2D100%20advanced%20small%20modular%20reactors%20in%20central%20Washington%20capable%20of%20generating%20up%20to%20a%20total%20of%20960%20megawatts\nhttps://www.aboutamazon.com/news/sustainability/amazon-nuclear-small-modular-reactor-net-carbon-zero#:~:text=In%20Washington%2C%20our%20agreement%20with%20Energy%20Northwest%20...%20will%20enable%20the%20development%20of%20four%20advanced%20SMRs."
+      },
+      {
+        "company_id": 95,
+        "company_name": "Fermi America",
+        "is_mpr_client": true,
+        "company_type": "Unknown",
+        "headquarters_country": "Unknown",
+        "website": null,
+        "notes": null
+      },
+      {
+        "company_id": 45,
+        "company_name": "Google",
+        "is_mpr_client": true,
+        "company_type": "Technology",
+        "headquarters_country": "Unknown",
+        "website": null,
+        "notes": "Google (Alphabet) aims for 24/7 carbon-free energy by 2030 and views advanced nuclear as pivotal. In 2023 it made the first-ever corporate PPA for new nuclear: partnering with Kairos Power to offtake up to 50 MW from the Hermes 2 demonstration in Tennessee by 2030:contentReference[oaicite:97]{index=97}. Google also signed with Kairos to enable 500 MW of fleet deployment for its future needs:contentReference[oaicite:98]{index=98}. Additionally, Google is contracting Elementl Power to prep several U.S. sites for ~600 MW nuclear plants that Google may buy power from:contentReference[oaicite:99]{index=99}. It was a signatory of the 2025 \"Triple Nuclear Capacity by 2050\" pledge:contentReference[oaicite:100]{index=100} and is generally deeply involved in SMR development consortia.\n\nSources:\nhttps://www.world-nuclear-news.org/Articles/Google,-Kairos-Power,-TVA-announce-collaboration\nhttps://trellis.net/article/amazon-google-meta-and-microsoft-go-nuclear"
+      },
+      {
+        "company_id": 38,
+        "company_name": "TVA",
+        "is_mpr_client": true,
+        "company_type": "Operator",
+        "headquarters_country": "Unknown",
+        "website": null,
+        "notes": null
+      }
+    ],
+    "existing_internal_personnel": [
+      {
+        "personnel_id": 4,
+        "full_name": "Bob Wilson",
+        "title": "Bob Wilson",
+        "email": "bwilson@mpr.com",
+        "department": "Various",
+        "is_active": true,
+        "roles": [
+          "ned_team"
+        ]
+      },
+      {
+        "personnel_id": 2,
+        "full_name": "John Smith",
+        "title": "John Smith",
+        "email": "jsmith@mpr.com",
+        "department": "Various",
+        "is_active": true,
+        "roles": [
+          "ned_team",
+          "confidential_access"
+        ]
+      },
+      {
+        "personnel_id": 3,
+        "full_name": "Mary Jones",
+        "title": "Mary Jones",
+        "email": "mjones@mpr.com",
+        "department": "Various",
+        "is_active": true,
+        "roles": [
+          "ned_team",
+          "confidential_access"
+        ]
+      },
+      {
+        "personnel_id": 1,
+        "full_name": "System Administrator",
+        "title": "System Administrator",
+        "email": "admin@nukeworks.local",
+        "department": "Various",
+        "is_active": true,
+        "roles": [
+          "admin",
+          "ned_team",
+          "confidential_access"
+        ]
+      }
+    ],
+    "existing_external_personnel": [
+      {
+        "personnel_id": 14,
+        "full_name": "Adam Forni",
+        "title": "Contact",
+        "email": null,
+        "phone": null,
+        "company_name": "Unassociated",
+        "company_id": 96,
+        "is_active": true,
+        "relationship_type": "external_contact"
+      },
+      {
+        "personnel_id": 17,
+        "full_name": "Chris Colbert",
+        "title": "CEO",
+        "email": null,
+        "phone": null,
+        "company_name": "Unassociated",
+        "company_id": 96,
+        "is_active": true,
+        "relationship_type": "external_contact"
+      },
+      {
+        "personnel_id": 6,
+        "full_name": "Chris Levesque",
+        "title": "President & CEO",
+        "email": "clevesque@terrapower.com",
+        "phone": "+1-425-468-8600",
+        "company_name": "TerraPower, LLC",
+        "company_id": 2,
+        "is_active": true,
+        "relationship_type": "external_contact"
+      },
+      {
+        "personnel_id": 24,
+        "full_name": "Chris Spencer",
+        "title": "Controller",
+        "email": null,
+        "phone": null,
+        "company_name": "Unassociated",
+        "company_id": 96,
+        "is_active": true,
+        "relationship_type": "external_contact"
+      },
+      {
+        "personnel_id": 5,
+        "full_name": "Clay Sell",
+        "title": "CEO",
+        "email": "csell@x-energy.com",
+        "phone": "+1-301-984-9400",
+        "company_name": "TerraPower, LLC",
+        "company_id": 2,
+        "is_active": true,
+        "relationship_type": "external_contact"
+      },
+      {
+        "personnel_id": 18,
+        "full_name": "Dan Faherty",
+        "title": "Founder/CCO",
+        "email": null,
+        "phone": null,
+        "company_name": "Unassociated",
+        "company_id": 96,
+        "is_active": true,
+        "relationship_type": "external_contact"
+      },
+      {
+        "personnel_id": 7,
+        "full_name": "Doug Hunter",
+        "title": "CEO",
+        "email": "dhunter@uamps.com",
+        "phone": "+1-801-424-4800",
+        "company_name": "NuScale Power",
+        "company_id": 1,
+        "is_active": true,
+        "relationship_type": "external_contact"
+      },
+      {
+        "personnel_id": 23,
+        "full_name": "Jeff Perry ",
+        "title": "Head of Early Site Dev.",
+        "email": null,
+        "phone": null,
+        "company_name": "Unassociated",
+        "company_id": 96,
+        "is_active": true,
+        "relationship_type": "external_contact"
+      },
+      {
+        "personnel_id": 4,
+        "full_name": "John Clayton",
+        "title": "CEO",
+        "email": "jclayton@nuscalepower.com",
+        "phone": "+1-503-612-3500",
+        "company_name": "NuScale Power",
+        "company_id": 1,
+        "is_active": true,
+        "relationship_type": "external_contact"
+      },
+      {
+        "personnel_id": 22,
+        "full_name": "Mirela Gavrilas",
+        "title": "VP-Reg Affairs",
+        "email": null,
+        "phone": null,
+        "company_name": "Unassociated",
+        "company_id": 96,
+        "is_active": true,
+        "relationship_type": "external_contact"
+      },
+      {
+        "personnel_id": 16,
+        "full_name": "Mr Amazon",
+        "title": "Contact",
+        "email": null,
+        "phone": null,
+        "company_name": "Unassociated",
+        "company_id": 96,
+        "is_active": true,
+        "relationship_type": "external_contact"
+      },
+      {
+        "personnel_id": 13,
+        "full_name": "Nestor Sepulveda",
+        "title": "Contact",
+        "email": null,
+        "phone": null,
+        "company_name": "Unassociated",
+        "company_id": 96,
+        "is_active": true,
+        "relationship_type": "external_contact"
+      },
+      {
+        "personnel_id": 15,
+        "full_name": "Patrick Taylor",
+        "title": "Contact",
+        "email": null,
+        "phone": null,
+        "company_name": "Unassociated",
+        "company_id": 96,
+        "is_active": true,
+        "relationship_type": "external_contact"
+      },
+      {
+        "personnel_id": 12,
+        "full_name": "Paul Finch",
+        "title": "Contact",
+        "email": null,
+        "phone": null,
+        "company_name": "Duke",
+        "company_id": 37,
+        "is_active": true,
+        "relationship_type": "external_contact"
+      },
+      {
+        "personnel_id": 19,
+        "full_name": "Ryan Mills",
+        "title": "Founder, COO",
+        "email": null,
+        "phone": null,
+        "company_name": "Unassociated",
+        "company_id": 96,
+        "is_active": true,
+        "relationship_type": "external_contact"
+      },
+      {
+        "personnel_id": 20,
+        "full_name": "Shawn Hughes",
+        "title": "Chief Development Officer",
+        "email": null,
+        "phone": null,
+        "company_name": "Unassociated",
+        "company_id": 96,
+        "is_active": true,
+        "relationship_type": "external_contact"
+      },
+      {
+        "personnel_id": 21,
+        "full_name": "Tom Mundy",
+        "title": "VP-PMO",
+        "email": null,
+        "phone": null,
+        "company_name": "Unassociated",
+        "company_id": 96,
+        "is_active": true,
+        "relationship_type": "external_contact"
+      }
+    ]
+  },
+  "extraction_instructions": {
+    "matching_strategy": "When extracting information from PDFs, use the database_references section above to identify and link existing records. This helps ensure data consistency and proper relationship mapping.",
+    "company_matching": {
+      "instructions": "If you find a company name in the PDF, check the existing_companies list. If there's a match (exact or close match), use that company_id instead of creating a new entry.",
+      "examples": [
+        "If PDF mentions a company in the list \u2192 Link to that company_id",
+        "If PDF mentions a new company not in list \u2192 Mark as new_company and provide company details"
+      ]
+    },
+    "internal_personnel_matching": {
+      "instructions": "When you encounter MPR employee names in PDFs, check existing_internal_personnel. Match by name, title, or email if found.",
+      "examples": [
+        "If PDF mentions an employee in the list \u2192 Use that personnel_id",
+        "If you find an MPR employee not in the list \u2192 Mark as new_internal_personnel"
+      ]
+    },
+    "external_personnel_matching": {
+      "instructions": "Match external contacts from PDFs against existing_external_personnel by name, company, and title.",
+      "examples": [
+        "If PDF mentions a contact in the list \u2192 Use that personnel_id",
+        "If you find a new external contact \u2192 Mark as new_external_personnel with full details"
+      ]
+    },
+    "confidence_guidelines": {
+      "exact_match": 0.95,
+      "close_match_high_confidence": 0.85,
+      "close_match_medium_confidence": 0.7,
+      "uncertain_match": 0.5,
+      "no_match": null
+    }
+  },
+  "clients": [
+    {
+      "external_client": {
+        "company_name": "CLIENT_NAME",
+        "company_id": null,
+        "db_match_confidence": null,
+        "db_match_id": null,
+        "db_match_reason": "NEW - To be filled by AI agent from PDF research",
+        "notes": "Add client information extracted from PDF",
+        "website": null,
+        "headquarters_country": null
+      },
+      "internal_contacts": [
+        {
+          "employee_name": "EMPLOYEE_NAME",
+          "employee_title": "TITLE",
+          "employee_id": null,
+          "db_match_confidence": null,
+          "db_match_reason": "To be filled by AI agent - check against database_references",
+          "relationship_type": "primary_contact",
+          "relationship_notes": "Add relationship details from PDF"
+        }
+      ],
+      "external_personnel": [
+        {
+          "contact_name": "CONTACT_NAME",
+          "contact_title": "TITLE",
+          "contact_email": null,
+          "contact_phone": null,
+          "company_name": "COMPANY_NAME",
+          "company_id": null,
+          "personnel_id": null,
+          "db_match_confidence": null,
+          "db_match_reason": "To be filled by AI agent - check against database_references",
+          "relationship_to_mpr": "Add relationship description from PDF"
+        }
+      ],
+      "roundtable_entry": {
+        "meeting_context": "Add meeting context from PDF",
+        "meeting_date": null,
+        "fields": {
+          "next_steps": [
+            "Add next steps from PDF"
+          ],
+          "client_near_term_focus_areas": [
+            "Add client near-term focus areas from PDF"
+          ],
+          "mpr_work_targets_goals": [
+            "Add MPR work targets/goals from PDF"
+          ],
+          "client_strategic_objectives_priorities": [
+            "Add client strategic objectives from PDF"
+          ],
+          "general_discussion": "Add general discussion notes from PDF"
+        }
+      },
+      "client_profile": {
+        "client_priority": null,
+        "client_status": null,
+        "relationship_strength": null,
+        "relationship_notes": "Add relationship assessment from PDF",
+        "last_contact_date": null,
+        "last_contact_type": null,
+        "next_planned_contact_date": null,
+        "next_planned_contact_type": null
+      },
+      "additional_context": {
+        "projects_involved": [],
+        "key_achievements": null,
+        "risks_concerns": null,
+        "competitive_landscape": null,
+        "opportunities": null
+      }
+    }
+  ],
+  "data_quality_notes": {
+    "general": "Prioritize accuracy over completeness. Leave fields null/empty if information cannot be found or verified in source documents.",
+    "matching_confidence": "Always include db_match_confidence and db_match_reason fields when linking to existing database records using the database_references section above.",
+    "new_records": "For any external company, internal employee, or external contact NOT found in database_references, clearly mark as 'new' and provide all details extracted from the PDF.",
+    "conflicts": "If you find conflicting information (e.g., different phone number for same contact), include a note explaining the discrepancy and your confidence level."
+  }
+}

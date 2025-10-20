@@ -1,0 +1,278 @@
+{
+  "metadata": {
+    "template_version": "2.0",
+    "purpose": "AI research agent extraction template with existing database references",
+    "source_documents": [
+      {
+        "filename": "example_client_report.pdf",
+        "date_extracted": "2025-10-18",
+        "extraction_confidence": 0.95,
+        "notes": "Primary source for this client entry"
+      }
+    ],
+    "extracted_by": "AI Agent Name/Version",
+    "extraction_date": "2025-10-18",
+    "review_status": "pending_human_review"
+  },
+  "database_references": {
+    "description": "Existing data in the NukeWorks database to help match and link extracted information",
+    "last_synced": "2025-10-18",
+    "existing_companies": [
+      {
+        "company_id": 1,
+        "company_name": "NuScale Power",
+        "is_mpr_client": true,
+        "company_type": "Technology Vendor",
+        "headquarters_country": "USA",
+        "headquarters_region": "Oregon",
+        "website": "https://www.nuscalepower.com"
+      },
+      {
+        "company_id": 2,
+        "company_name": "Duke Energy",
+        "is_mpr_client": true,
+        "company_type": "Utility",
+        "headquarters_country": "USA",
+        "headquarters_region": "North Carolina",
+        "website": "https://www.duke-energy.com"
+      },
+      {
+        "company_id": 3,
+        "company_name": "Westinghouse Electric Company",
+        "is_mpr_client": true,
+        "company_type": "Technology Vendor",
+        "headquarters_country": "USA",
+        "headquarters_region": "Pennsylvania",
+        "website": "https://www.westinghousenuclear.com"
+      }
+    ],
+    "existing_internal_personnel": [
+      {
+        "personnel_id": 1,
+        "full_name": "John Smith",
+        "title": "Senior Project Manager",
+        "email": "j.smith@mpr.com",
+        "department": "Strategic Partnerships",
+        "is_active": true,
+        "roles": ["primary_contact", "project_lead"]
+      },
+      {
+        "personnel_id": 2,
+        "full_name": "Jane Doe",
+        "title": "Business Development Manager",
+        "email": "j.doe@mpr.com",
+        "department": "Business Development",
+        "is_active": true,
+        "roles": ["account_manager", "secondary_contact"]
+      },
+      {
+        "personnel_id": 3,
+        "full_name": "Robert Wilson",
+        "title": "Technical Director",
+        "email": "r.wilson@mpr.com",
+        "department": "Engineering",
+        "is_active": true,
+        "roles": ["technical_advisor", "project_reviewer"]
+      }
+    ],
+    "existing_external_personnel": [
+      {
+        "personnel_id": 101,
+        "full_name": "Robert Johnson",
+        "title": "VP Business Development",
+        "email": "r.johnson@nuscalepower.com",
+        "phone": "(919) 555-0123",
+        "company_name": "NuScale Power",
+        "company_id": 1,
+        "is_active": true,
+        "relationship_type": "key_contact"
+      },
+      {
+        "personnel_id": 102,
+        "full_name": "Sarah Williams",
+        "title": "Director of Strategy",
+        "email": "s.williams@nuscalepower.com",
+        "phone": "(919) 555-0124",
+        "company_name": "NuScale Power",
+        "company_id": 1,
+        "is_active": true,
+        "relationship_type": "strategic_contact"
+      },
+      {
+        "personnel_id": 103,
+        "full_name": "Michael Chen",
+        "title": "Supply Chain Manager",
+        "email": "m.chen@duke-energy.com",
+        "phone": "(704) 555-0125",
+        "company_name": "Duke Energy",
+        "company_id": 2,
+        "is_active": true,
+        "relationship_type": "operational_contact"
+      }
+    ]
+  },
+  "extraction_instructions": {
+    "matching_strategy": "When extracting information from PDFs, use the database_references section above to identify and link existing records. This helps ensure data consistency and proper relationship mapping.",
+    "company_matching": {
+      "instructions": "If you find a company name in the PDF, check the existing_companies list. If there's a match (exact or close match), use that company_id instead of creating a new entry.",
+      "examples": [
+        "If PDF mentions 'NuScale' → Link to company_id: 1",
+        "If PDF mentions 'Duke' or 'Duke Energy' → Link to company_id: 2",
+        "If PDF mentions a new company not in list → Mark as new_company and provide company details"
+      ]
+    },
+    "internal_personnel_matching": {
+      "instructions": "When you encounter MPR employee names in PDFs, check existing_internal_personnel. Match by name, title, or email if found.",
+      "examples": [
+        "If PDF mentions 'John Smith, Senior Project Manager' → Use personnel_id: 1",
+        "If PDF mentions 'Jane Doe from Business Development' → Use personnel_id: 2",
+        "If you find an MPR employee not in the list → Mark as new_internal_personnel"
+      ]
+    },
+    "external_personnel_matching": {
+      "instructions": "Match external contacts from PDFs against existing_external_personnel by name, company, and title.",
+      "examples": [
+        "If PDF mentions 'Robert Johnson from NuScale' → Use personnel_id: 101",
+        "If PDF mentions 'Sarah Williams, Director of Strategy at NuScale' → Use personnel_id: 102",
+        "If you find a new external contact → Mark as new_external_personnel with full details"
+      ]
+    },
+    "confidence_guidelines": {
+      "exact_match": 0.95,
+      "close_match_high_confidence": 0.85,
+      "close_match_medium_confidence": 0.7,
+      "uncertain_match": 0.5,
+      "no_match": null
+    }
+  },
+  "clients": [
+    {
+      "external_client": {
+        "company_name": "Example Nuclear Company",
+        "company_id": null,
+        "db_match_confidence": null,
+        "db_match_id": null,
+        "db_match_reason": "Could not find in existing database - new client",
+        "notes": "Primary nuclear technology vendor. Strategic partnership with MPR.",
+        "website": "https://www.examplecompany.com",
+        "headquarters_country": "USA",
+        "headquarters_region": "North Carolina"
+      },
+      "internal_contacts": [
+        {
+          "employee_name": "John Smith",
+          "employee_title": "Senior Project Manager",
+          "employee_id": 1,
+          "db_match_confidence": 0.95,
+          "db_match_reason": "Exact name and title match in database",
+          "relationship_type": "primary_contact",
+          "relationship_notes": "Primary internal liaison for strategic initiatives"
+        },
+        {
+          "employee_name": "Jane Doe",
+          "employee_title": "Business Development Manager",
+          "employee_id": 2,
+          "db_match_confidence": 0.95,
+          "db_match_reason": "Exact name and title match in database",
+          "relationship_type": "secondary_contact",
+          "relationship_notes": "Supports client relationship development"
+        }
+      ],
+      "external_personnel": [
+        {
+          "contact_name": "Robert Johnson",
+          "contact_title": "VP Business Development",
+          "contact_email": "r.johnson@nuscalepower.com",
+          "contact_phone": "(919) 555-0123",
+          "company_name": "NuScale Power",
+          "company_id": 1,
+          "personnel_id": 101,
+          "db_match_confidence": 0.95,
+          "db_match_reason": "Exact name and company match in database",
+          "relationship_to_mpr": "Key decision maker for MPR engagements"
+        },
+        {
+          "contact_name": "Sarah Williams",
+          "contact_title": "Director of Strategy",
+          "contact_email": "s.williams@nuscalepower.com",
+          "contact_phone": "(919) 555-0124",
+          "company_name": "NuScale Power",
+          "company_id": 1,
+          "personnel_id": 102,
+          "db_match_confidence": 0.95,
+          "db_match_reason": "Exact name and company match in database",
+          "relationship_to_mpr": "Strategic planning alignment"
+        },
+        {
+          "contact_name": "Jennifer Martinez",
+          "contact_title": "Senior Engineering Manager",
+          "contact_email": "j.martinez@nuscalepower.com",
+          "contact_phone": "(919) 555-0126",
+          "company_name": "NuScale Power",
+          "company_id": 1,
+          "personnel_id": null,
+          "db_match_confidence": null,
+          "db_match_reason": "New external contact not in database",
+          "relationship_to_mpr": "Key technical liaison for reactor design reviews"
+        }
+      ],
+      "roundtable_entry": {
+        "meeting_context": "Q4 2025 Strategic Review",
+        "meeting_date": "2025-10-15",
+        "fields": {
+          "next_steps": [
+            "Schedule follow-up meeting on advanced reactor licensing strategy",
+            "Share updated technical requirements document",
+            "Coordinate with engineering team on component specification",
+            "Establish working group for supply chain optimization"
+          ],
+          "client_near_term_focus_areas": [
+            "Small Modular Reactor (SMR) development and certification",
+            "Supply chain resilience and vendor diversification",
+            "Advanced manufacturing capabilities for next-generation reactors",
+            "Regulatory compliance and licensing streamlining"
+          ],
+          "mpr_work_targets_goals": [
+            "Support client's SMR commercialization timeline",
+            "Identify cost optimization opportunities in manufacturing",
+            "Develop strategic recommendations for supply chain",
+            "Assist with vendor qualification process"
+          ],
+          "client_strategic_objectives_priorities": [
+            "Deploy first commercial SMR unit by 2027",
+            "Reduce manufacturing costs by 15% year-over-year",
+            "Achieve supply chain redundancy for critical components",
+            "Establish thought leadership in advanced reactor technology"
+          ],
+          "general_discussion": "Client is progressing well on SMR development milestones. They expressed strong interest in MPR's supply chain optimization consulting. Key risks include supply chain delays and regulatory uncertainties. Strong opportunity for expanded engagement in advanced manufacturing consulting."
+        }
+      },
+      "client_profile": {
+        "client_priority": "Strategic",
+        "client_status": "Active",
+        "relationship_strength": "Strong",
+        "relationship_notes": "Long-standing partnership with growing engagement. Multiple business units actively working with MPR.",
+        "last_contact_date": "2025-10-15",
+        "last_contact_type": "In-person Meeting",
+        "next_planned_contact_date": "2025-11-15",
+        "next_planned_contact_type": "Video Conference"
+      },
+      "additional_context": {
+        "projects_involved": [
+          "Advanced SMR Development Program",
+          "Supply Chain Optimization Initiative"
+        ],
+        "key_achievements": "Successfully navigated regulatory challenges; strong technical progress on core reactor design",
+        "risks_concerns": "Supply chain vulnerabilities; regulatory timeline uncertainties",
+        "competitive_landscape": "Competing with other SMR developers; strong differentiation through manufacturing efficiency",
+        "opportunities": "Potential for multi-year consulting engagement; technology licensing opportunities"
+      }
+    }
+  ],
+  "data_quality_notes": {
+    "general": "Prioritize accuracy over completeness. Leave fields null/empty if information cannot be found or verified.",
+    "matching_confidence": "Always include db_match_confidence and db_match_reason fields when linking to existing database records.",
+    "new_records": "For any external company, internal employee, or external contact NOT found in database_references, clearly mark as 'new' and provide all details.",
+    "conflicts": "If you find conflicting information (e.g., different phone number for same contact), include a note explaining the discrepancy and your confidence level."
+  }
+}

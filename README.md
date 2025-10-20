@@ -8,7 +8,7 @@ A multi-user web-based database application for managing nuclear project data, t
 - **Two-Tier Permission System**:
   - Tier 1: Confidential Access (business data)
   - Tier 2: NED Team Access (internal strategy notes)
-- **Per-Field Encryption** - Financial data encrypted at rest (CAPEX, OPEX, LCOE, fuel costs)
+- **Per-Field Encryption** - Financial data encrypted at rest 
 - **Unified Company Management** with role-based organization system
 - **Client Relationship Management (CRM)** for tracking interactions
 - **Network Diagram Visualization** of relationships

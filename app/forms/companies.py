@@ -17,6 +17,11 @@ class CompanyForm(FlaskForm):
         validators=[Optional(), Length(max=100)]
     )
 
+    sector = StringField(
+        'Sector',
+        validators=[Optional(), Length(max=100)]
+    )
+
     website = StringField(
         'Website',
         validators=[Optional(), Length(max=255)]
@@ -24,6 +29,11 @@ class CompanyForm(FlaskForm):
 
     headquarters_country = StringField(
         'Headquarters Country',
+        validators=[Optional(), Length(max=100)]
+    )
+
+    headquarters_region = StringField(
+        'Headquarters Region',
         validators=[Optional(), Length(max=100)]
     )
 

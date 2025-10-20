@@ -31,115 +31,7 @@ def create_app(config_name=None):
     Returns:
         Configured Flask application
     """
-    import sys
-    
-    # Determine the correct paths for templates and static files
-    # This handles both development and PyInstaller bundled scenarios
-    if getattr(sys, 'frozen', False):
-        # Running as PyInstaller bundle
-        bundle_dir = Path(sys._MEIPASS)
-        # Newer PyInstaller places our added data under "_internal"; fall back to root
-        internal_root = bundle_dir / '_internal'
-        base_root = internal_root if internal_root.exists() else bundle_dir
-        template_folder = base_root / 'app' / 'templates'
-        static_folder = base_root / 'app' / 'static'
-
-        # Production mode - no debug output
-
-        # For PyInstaller bundles, use a writable instance directory
-        # instead of the read-only bundle directory
-        import tempfile
-        instance_path = Path(tempfile.gettempdir()) / 'NukeWorks' / 'instance'
-        instance_path.mkdir(parents=True, exist_ok=True)
-        
-        app = Flask(
-            __name__,
-            instance_relative_config=True,
-            instance_path=str(instance_path),
-            template_folder=str(template_folder),
-            static_folder=str(static_folder),
-            static_url_path='/static'
-        )
-        
-        # Ensure static files are served correctly in PyInstaller bundles
-        @app.route('/static/<path:filename>')
-        def static_files(filename):
-            from flask import send_from_directory
-            return send_from_directory(str(static_folder), filename)
-
-        # Ensure Jinja searches the explicit template path. Some bundle layouts
-        # require overriding the default loader to pick up bundled files.
-        try:
-            from jinja2 import FileSystemLoader, ChoiceLoader, PackageLoader, PrefixLoader
-
-            existing_loader = getattr(app, 'jinja_loader', None)
-            fs_loader = FileSystemLoader([str(template_folder)])
-            pkg_loader = PackageLoader('app', 'templates')
-            
-            # Create a custom loader that handles PyInstaller's duplicated path issue
-            # PyInstaller creates paths like 'auth/login.html/login.html' but we need 'auth/login.html'
-            class PyInstallerTemplateLoader:
-                def __init__(self, base_loader):
-                    self.base_loader = base_loader
-                
-                def get_source(self, environment, template):
-                    # Try the original template name first
-                    try:
-                        return self.base_loader.get_source(environment, template)
-                    except:
-                        # If that fails, try with the duplicated path structure
-                        # Handle both cases: 'auth/login.html' -> 'auth/login.html/login.html'
-                        # and 'base.html' -> 'base.html/base.html'
-                        if template.endswith('.html'):
-                            if '/' in template:
-                                # e.g., 'auth/login.html' -> 'auth/login.html/login.html'
-                                parts = template.split('/')
-                                if len(parts) == 2:  # e.g., ['auth', 'login.html']
-                                    alt_template = f"{template}/{parts[1]}"
-                                    try:
-                                        return self.base_loader.get_source(environment, alt_template)
-                                    except:
-                                        pass
-                            else:
-                                # e.g., 'base.html' -> 'base.html/base.html'
-                                alt_template = f"{template}/{template}"
-                                try:
-                                    return self.base_loader.get_source(environment, alt_template)
-                                except:
-                                    pass
-                        raise
-                
-                def list_templates(self):
-                    templates = self.base_loader.list_templates()
-                    # Convert duplicated paths back to normal paths
-                    normalized = []
-                    for template in templates:
-                        if '/' in template and template.count('/') >= 2:
-                            # e.g., 'auth/login.html/login.html' -> 'auth/login.html'
-                            parts = template.split('/')
-                            if len(parts) >= 3 and parts[-1] == parts[-2]:
-                                normalized.append('/'.join(parts[:-1]))
-                            else:
-                                normalized.append(template)
-                        else:
-                            normalized.append(template)
-                    return normalized
-            
-            # Wrap the FileSystemLoader with our custom loader
-            custom_loader = PyInstallerTemplateLoader(fs_loader)
-            
-            loaders = [custom_loader, pkg_loader]
-            if existing_loader and not isinstance(existing_loader, FileSystemLoader):
-                loaders.append(existing_loader)
-            app.jinja_loader = ChoiceLoader(loaders)
-
-            # Production mode - no debug output
-        except Exception as e:
-            print(f"[BUNDLE] Failed to configure Jinja loader: {e}")
-    else:
-        # Running as normal Python script
-        pass
-        app = Flask(__name__, instance_relative_config=True)
+    app = Flask(__name__, instance_relative_config=True)
 
     # Load configuration
     config_class = get_config(config_name)
@@ -596,7 +488,17 @@ def register_db_selector_middleware(app):
         if request.endpoint and request.endpoint.startswith('static'):
             return
 
-        # Production mode - no debug output
+        # Debug logging to help trace why certain requests are redirected
+        try:
+            logger.debug(
+                "handle_db_selection called: endpoint=%s path=%s args=%s headers_accept=%s",
+                str(request.endpoint),
+                str(request.path),
+                dict(request.args),
+                str(request.headers.get('Accept')),
+            )
+        except Exception:
+            pass
 
         # Also write a short trace to a logfile for post-mortem analysis
         try:
@@ -631,7 +533,6 @@ def register_db_selector_middleware(app):
             # (that would return HTML to an AJAX caller). However, we still want
             # any existing session-selected database to be wired into the
             # request context so `db_session` LocalProxy resolves correctly.
-            print(f"[DBG] handle_db_selection: bypass because Accept includes json for path={request.path}")
 
             # If a database was already selected in the session, set up the
             # per-request session so handlers (including AJAX helpers) will
@@ -653,9 +554,18 @@ def register_db_selector_middleware(app):
 
             return
 
-        # Skip for auth routes (login/logout) so authentication works even when no DB selected
+        # Require authentication before selecting a database
+        # Allow auth routes (login/logout) so authentication works even when no DB selected
         if request.endpoint and request.endpoint.startswith('auth.'):
             return
+
+        # If the user is not authenticated, redirect to login first
+        try:
+            from flask_login import current_user as _cu
+            if not _cu.is_authenticated:
+                return redirect(url_for('auth.login'))
+        except Exception:
+            pass
 
         # Skip for db_select routes
         if request.endpoint and request.endpoint.startswith('db_select.'):
@@ -669,7 +579,7 @@ def register_db_selector_middleware(app):
         if request.path and request.path.startswith('/select-db'):
             return
 
-        # Check if database is selected in session
+        # Check if database is selected in session (no default fallback)
         selected_db_path = session.get('selected_db_path')
 
         if not selected_db_path:

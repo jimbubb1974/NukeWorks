@@ -145,9 +145,10 @@
                     <thead class="table-light">
                         <tr>
                             <th>Company</th>
+                            <th>Type</th>
                             <th>Roles</th>
                             <th>MPR Client</th>
-                            <th class="text-end" style="width: 180px;">Actions</th>
+                            <th class="text-end">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -160,12 +161,13 @@
                                 <div class="small text-muted">{{ company.notes[:120] }}{% if company.notes|length > 120 %}…{% endif %}</div>
                                 {% endif %}
                             </td>
+                            <td>{{ company.company_type or '—' }}</td>
                             <td>
-                                {% set roles = assignments_map.get(company.company_id, []) %}
+                                {% set roles = company.role_assignments %}
                                 {% if roles %}
                                     {% set seen_roles = [] %}
                                     {% for assignment in roles %}
-                                        {% set role_label = assignment.role_label %}
+                                        {% set role_label = assignment.role.role_label if assignment.role else assignment.role_id %}
                                         {% if role_label not in seen_roles %}
                                             {% set _ = seen_roles.append(role_label) %}
                                             <span class="badge bg-primary me-1 mb-1">{{ role_label }}</span>
@@ -189,17 +191,16 @@
                                     {% endif %}
                                 </span>
                             </td>
-                            <td class="text-end" style="width: 180px; white-space: nowrap;">
+                            <td class="text-end">
                                 <a href="{{ url_for('companies.view_company', company_id=company.company_id) }}" class="btn btn-sm btn-outline-primary" title="View">
                                     <i class="bi bi-eye"></i>
                                 </a>
                                 <a href="{{ url_for('companies.edit_company', company_id=company.company_id) }}" class="btn btn-sm btn-outline-secondary" title="Edit">
                                     <i class="bi bi-pencil"></i>
                                 </a>
-                                <button type="button" class="btn btn-sm btn-outline-danger" title="Delete" 
-                                        onclick="showDeleteModal({{ company.company_id }}, '{{ company.company_name|replace("'", "\\'") }}')">
+                                <a href="{{ url_for('companies.delete_company', company_id=company.company_id) }}" class="btn btn-sm btn-outline-danger" title="Delete">
                                     <i class="bi bi-trash"></i>
-                                </button>
+                                </a>
                             </td>
                         </tr>
                         {% endfor %}
@@ -212,54 +213,10 @@
         </div>
     </div>
 </div>
-
-<!-- Delete Confirmation Modal -->
-<div class="modal fade" id="deleteCompanyModal" tabindex="-1" aria-labelledby="deleteCompanyModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header bg-danger text-white">
-                <h5 class="modal-title" id="deleteCompanyModalLabel">
-                    <i class="bi bi-exclamation-triangle-fill"></i> Confirm Delete
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <p class="mb-2">Are you sure you want to delete this company?</p>
-                <p class="mb-3"><strong id="deleteCompanyName"></strong></p>
-                <div class="alert alert-warning mb-0">
-                    <i class="bi bi-exclamation-triangle"></i> This action cannot be undone. All related data will be permanently deleted.
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <form id="deleteCompanyForm" method="post" style="display: inline;">
-                    {{ delete_form.csrf_token }}
-                    <button type="submit" class="btn btn-danger">
-                        <i class="bi bi-trash"></i> Delete Company
-                    </button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-
 {% endblock %}
 
 {% block extra_js %}
 <script>
-function showDeleteModal(companyId, companyName) {
-    // Set the company name in the modal
-    document.getElementById('deleteCompanyName').textContent = companyName;
-    
-    // Set the form action URL
-    const form = document.getElementById('deleteCompanyForm');
-    form.action = `/companies/${companyId}/delete`;
-    
-    // Show the modal
-    const modal = new bootstrap.Modal(document.getElementById('deleteCompanyModal'));
-    modal.show();
-}
-
 function toggleMprClient(companyId) {
     const badge = document.querySelector(`[data-company-id="${companyId}"]`);
     const originalText = badge.innerHTML;

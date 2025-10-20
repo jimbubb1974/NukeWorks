@@ -1,618 +1,318 @@
-{% extends "base.html" %}
-
-{% block title %}{{ title }} - NukeWorks{% endblock %}
-
+{% extends "base.html" %} {% block title %}{{ title }} - NukeWorks{% endblock %}
 {% block content %}
 <div class="container-fluid">
-    <div class="row mb-4">
-        <div class="col-12">
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="{{ url_for('projects.list_projects') }}">Projects</a></li>
-                    {% if project %}
-                    <li class="breadcrumb-item"><a href="{{ url_for('projects.view_project', project_id=project.project_id) }}">{{ project.project_name }}</a></li>
-                    <li class="breadcrumb-item active">Edit</li>
+  <div class="row mb-4">
+    <div class="col-12">
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item">
+            <a href="{{ url_for('projects.list_projects') }}">Projects</a>
+          </li>
+          {% if project %}
+          <li class="breadcrumb-item">
+            <a
+              href="{{ url_for('projects.view_project', project_id=project.project_id) }}"
+              >{{ project.project_name }}</a
+            >
+          </li>
+          <li class="breadcrumb-item active">Edit</li>
+          {% else %}
+          <li class="breadcrumb-item active">New Project</li>
+          {% endif %}
+        </ol>
+      </nav>
+      <h2>
+        <i
+          class="bi bi-{% if project %}pencil{% else %}plus-circle{% endif %}"
+        ></i>
+        {{ title }}
+      </h2>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-body">
+          <form method="post" novalidate>
+            {{ form.hidden_tag() }}
+
+            <div class="mb-3">
+              {{ form.project_name.label(class="form-label") }}
+              <span class="text-danger">*</span>
+              {{ form.project_name(class="form-control" + (" is-invalid" if
+              form.project_name.errors else "")) }} {% if
+              form.project_name.errors %}
+              <div class="invalid-feedback">
+                {% for error in form.project_name.errors %} {{ error }} {%
+                endfor %}
+              </div>
+              {% endif %}
+              <small class="form-text text-muted"
+                >Primary project name as it should appear across the
+                application.</small
+              >
+            </div>
+
+            <div class="row g-3">
+              <div class="col-md-6">
+                {{ form.location.label(class="form-label") }} {{
+                form.location(class="form-control" + (" is-invalid" if
+                form.location.errors else "")) }} {% if form.location.errors %}
+                <div class="invalid-feedback">
+                  {% for error in form.location.errors %} {{ error }} {% endfor
+                  %}
+                </div>
+                {% endif %}
+              </div>
+              <div class="col-md-6">
+                {{ form.project_status.label(class="form-label") }} {{
+                form.project_status(class="form-control" + (" is-invalid" if
+                form.project_status.errors else "")) }} {% if
+                form.project_status.errors %}
+                <div class="invalid-feedback">
+                  {% for error in form.project_status.errors %} {{ error }} {%
+                  endfor %}
+                </div>
+                {% endif %}
+              </div>
+            </div>
+
+            <div class="row g-3 mt-0">
+              <div class="col-md-6">
+                {{ form.latitude.label(class="form-label") }} {{
+                form.latitude(class="form-control" + (" is-invalid" if
+                form.latitude.errors else "")) }} {% if form.latitude.errors %}
+                <div class="invalid-feedback">
+                  {% for error in form.latitude.errors %} {{ error }} {% endfor
+                  %}
+                </div>
+                {% else %}
+                <div class="form-text">
+                  Positive for northern hemisphere, negative for southern.
+                </div>
+                {% endif %}
+              </div>
+              <div class="col-md-6">
+                {{ form.longitude.label(class="form-label") }} {{
+                form.longitude(class="form-control" + (" is-invalid" if
+                form.longitude.errors else "")) }} {% if form.longitude.errors
+                %}
+                <div class="invalid-feedback">
+                  {% for error in form.longitude.errors %} {{ error }} {% endfor
+                  %}
+                </div>
+                {% else %}
+                <div class="form-text">
+                  Positive for eastern hemisphere, negative for western.
+                </div>
+                {% endif %}
+              </div>
+            </div>
+
+            <div class="row g-3 mt-0">
+              <div class="col-md-6">
+                {{ form.licensing_approach.label(class="form-label") }} {{
+                form.licensing_approach(class="form-control" + (" is-invalid" if
+                form.licensing_approach.errors else "")) }} {% if
+                form.licensing_approach.errors %}
+                <div class="invalid-feedback">
+                  {% for error in form.licensing_approach.errors %} {{ error }}
+                  {% endfor %}
+                </div>
+                {% endif %}
+              </div>
+              <div class="col-md-6">
+                {{ form.configuration.label(class="form-label") }} {{
+                form.configuration(class="form-control" + (" is-invalid" if
+                form.configuration.errors else "")) }} {% if
+                form.configuration.errors %}
+                <div class="invalid-feedback">
+                  {% for error in form.configuration.errors %} {{ error }} {%
+                  endfor %}
+                </div>
+                {% endif %}
+              </div>
+            </div>
+
+            <div class="mb-3 mt-3">
+              {{ form.project_schedule.label(class="form-label") }} {{
+              form.project_schedule(class="form-control" + (" is-invalid" if
+              form.project_schedule.errors else "")) }} {% if
+              form.project_schedule.errors %}
+              <div class="invalid-feedback">
+                {% for error in form.project_schedule.errors %} {{ error }} {%
+                endfor %}
+              </div>
+              {% endif %}
+              <small class="form-text text-muted"
+                >Optional schedule notes or milestone summary.</small
+              >
+            </div>
+
+            <div class="mb-3">
+              {{ form.target_cod.label(class="form-label") }} {{
+              form.target_cod(class="form-control" + (" is-invalid" if
+              form.target_cod.errors else "")) }} {% if form.target_cod.errors
+              %}
+              <div class="invalid-feedback">
+                {% for error in form.target_cod.errors %} {{ error }} {% endfor
+                %}
+              </div>
+              {% endif %}
+              <small class="form-text text-muted"
+                >Optional planned commercial operation date.</small
+              >
+            </div>
+
+            <div class="mb-3">
+              {{ form.notes.label(class="form-label") }} {{
+              form.notes(class="form-control" + (" is-invalid" if
+              form.notes.errors else "")) }} {% if form.notes.errors %}
+              <div class="invalid-feedback">
+                {% for error in form.notes.errors %} {{ error }} {% endfor %}
+              </div>
+              {% endif %}
+            </div>
+
+            <div class="d-flex justify-content-between">
+              <a
+                href="{% if project %}{{ url_for('projects.view_project', project_id=project.project_id) }}{% else %}{{ url_for('projects.list_projects') }}{% endif %}"
+                class="btn btn-secondary"
+              >
+                <i class="bi bi-x-circle"></i> Cancel
+              </a>
+              {{ form.submit(class="btn btn-primary") }}
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Company Relationships Section (only for edit mode) -->
+      {% if project %}
+      <div class="card mt-4">
+        <div class="card-header">
+          <h5 class="mb-0">
+            <i class="bi bi-building"></i> Company Relationships
+          </h5>
+        </div>
+        <div class="card-body">
+          <!-- Current Relationships -->
+          {% set all_assignments = vendor_assignments + owner_assignments +
+          operator_assignments + constructor_assignments + offtaker_assignments
+          %} {% if all_assignments %}
+          <div class="table-responsive">
+            <table class="table table-sm align-middle">
+              <thead>
+                <tr>
+                  <th>Company</th>
+                  <th>Role</th>
+                  <th>Confidential</th>
+                  <th>Notes</th>
+                  <th width="100">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for assignment in all_assignments %} {% set company =
+                companies|selectattr('company_id', 'equalto',
+                assignment.company_id)|first %}
+                <tr>
+                  <td>
+                    {% if assignment.is_confidential and not
+                    can_view_confidential %} [Confidential] {% else %} {{
+                    company.company_name if company else 'Unknown Company' }} {%
+                    endif %}
+                  </td>
+                  <td>
+                    <span class="badge bg-primary">
+                      {% if assignment in vendor_assignments %}Vendor {% elif
+                      assignment in owner_assignments %}Owner/Developer {% elif
+                      assignment in operator_assignments %}Operator {% elif
+                      assignment in constructor_assignments %}Constructor {%
+                      elif assignment in offtaker_assignments %}Offtaker {% else
+                      %}Unknown Role{% endif %}
+                    </span>
+                  </td>
+                  <td>
+                    {% if assignment.is_confidential %}
+                    <span class="badge bg-warning">Confidential</span>
                     {% else %}
-                    <li class="breadcrumb-item active">New Project</li>
+                    <span class="badge bg-secondary">Public</span>
                     {% endif %}
-                </ol>
-            </nav>
-            <h2>
-                <i class="bi bi-{% if project %}pencil{% else %}plus-circle{% endif %}"></i>
-                {{ title }}
-            </h2>
-        </div>
-    </div>
-
-    <div class="row">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-body">
-                    <form method="post" novalidate>
-                        {{ form.hidden_tag() }}
-
-                        <div class="mb-3">
-                            {{ form.project_name.label(class="form-label") }}
-                            <span class="text-danger">*</span>
-                            {{ form.project_name(class="form-control" + (" is-invalid" if form.project_name.errors else "")) }}
-                            {% if form.project_name.errors %}
-                            <div class="invalid-feedback">
-                                {% for error in form.project_name.errors %}
-                                {{ error }}
-                                {% endfor %}
-                            </div>
-                            {% endif %}
-                            <small class="form-text text-muted">Primary project name as it should appear across the application.</small>
-                        </div>
-
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                {{ form.location.label(class="form-label") }}
-                                {{ form.location(class="form-control" + (" is-invalid" if form.location.errors else "")) }}
-                                {% if form.location.errors %}
-                                <div class="invalid-feedback">
-                                    {% for error in form.location.errors %}
-                                    {{ error }}
-                                    {% endfor %}
-                                </div>
-                                {% endif %}
-                            </div>
-                            <div class="col-md-6">
-                                {{ form.project_status.label(class="form-label") }}
-                                {{ form.project_status(class="form-control" + (" is-invalid" if form.project_status.errors else "")) }}
-                                {% if form.project_status.errors %}
-                                <div class="invalid-feedback">
-                                    {% for error in form.project_status.errors %}
-                                    {{ error }}
-                                    {% endfor %}
-                                </div>
-                                {% endif %}
-                            </div>
-                        </div>
-
-                        <div class="row g-3 mt-0">
-                            <div class="col-md-6">
-                                {{ form.latitude.label(class="form-label") }}
-                                {{ form.latitude(class="form-control" + (" is-invalid" if form.latitude.errors else "")) }}
-                                {% if form.latitude.errors %}
-                                <div class="invalid-feedback">
-                                    {% for error in form.latitude.errors %}
-                                    {{ error }}
-                                    {% endfor %}
-                                </div>
-                                {% else %}
-                                <div class="form-text">Positive for northern hemisphere, negative for southern.</div>
-                                {% endif %}
-                            </div>
-                            <div class="col-md-6">
-                                {{ form.longitude.label(class="form-label") }}
-                                {{ form.longitude(class="form-control" + (" is-invalid" if form.longitude.errors else "")) }}
-                                {% if form.longitude.errors %}
-                                <div class="invalid-feedback">
-                                    {% for error in form.longitude.errors %}
-                                    {{ error }}
-                                    {% endfor %}
-                                </div>
-                                {% else %}
-                                <div class="form-text">Positive for eastern hemisphere, negative for western.</div>
-                                {% endif %}
-                            </div>
-                        </div>
-
-                        <div class="row g-3 mt-0">
-                            <div class="col-md-6">
-                                {{ form.licensing_approach.label(class="form-label") }}
-                                {{ form.licensing_approach(class="form-control" + (" is-invalid" if form.licensing_approach.errors else "")) }}
-                                {% if form.licensing_approach.errors %}
-                                <div class="invalid-feedback">
-                                    {% for error in form.licensing_approach.errors %}
-                                    {{ error }}
-                                    {% endfor %}
-                                </div>
-                                {% endif %}
-                            </div>
-                            <div class="col-md-6">
-                                {{ form.configuration.label(class="form-label") }}
-                                {{ form.configuration(class="form-control" + (" is-invalid" if form.configuration.errors else "")) }}
-                                {% if form.configuration.errors %}
-                                <div class="invalid-feedback">
-                                    {% for error in form.configuration.errors %}
-                                    {{ error }}
-                                    {% endfor %}
-                                </div>
-                                {% endif %}
-                            </div>
-                        </div>
-
-                        <div class="mb-3 mt-3">
-                            {{ form.project_schedule.label(class="form-label") }}
-                            {{ form.project_schedule(class="form-control" + (" is-invalid" if form.project_schedule.errors else "")) }}
-                            {% if form.project_schedule.errors %}
-                            <div class="invalid-feedback">
-                                {% for error in form.project_schedule.errors %}
-                                {{ error }}
-                                {% endfor %}
-                            </div>
-                            {% endif %}
-                            <small class="form-text text-muted">Optional schedule notes or milestone summary.</small>
-                        </div>
-
-                        <div class="mb-3">
-                            {{ form.target_cod.label(class="form-label") }}
-                            {{ form.target_cod(class="form-control" + (" is-invalid" if form.target_cod.errors else "")) }}
-                            {% if form.target_cod.errors %}
-                            <div class="invalid-feedback">
-                                {% for error in form.target_cod.errors %}
-                                {{ error }}
-                                {% endfor %}
-                            </div>
-                            {% endif %}
-                            <small class="form-text text-muted">Optional planned commercial operation date.</small>
-                        </div>
-
-                        <div class="mb-3">
-                            {{ form.notes.label(class="form-label") }}
-                            {{ form.notes(class="form-control" + (" is-invalid" if form.notes.errors else "")) }}
-                            {% if form.notes.errors %}
-                            <div class="invalid-feedback">
-                                {% for error in form.notes.errors %}
-                                {{ error }}
-                                {% endfor %}
-                            </div>
-                            {% endif %}
-                        </div>
-
-                        <!-- Financial Information Section -->
-                        <hr class="my-4">
-                        <h5><i class="bi bi-currency-dollar"></i> Financial Information</h5>
-
-                        <!-- CAPEX Row -->
-                        <div class="row g-2 mb-3">
-                            <div class="col-md-7">
-                                {{ form.capex.label(class="form-label") }}
-                                {{ form.capex(class="form-control" + (" is-invalid" if form.capex.errors else "")) }}
-                                {% if form.capex.errors %}
-                                <div class="invalid-feedback">
-                                    {% for error in form.capex.errors %}
-                                    {{ error }}
-                                    {% endfor %}
-                                </div>
-                                {% else %}
-                                <div class="form-text">Capital expenditure (total project cost)</div>
-                                {% endif %}
-                            </div>
-                            <div class="col-md-5 d-flex align-items-center">
-                                <div class="form-check mt-4">
-                                    <input type="checkbox" name="capex_confidential" class="form-check-input"
-                                           id="capex_confidential" {% if capex_is_confidential %}checked{% endif %}>
-                                    <label class="form-check-label" for="capex_confidential">
-                                        <i class="bi bi-lock"></i> Mark as Confidential
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- OPEX Row -->
-                        <div class="row g-2 mb-3">
-                            <div class="col-md-7">
-                                {{ form.opex.label(class="form-label") }}
-                                {{ form.opex(class="form-control" + (" is-invalid" if form.opex.errors else "")) }}
-                                {% if form.opex.errors %}
-                                <div class="invalid-feedback">
-                                    {% for error in form.opex.errors %}
-                                    {{ error }}
-                                    {% endfor %}
-                                </div>
-                                {% else %}
-                                <div class="form-text">Annual operating expenditure</div>
-                                {% endif %}
-                            </div>
-                            <div class="col-md-5 d-flex align-items-center">
-                                <div class="form-check mt-4">
-                                    <input type="checkbox" name="opex_confidential" class="form-check-input"
-                                           id="opex_confidential" {% if opex_is_confidential %}checked{% endif %}>
-                                    <label class="form-check-label" for="opex_confidential">
-                                        <i class="bi bi-lock"></i> Mark as Confidential
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Fuel Cost Row -->
-                        <div class="row g-2 mb-3">
-                            <div class="col-md-7">
-                                {{ form.fuel_cost.label(class="form-label") }}
-                                {{ form.fuel_cost(class="form-control" + (" is-invalid" if form.fuel_cost.errors else "")) }}
-                                {% if form.fuel_cost.errors %}
-                                <div class="invalid-feedback">
-                                    {% for error in form.fuel_cost.errors %}
-                                    {{ error }}
-                                    {% endfor %}
-                                </div>
-                                {% else %}
-                                <div class="form-text">Annual fuel cost</div>
-                                {% endif %}
-                            </div>
-                            <div class="col-md-5 d-flex align-items-center">
-                                <div class="form-check mt-4">
-                                    <input type="checkbox" name="fuel_cost_confidential" class="form-check-input"
-                                           id="fuel_cost_confidential" {% if fuel_cost_is_confidential %}checked{% endif %}>
-                                    <label class="form-check-label" for="fuel_cost_confidential">
-                                        <i class="bi bi-lock"></i> Mark as Confidential
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- LCOE Row -->
-                        <div class="row g-2 mb-3">
-                            <div class="col-md-7">
-                                {{ form.lcoe.label(class="form-label") }}
-                                {{ form.lcoe(class="form-control" + (" is-invalid" if form.lcoe.errors else "")) }}
-                                {% if form.lcoe.errors %}
-                                <div class="invalid-feedback">
-                                    {% for error in form.lcoe.errors %}
-                                    {{ error }}
-                                    {% endfor %}
-                                </div>
-                                {% else %}
-                                <div class="form-text">Levelized cost of energy ($/kWh)</div>
-                                {% endif %}
-                            </div>
-                            <div class="col-md-5 d-flex align-items-center">
-                                <div class="form-check mt-4">
-                                    <input type="checkbox" name="lcoe_confidential" class="form-check-input"
-                                           id="lcoe_confidential" {% if lcoe_is_confidential %}checked{% endif %}>
-                                    <label class="form-check-label" for="lcoe_confidential">
-                                        <i class="bi bi-lock"></i> Mark as Confidential
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Relationship Management Sections -->
-                        <hr class="my-4">
-                        <h5><i class="bi bi-diagram-3"></i> Project Relationships</h5>
-                        <p class="text-muted">Manage connections to vendors, owners, operators, constructors, and offtakers. Mark relationships as confidential to restrict visibility.</p>
-
-                        <!-- Technology Vendors -->
-                        <div class="mb-4">
-                            <h6><i class="bi bi-box-seam"></i> Technology Vendors</h6>
-                            <div id="vendor-relationships">
-                                {% set vendor_rows = vendor_assignments if vendor_assignments is defined and vendor_assignments else (project.vendor_relationships if project else []) %}
-                                {% for vendor_rel in vendor_rows %}
-                                <div class="row g-2 mb-2 vendor-row">
-                                    <div class="col-md-4">
-                                        <select name="vendor_entity_id[]" class="form-select">
-                                            <option value="">{% if vendor_rel.vendor_id or vendor_rel.company_id %}Select Different Vendor{% else %}Select Vendor{% endif %}</option>
-                                            {% for company in companies %}
-                                            <option value="{{ company.company_id }}" {% if (vendor_rel.vendor_id or vendor_rel.company_id) == company.company_id %}selected{% endif %}>
-                                                {{ company.company_name }}
-                                            </option>
-                                            {% endfor %}
-                                        </select>
-                                    </div>
-                                    <div class="col-md-2">
-                                        <div class="form-check">
-                                            <input type="checkbox" name="vendor_confidential[]" class="form-check-input" 
-                                                   {% if vendor_rel.is_confidential %}checked{% endif %}>
-                                            <label class="form-check-label">Confidential</label>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <input type="text" name="vendor_notes[]" class="form-control" 
-                                               placeholder="Relationship notes" value="{{ vendor_rel.notes or '' }}">
-                                    </div>
-                                    <div class="col-md-2">
-                                        <button type="button" class="btn btn-outline-danger btn-sm remove-vendor">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                                {% endfor %}
-                            </div>
-                            <button type="button" class="btn btn-outline-primary btn-sm" id="add-vendor">
-                                <i class="bi bi-plus"></i> Add Vendor
-                            </button>
-                        </div>
-
-                        <!-- Owners/Developers -->
-                        <div class="mb-4">
-                            <h6><i class="bi bi-building-gear"></i> Owners/Developers</h6>
-                            <div id="owner-relationships">
-                                {% set owner_rows = owner_assignments if owner_assignments is defined and owner_assignments else (project.owner_relationships if project else []) %}
-                                {% for owner_rel in owner_rows %}
-                                <div class="row g-2 mb-2 owner-row">
-                                    <div class="col-md-4">
-                                        <select name="owner_entity_id[]" class="form-select">
-                                            <option value="">{% if owner_rel.owner_id or owner_rel.company_id %}Select Different Owner{% else %}Select Owner{% endif %}</option>
-                                            {% for company in companies %}
-                                            <option value="{{ company.company_id }}" {% if (owner_rel.owner_id or owner_rel.company_id) == company.company_id %}selected{% endif %}>
-                                                {{ company.company_name }}
-                                            </option>
-                                            {% endfor %}
-                                        </select>
-                                    </div>
-                                    <div class="col-md-2">
-                                        <div class="form-check">
-                                            <input type="checkbox" name="owner_confidential[]" class="form-check-input" 
-                                                   {% if owner_rel.is_confidential %}checked{% endif %}>
-                                            <label class="form-check-label">Confidential</label>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <input type="text" name="owner_notes[]" class="form-control" 
-                                               placeholder="Relationship notes" value="{{ owner_rel.notes or '' }}">
-                                    </div>
-                                    <div class="col-md-2">
-                                        <button type="button" class="btn btn-outline-danger btn-sm remove-owner">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                                {% endfor %}
-                            </div>
-                            <button type="button" class="btn btn-outline-primary btn-sm" id="add-owner">
-                                <i class="bi bi-plus"></i> Add Owner
-                            </button>
-                        </div>
-
-                        <!-- Operators -->
-                        <div class="mb-4">
-                            <h6><i class="bi bi-gear"></i> Operators</h6>
-                            <div id="operator-relationships">
-                                {% set operator_rows = operator_assignments if operator_assignments is defined and operator_assignments else (project.operator_relationships if project else []) %}
-                                {% for operator_rel in operator_rows %}
-                                <div class="row g-2 mb-2 operator-row">
-                                    <div class="col-md-4">
-                                        <select name="operator_entity_id[]" class="form-select">
-                                            <option value="">{% if operator_rel.operator_id or operator_rel.company_id %}Select Different Operator{% else %}Select Operator{% endif %}</option>
-                                            {% for company in companies %}
-                                            <option value="{{ company.company_id }}" {% if (operator_rel.operator_id or operator_rel.company_id) == company.company_id %}selected{% endif %}>
-                                                {{ company.company_name }}
-                                            </option>
-                                            {% endfor %}
-                                        </select>
-                                    </div>
-                                    <div class="col-md-2">
-                                        <div class="form-check">
-                                            <input type="checkbox" name="operator_confidential[]" class="form-check-input" 
-                                                   {% if operator_rel.is_confidential %}checked{% endif %}>
-                                            <label class="form-check-label">Confidential</label>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <input type="text" name="operator_notes[]" class="form-control" 
-                                               placeholder="Relationship notes" value="{{ operator_rel.notes or '' }}">
-                                    </div>
-                                    <div class="col-md-2">
-                                        <button type="button" class="btn btn-outline-danger btn-sm remove-operator">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                                {% endfor %}
-                            </div>
-                            <button type="button" class="btn btn-outline-primary btn-sm" id="add-operator">
-                                <i class="bi bi-plus"></i> Add Operator
-                            </button>
-                        </div>
-
-                        <!-- Constructors -->
-                        <div class="mb-4">
-                            <h6><i class="bi bi-hammer"></i> Constructors</h6>
-                            <div id="constructor-relationships">
-                                {% set constructor_rows = constructor_assignments if constructor_assignments is defined and constructor_assignments else (project.constructor_relationships if project else []) %}
-                                {% for constructor_rel in constructor_rows %}
-                                <div class="row g-2 mb-2 constructor-row">
-                                    <div class="col-md-4">
-                                        <select name="constructor_entity_id[]" class="form-select">
-                                            <option value="">{% if constructor_rel.constructor_id or constructor_rel.company_id %}Select Different Constructor{% else %}Select Constructor{% endif %}</option>
-                                            {% for company in companies %}
-                                            <option value="{{ company.company_id }}" {% if (constructor_rel.constructor_id or constructor_rel.company_id) == company.company_id %}selected{% endif %}>
-                                                {{ company.company_name }}
-                                            </option>
-                                            {% endfor %}
-                                        </select>
-                                    </div>
-                                    <div class="col-md-2">
-                                        <div class="form-check">
-                                            <input type="checkbox" name="constructor_confidential[]" class="form-check-input" 
-                                                   {% if constructor_rel.is_confidential %}checked{% endif %}>
-                                            <label class="form-check-label">Confidential</label>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <input type="text" name="constructor_notes[]" class="form-control" 
-                                               placeholder="Relationship notes" value="{{ constructor_rel.notes or '' }}">
-                                    </div>
-                                    <div class="col-md-2">
-                                        <button type="button" class="btn btn-outline-danger btn-sm remove-constructor">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                                {% endfor %}
-                            </div>
-                            <button type="button" class="btn btn-outline-primary btn-sm" id="add-constructor">
-                                <i class="bi bi-plus"></i> Add Constructor
-                            </button>
-                        </div>
-
-                        <!-- Offtakers -->
-                        <div class="mb-4">
-                            <h6><i class="bi bi-lightning"></i> Offtakers</h6>
-                            <div id="offtaker-relationships">
-                                {% set offtaker_rows = offtaker_assignments if offtaker_assignments is defined and offtaker_assignments else (project.offtaker_relationships if project else []) %}
-                                {% for offtaker_rel in offtaker_rows %}
-                                <div class="row g-2 mb-2 offtaker-row">
-                                    <div class="col-md-4">
-                                        <select name="offtaker_entity_id[]" class="form-select">
-                                            <option value="">{% if offtaker_rel.offtaker_id or offtaker_rel.company_id %}Select Different Offtaker{% else %}Select Offtaker{% endif %}</option>
-                                            {% for company in companies %}
-                                            <option value="{{ company.company_id }}" {% if (offtaker_rel.offtaker_id or offtaker_rel.company_id) == company.company_id %}selected{% endif %}>
-                                                {{ company.company_name }}
-                                            </option>
-                                            {% endfor %}
-                                        </select>
-                                    </div>
-                                    <div class="col-md-2">
-                                        <div class="form-check">
-                                            <input type="checkbox" name="offtaker_confidential[]" class="form-check-input" 
-                                                   {% if offtaker_rel.is_confidential %}checked{% endif %}>
-                                            <label class="form-check-label">Confidential</label>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <input type="text" name="offtaker_notes[]" class="form-control" 
-                                               placeholder="Relationship notes" value="{{ offtaker_rel.notes or '' }}">
-                                    </div>
-                                    <div class="col-md-2">
-                                        <button type="button" class="btn btn-outline-danger btn-sm remove-offtaker">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                                {% endfor %}
-                            </div>
-                            <button type="button" class="btn btn-outline-primary btn-sm" id="add-offtaker">
-                                <i class="bi bi-plus"></i> Add Offtaker
-                            </button>
-                        </div>
-
-                        <div class="d-flex justify-content-between">
-                            <a href="{% if project %}{{ url_for('projects.view_project', project_id=project.project_id) }}{% else %}{{ url_for('projects.list_projects') }}{% endif %}" class="btn btn-secondary">
-                                <i class="bi bi-x-circle"></i> Cancel
-                            </a>
-                            {{ form.submit(class="btn btn-primary") }}
-                        </div>
+                  </td>
+                  <td>
+                    {% if assignment.is_confidential and not
+                    can_view_confidential %} — {% else %} {{ assignment.notes or
+                    '—' }} {% endif %}
+                  </td>
+                  <td class="text-end">
+                    <form
+                      method="post"
+                      action="{{ url_for('projects.delete_project_company_relationship', project_id=project.project_id, assignment_id=assignment.assignment_id) }}"
+                      class="d-inline"
+                    >
+                      {{ delete_form.hidden_tag() }}
+                      <button
+                        type="submit"
+                        class="btn btn-sm btn-outline-danger"
+                        title="Remove"
+                        onclick="return confirm('Remove this company relationship?')"
+                      >
+                        <i class="bi bi-x"></i>
+                      </button>
                     </form>
-                </div>
-            </div>
-        </div>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% else %}
+          <p class="text-muted mb-0">No company relationships recorded.</p>
+          {% endif %}
 
-        <div class="col-md-4">
-            <div class="card bg-light">
-                <div class="card-header">
-                    <h5 class="mb-0"><i class="bi bi-info-circle"></i> Project Details</h5>
+          <!-- Add New Relationship Form -->
+          <div class="mt-4">
+            <h6>Add Company Relationship</h6>
+            <form
+              method="post"
+              action="{{ url_for('projects.add_project_company_relationship', project_id=project.project_id) }}"
+            >
+              {{ company_form.hidden_tag() }}
+              <div class="row g-2">
+                <div class="col-md-4">
+                  {{ company_form.company_id.label(class="form-label") }} {{
+                  company_form.company_id(class="form-select") }}
                 </div>
-                <div class="card-body">
-                    <h6>Guidance</h6>
-                    <ul class="mb-3">
-                        <li>Project name is required and should be unique within the list.</li>
-                        <li>Keep status descriptions concise (e.g., "Planning", "Operational").</li>
-                        <li>Provide latitude and longitude to surface the project on the interactive map.</li>
-                        <li>Use the schedule field to capture key milestones or target dates.</li>
-                    </ul>
-
-                    <h6 class="mt-3">Examples</h6>
-                    <ul>
-                        <li><strong>Location:</strong> Oak Ridge, TN</li>
-                        <li><strong>Status:</strong> Early Licensing</li>
-                        <li><strong>Licensing Approach:</strong> Part 52 COL</li>
-                        <li><strong>Configuration:</strong> 4x300 MWe modules</li>
-                    </ul>
+                <div class="col-md-4">
+                  {{ company_form.role_type.label(class="form-label") }} {{
+                  company_form.role_type(class="form-select") }}
                 </div>
-            </div>
-        </div>
-    </div>
-</div>
-{% endblock %}
-
-{% block extra_js %}
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Relationship management JavaScript
-    const relationshipTypes = ['vendor', 'owner', 'operator', 'constructor', 'offtaker'];
-    
-    relationshipTypes.forEach(type => {
-        const container = document.getElementById(`${type}-relationships`);
-        const addButton = document.getElementById(`add-${type}`);
-        
-        // Add new relationship row
-        addButton.addEventListener('click', function() {
-            const newRow = createRelationshipRow(type);
-            container.appendChild(newRow);
-        });
-        
-        // Remove relationship row (delegated event listener)
-        container.addEventListener('click', function(e) {
-            if (e.target.classList.contains(`remove-${type}`) || e.target.closest(`.remove-${type}`)) {
-                e.target.closest(`.${type}-row`).remove();
-            }
-        });
-    });
-    
-    function createRelationshipRow(type) {
-        const row = document.createElement('div');
-        row.className = `row g-2 mb-2 ${type}-row`;
-        
-        // Get options for the select dropdown
-        const selectOptions = getSelectOptions(type);
-        
-        row.innerHTML = `
-            <div class="col-md-4">
-                <select name="${type}_entity_id[]" class="form-select">
-                    <option value="">Select ${type.charAt(0).toUpperCase() + type.slice(1)}</option>
-                    ${selectOptions}
-                </select>
-            </div>
-            <div class="col-md-2">
-                <div class="form-check">
-                    <input type="checkbox" name="${type}_confidential[]" class="form-check-input">
-                    <label class="form-check-label">Confidential</label>
+                <div class="col-md-4 d-flex align-items-end">
+                  <div class="form-check">
+                    {{ company_form.is_confidential(class="form-check-input") }}
+                    {{
+                    company_form.is_confidential.label(class="form-check-label")
+                    }}
+                  </div>
                 </div>
-            </div>
-            <div class="col-md-4">
-                <input type="text" name="${type}_notes[]" class="form-control" placeholder="Relationship notes">
-            </div>
-            <div class="col-md-2">
-                <button type="button" class="btn btn-outline-danger btn-sm remove-${type}">
-                    <i class="bi bi-trash"></i>
+              </div>
+              <div class="mt-2">
+                {{ company_form.notes.label(class="form-label") }} {{
+                company_form.notes(class="form-control", rows="2",
+                placeholder="Additional notes about this relationship") }}
+              </div>
+              <div class="mt-3 text-end">
+                <button type="submit" class="btn btn-primary">
+                  <i class="bi bi-plus-circle"></i> Add Company
                 </button>
-            </div>
-        `;
-        
-        return row;
-    }
-    
-    function getSelectOptions(type) {
-        // Get companies from the server-provided data
-        {% if companies %}
-        const companies = [
-            {% for company in companies %}
-            { id: {{ company.company_id }}, name: {{ company.company_name|tojson }} }{% if not loop.last %},{% endif %}
-            {% endfor %}
-        ];
-
-        return companies.map(company =>
-            `<option value="${company.id}">${company.name}</option>`
-        ).join('');
-        {% else %}
-        return '';
-        {% endif %}
-    }
-    
-    // Handle form submission to include relationship data
-    const form = document.querySelector('form');
-    form.addEventListener('submit', function(e) {
-        // Ensure all relationship data is properly formatted
-        relationshipTypes.forEach(type => {
-            const entitySelects = document.querySelectorAll(`select[name="${type}_entity_id[]"]`);
-            const confidentialCheckboxes = document.querySelectorAll(`input[name="${type}_confidential[]"]`);
-            const notesInputs = document.querySelectorAll(`input[name="${type}_notes[]"]`);
-            
-            // Remove empty rows (where no entity is selected)
-            entitySelects.forEach((select, index) => {
-                if (!select.value) {
-                    const row = select.closest(`.${type}-row`);
-                    if (row) {
-                        row.remove();
-                    }
-                }
-            });
-        });
-    });
-});
-</script>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
 {% endblock %}

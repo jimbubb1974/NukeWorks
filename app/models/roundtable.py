@@ -35,6 +35,7 @@ class RoundtableHistory(Base):
     _next_steps_encrypted = Column('next_steps_encrypted', LargeBinary)
     _client_near_term_focus_encrypted = Column('client_near_term_focus_encrypted', LargeBinary)
     _mpr_work_targets_encrypted = Column('mpr_work_targets_encrypted', LargeBinary)
+    _client_strategic_objectives_encrypted = Column('client_strategic_objectives_encrypted', LargeBinary)
 
     # Properties with automatic encryption/decryption
     discussion = EncryptedField('_discussion_encrypted', 'ned_team', '[NED Team Only]')
@@ -42,6 +43,7 @@ class RoundtableHistory(Base):
     next_steps = EncryptedField('_next_steps_encrypted', 'ned_team', '[NED Team Only]')
     client_near_term_focus = EncryptedField('_client_near_term_focus_encrypted', 'ned_team', '[NED Team Only]')
     mpr_work_targets = EncryptedField('_mpr_work_targets_encrypted', 'ned_team', '[NED Team Only]')
+    client_strategic_objectives = EncryptedField('_client_strategic_objectives_encrypted', 'ned_team', '[NED Team Only]')
 
     # Audit fields (plain text - simpler than TimestampMixin - entries are append-only)
     created_by = Column(Integer, ForeignKey('users.user_id'))
@@ -67,6 +69,7 @@ class RoundtableHistory(Base):
             'next_steps': self.next_steps,
             'client_near_term_focus': self.client_near_term_focus,
             'mpr_work_targets': self.mpr_work_targets,
+            'client_strategic_objectives': self.client_strategic_objectives,
             'created_by': self.created_by,
             'created_timestamp': self.created_timestamp.isoformat() if self.created_timestamp else None,
         }

@@ -4,7 +4,7 @@ Allows users to select which SQLite database file to use
 """
 import os
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
-from flask_login import current_user
+from flask_login import current_user, login_required
 from app.utils import db_selector_cache, db_helpers
 from flask import current_app
 from app.utils.migrations import get_current_schema_version, get_required_schema_version, check_and_apply_migrations
@@ -17,28 +17,8 @@ bp = Blueprint('db_select', __name__, url_prefix='')
 logger = logging.getLogger(__name__)
 
 
-def get_current_database_path():
-    """
-    Get the current database path being used by the application.
-    Returns session-selected database if available, otherwise default database.
-    """
-    from flask import session
-    from flask import current_app
-    
-    # Check session first
-    session_db = session.get('selected_db_path')
-    if session_db and os.path.exists(session_db):
-        return session_db
-    
-    # Fall back to default database
-    default_db = current_app.config.get('DATABASE_PATH')
-    if default_db and os.path.exists(default_db):
-        return default_db
-    
-    return None
-
-
 @bp.route('/select-db', methods=['GET'])
+@login_required
 def select_database():
     """
     Show database selector page
@@ -53,8 +33,14 @@ def select_database():
     # Get last browsed directory
     last_browsed_dir = db_selector_cache.get_last_browsed_dir()
 
-    # Get current selection if any (session or default)
-    current_selection = get_current_database_path()
+    # Get current selection if any (do not fall back to app default)
+    current_selection = session.get('selected_db_path')
+    if not current_selection:
+        from flask import g
+        if hasattr(g, 'selected_db_path') and g.selected_db_path:
+            current_selection = g.selected_db_path
+    
+    # Database info gathering removed - only showing path and filename now
 
     # Get suggested default (user preference or global default)
     suggested_default = None

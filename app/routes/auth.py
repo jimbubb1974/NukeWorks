@@ -17,7 +17,13 @@ logger = logging.getLogger(__name__)
 def login():
     """User login with security features"""
     if current_user.is_authenticated:
-        return redirect(url_for('dashboard.index'))
+        # Always go to DB selector after login page if already authenticated
+        try:
+            from flask import session as _session
+            _session.pop('selected_db_path', None)
+        except Exception:
+            pass
+        return redirect(url_for('db_select.select_database'))
 
     form = LoginForm()
 
@@ -50,12 +56,13 @@ def login():
         logger.info(f'User {username} logged in successfully from IP: {request.remote_addr}')
         flash(f'Welcome back, {user.full_name or user.username}!', 'success')
 
-        # Redirect to next page or dashboard
-        next_page = request.args.get('next')
-        if not next_page or not next_page.startswith('/'):
-            next_page = url_for('dashboard.index')
-
-        return redirect(next_page)
+        # After successful login, always force DB selection
+        try:
+            from flask import session as _session
+            _session.pop('selected_db_path', None)
+        except Exception:
+            pass
+        return redirect(url_for('db_select.select_database'))
 
     return render_template('auth/login.html', form=form)
 

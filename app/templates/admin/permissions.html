@@ -57,7 +57,94 @@
         </div>
     </form>
 
-    
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">Add / Update Field Confidentiality</h5>
+        </div>
+        <div class="card-body">
+            <form method="post" action="{{ url_for('admin.mark_field_permission') }}" class="row g-3">
+                {{ field_form.hidden_tag() }}
+                <input type="hidden" name="view" value="{{ view }}">
+                <div class="col-md-3">
+                    <label class="form-label">Table Name</label>
+                    <input type="text" class="form-control" name="table_name" placeholder="projects" required>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Record ID</label>
+                    <input type="number" class="form-control" name="record_id" placeholder="1" min="1" required>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Field Name</label>
+                    <input type="text" class="form-control" name="field_name" placeholder="capex" required>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Set To</label>
+                    <select name="value" class="form-select">
+                        <option value="1">Confidential</option>
+                        <option value="0">Public</option>
+                    </select>
+                </div>
+                <div class="col-md-1 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">Apply</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">Confidential Fields</h5>
+        </div>
+        <div class="card-body">
+            {% if field_entries %}
+            <div class="table-responsive">
+                <table class="table table-sm align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Entity</th>
+                            <th>Field</th>
+                            <th>Status</th>
+                            <th>Marked By</th>
+                            <th>Marked Date</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for entry in field_entries %}
+                        <tr>
+                            <td>{{ entry.entity_label }}</td>
+                            <td>{{ entry.field_name }}</td>
+                            <td>
+                                {% if entry.flag.is_confidential %}
+                                <span class="badge bg-warning text-dark">Confidential</span>
+                                {% else %}
+                                <span class="badge bg-secondary">Public</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ entry.flag.marked_by or '—' }}</td>
+                            <td>{{ entry.flag.marked_date.strftime('%Y-%m-%d %H:%M') if entry.flag.marked_date else '—' }}</td>
+                            <td class="text-end">
+                                <form method="post" action="{{ url_for('admin.set_field_confidential', flag_id=entry.flag.flag_id, view=view) }}" class="d-inline">
+                                    {{ field_toggle_form.hidden_tag() }}
+                                    <input type="hidden" name="value" value="1">
+                                    <button type="submit" class="btn btn-sm btn-outline-primary" {% if entry.flag.is_confidential %}disabled{% endif %}>Make Confidential</button>
+                                </form>
+                                <form method="post" action="{{ url_for('admin.set_field_confidential', flag_id=entry.flag.flag_id, view=view) }}" class="d-inline">
+                                    {{ field_toggle_form.hidden_tag() }}
+                                    <input type="hidden" name="value" value="0">
+                                    <button type="submit" class="btn btn-sm btn-outline-secondary" {% if not entry.flag.is_confidential %}disabled{% endif %}>Make Public</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-muted mb-0">No field-level confidentiality flags found for the current view.</p>
+            {% endif %}
+        </div>
+    </div>
 
     <div class="card mb-4">
         <div class="card-header">

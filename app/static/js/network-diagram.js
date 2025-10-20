@@ -1,13 +1,26 @@
 (function (global) {
   const GROUP_LABELS = {
-    company: "Company",
+    vendor: "Vendor",
+    owner: "Owner",
     project: "Project",
+    constructor: "Constructor",
+    operator: "Operator",
+    offtaker: "Off-taker",
   };
 
   const GROUP_STYLES = {
-    company: {
+    vendor: {
       shape: "dot",
       size: 25,
+      color: {
+        background: "#e74c3c",
+        border: "#c0392b",
+        highlight: { background: "#c0392b", border: "#a93226" },
+      },
+      font: { color: "#2c3e50", size: 14 },
+    },
+    owner: {
+      shape: "box",
       color: {
         background: "#3498db",
         border: "#2980b9",
@@ -22,6 +35,36 @@
         background: "#2ecc71",
         border: "#27ae60",
         highlight: { background: "#27ae60", border: "#1e8449" },
+      },
+      font: { color: "#2c3e50", size: 14 },
+    },
+    constructor: {
+      shape: "triangle",
+      size: 25,
+      color: {
+        background: "#f39c12",
+        border: "#d68910",
+        highlight: { background: "#d68910", border: "#b9770e" },
+      },
+      font: { color: "#2c3e50", size: 14 },
+    },
+    operator: {
+      shape: "triangleDown",
+      size: 25,
+      color: {
+        background: "#9b59b6",
+        border: "#8e44ad",
+        highlight: { background: "#8e44ad", border: "#76448a" },
+      },
+      font: { color: "#2c3e50", size: 14 },
+    },
+    offtaker: {
+      shape: "hexagon",
+      size: 26,
+      color: {
+        background: "#16a085",
+        border: "#13856d",
+        highlight: { background: "#13856d", border: "#0e5f4a" },
       },
       font: { color: "#2c3e50", size: 14 },
     },
@@ -42,7 +85,6 @@
       entity_types: ["company", "project"],
       relationship_types: ["project_company"],
       hide_unconnected_companies: false,
-      show_edge_labels: true,
       focus_entity: null,
       depth: "all",
     },
@@ -64,6 +106,7 @@
         config.resetPhysicsButtonId
       );
       this.statsDom = config.statsSelectors;
+      this.detailPanel = config.detailPanel;
 
       if (!this.container) {
         console.error("Network container not found");
@@ -148,41 +191,6 @@
           }
         });
       }
-
-      // Add live toggle for edge labels
-      const showEdgeLabelsInput = this.filterForm
-        ? this.filterForm.querySelector('input[name="show_edge_labels"]')
-        : null;
-      if (showEdgeLabelsInput) {
-        showEdgeLabelsInput.addEventListener("change", () => {
-          this.currentFilters.show_edge_labels = showEdgeLabelsInput.checked;
-          this.toggleEdgeLabels(showEdgeLabelsInput.checked);
-        });
-      }
-    },
-
-    toggleEdgeLabels(show) {
-      if (!this.edgesDataSet) return;
-
-      const edges = this.edgesDataSet.get();
-      const updatedEdges = edges.map((edge) => {
-        // Keep the original label in title (tooltip), but remove/restore the visible label
-        if (show) {
-          // Restore label from title if it exists
-          const match = edge.title ? edge.title.match(/\(([^)]+)\)/) : null;
-          return {
-            ...edge,
-            label: match ? match[1] : edge.label,
-          };
-        } else {
-          return {
-            ...edge,
-            label: undefined,
-          };
-        }
-      });
-
-      this.edgesDataSet.update(updatedEdges);
     },
 
     readFiltersFromForm() {
@@ -197,9 +205,6 @@
       );
       const hideUnconnectedInput = this.filterForm.querySelector(
         'input[name="hide_unconnected_companies"]'
-      );
-      const showEdgeLabelsInput = this.filterForm.querySelector(
-        'input[name="show_edge_labels"]'
       );
 
       const selectedEntities = Array.from(entityInputs)
@@ -219,9 +224,6 @@
         this.currentFilters.hide_unconnected_companies =
           hideUnconnectedInput.checked;
       }
-      if (showEdgeLabelsInput) {
-        this.currentFilters.show_edge_labels = showEdgeLabelsInput.checked;
-      }
     },
 
     updateFiltersFromForm() {
@@ -236,9 +238,6 @@
       );
       const hideUnconnectedInput = this.filterForm.querySelector(
         'input[name="hide_unconnected_companies"]'
-      );
-      const showEdgeLabelsInput = this.filterForm.querySelector(
-        'input[name="show_edge_labels"]'
       );
 
       const selectedEntities = Array.from(entityInputs)
@@ -262,9 +261,6 @@
       if (hideUnconnectedInput) {
         this.currentFilters.hide_unconnected_companies =
           hideUnconnectedInput.checked;
-      }
-      if (showEdgeLabelsInput) {
-        this.currentFilters.show_edge_labels = showEdgeLabelsInput.checked;
       }
 
       // Clear focus if it conflicts with new filters
@@ -369,17 +365,6 @@
         this.nodeIndex.set(node.id, node);
       });
 
-      // Debug: Log edge colors
-      console.log("Sample edges:", filteredEdges.slice(0, 3));
-
-      // Apply edge label visibility setting
-      if (!this.currentFilters.show_edge_labels) {
-        filteredEdges = filteredEdges.map((edge) => ({
-          ...edge,
-          label: undefined, // Remove labels when toggle is off
-        }));
-      }
-
       if (!this.nodesDataSet || !this.edgesDataSet) {
         this.nodesDataSet = new vis.DataSet(filteredNodes);
         this.edgesDataSet = new vis.DataSet(filteredEdges);
@@ -455,10 +440,10 @@
           shape: "dot",
         },
         edges: {
+          color: { color: "#95a5a6", highlight: "#7f8c8d" },
           width: 2,
           smooth: { type: "continuous" },
           font: { size: 12, align: "horizontal" },
-          color: { inherit: false },
         },
         physics: {
           enabled: true,
@@ -474,7 +459,7 @@
         interaction: {
           hover: true,
           tooltipDelay: 200,
-          navigationButtons: false,
+          navigationButtons: true,
           keyboard: true,
         },
       };
@@ -502,7 +487,16 @@
         }
       });
 
-      // Node detail panel removed - tooltips provide node information
+      this.network.on("hoverNode", (params) => {
+        const node = this.nodeIndex.get(params.node);
+        if (node) {
+          this.updateDetailPanel(node);
+        }
+      });
+
+      this.network.on("blurNode", () => {
+        this.clearDetailPanel();
+      });
 
       this.network.on("doubleClick", (params) => {
         if (params.nodes.length > 0) {
@@ -584,6 +578,52 @@
           typeof stats.confidential_hidden === "number"
             ? stats.confidential_hidden
             : 0;
+      }
+    },
+
+    updateDetailPanel(node) {
+      if (!this.detailPanel) {
+        return;
+      }
+      const placeholder = document.querySelector(
+        this.detailPanel.placeholderSelector
+      );
+      const container = document.querySelector(
+        this.detailPanel.containerSelector
+      );
+      const labelEl = document.querySelector(this.detailPanel.labelSelector);
+      const descriptionEl = document.querySelector(
+        this.detailPanel.descriptionSelector
+      );
+
+      if (!container || !labelEl || !descriptionEl) {
+        return;
+      }
+
+      if (placeholder) {
+        placeholder.classList.add("d-none");
+      }
+      container.classList.remove("d-none");
+      labelEl.textContent = formatNodeLabel(node);
+      descriptionEl.textContent = node.title || "";
+    },
+
+    clearDetailPanel() {
+      if (!this.detailPanel) {
+        return;
+      }
+      const placeholder = document.querySelector(
+        this.detailPanel.placeholderSelector
+      );
+      const container = document.querySelector(
+        this.detailPanel.containerSelector
+      );
+
+      if (placeholder) {
+        placeholder.classList.remove("d-none");
+      }
+      if (container) {
+        container.classList.add("d-none");
       }
     },
 

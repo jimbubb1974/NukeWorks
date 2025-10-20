@@ -35,7 +35,7 @@ if __name__ == '__main__':
     print("NukeWorks - Nuclear Project Management Database")
     print("=" * 60)
     print(f"Environment: {os.environ.get('FLASK_ENV', 'development')}")
-    print(f"Database: {app.config.get('DATABASE_PATH')}")
+    print("Database: [none selected yet — user will choose at /select-db]")
     print("Starting Flask server on http://127.0.0.1:5000/")
     print("=" * 60)
     print("\nPress CTRL+C to quit\n")
