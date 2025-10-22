@@ -47,13 +47,14 @@ def dashboard():
     )
 
     # Apply filters using ClientProfile (left join to include companies without profiles)
-    if priority_filter or status_filter:
+    if priority_filter or status_filter or sort_by == 'priority':
+        # Join ClientProfile if needed for filtering or priority sorting
         query = query.outerjoin(ClientProfile)
         if priority_filter:
             query = query.filter(ClientProfile.client_priority == priority_filter)
         if status_filter:
             query = query.filter(ClientProfile.client_status == status_filter)
-    
+
     if poc_filter:
         # Filter by MPR POC through PersonCompanyAffiliation
         from app.models import PersonCompanyAffiliation
@@ -69,18 +70,21 @@ def dashboard():
             query = query.order_by(Company.company_name.asc())
     elif sort_by == 'priority':
         # Custom priority sort order: Strategic > High > Medium > Low > Opportunistic
+        # Map priorities to numeric values (lower number = higher priority)
         priority_order = case(
             (ClientProfile.client_priority == 'Strategic', 1),
             (ClientProfile.client_priority == 'High', 2),
             (ClientProfile.client_priority == 'Medium', 3),
             (ClientProfile.client_priority == 'Low', 4),
             (ClientProfile.client_priority == 'Opportunistic', 5),
-            else_=6
+            else_=6  # Companies without ClientProfile appear last
         )
+        # Ascending = highest priority first (Strategic=1 first)
+        # Descending = lowest priority first (Opportunistic=5 first)
         if sort_order == 'desc':
-            query = query.outerjoin(ClientProfile).order_by(priority_order.desc(), Company.company_name.asc())
+            query = query.order_by(priority_order.desc(), Company.company_name.asc())
         else:
-            query = query.outerjoin(ClientProfile).order_by(priority_order.asc(), Company.company_name.asc())
+            query = query.order_by(priority_order.asc(), Company.company_name.asc())
     else:
         # Default sort
         query = query.order_by(Company.company_name.asc())
