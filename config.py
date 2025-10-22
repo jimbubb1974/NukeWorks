@@ -12,9 +12,22 @@ basedir = Path(__file__).parent.absolute()
 
 
 def _runtime_root() -> Path:
-    """Return the directory where bundled resources are located."""
+    """Return the directory where bundled resources are located.
+
+    In PyInstaller onedir mode, resources are placed under the distribution
+    directory; in some versions they may reside in a nested "_internal" dir.
+    """
     if getattr(sys, 'frozen', False):
-        return Path(getattr(sys, '_MEIPASS', basedir))
+        meipass = Path(getattr(sys, '_MEIPASS', basedir))
+        # Prefer _MEIPASS if present
+        if meipass.exists():
+            return meipass
+        # Fallbacks: current executable directory and potential _internal
+        exec_dir = Path(sys.executable).resolve().parent
+        internal = exec_dir / "_internal"
+        if internal.exists():
+            return internal
+        return exec_dir
     return basedir
 
 
@@ -26,7 +39,8 @@ def _resource_path(relative_path: str) -> Path:
     of the same name (e.g., "<name>/<name>").
     """
     relative = Path(relative_path)
-    runtime_candidate = _runtime_root() / relative
+    runtime_root = _runtime_root()
+    runtime_candidate = runtime_root / relative
 
     if runtime_candidate.is_file():
         return runtime_candidate
@@ -34,6 +48,16 @@ def _resource_path(relative_path: str) -> Path:
         nested = runtime_candidate / relative.name
         if nested.exists():
             return nested
+
+    # Also check PyInstaller's _internal directory (newer layouts)
+    internal_candidate = runtime_root / "_internal" / relative
+    if internal_candidate.exists():
+        return internal_candidate
+
+    # Also check one level up for onedir where app/ is beside exe
+    parent_candidate = runtime_root.parent / relative
+    if parent_candidate.exists():
+        return parent_candidate
 
     fallback = basedir / relative
     if fallback.is_file():

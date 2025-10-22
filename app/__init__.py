@@ -9,7 +9,9 @@ from flask_login import LoginManager
 from sqlalchemy import create_engine, event, text
 from sqlalchemy.orm import scoped_session, sessionmaker
 from werkzeug.local import LocalProxy
-from config import get_config
+from config import get_config, _resource_path
+from pathlib import Path
+from jinja2 import ChoiceLoader, FileSystemLoader
 import logging
 
 logger = logging.getLogger(__name__)
@@ -31,7 +33,32 @@ def create_app(config_name=None):
     Returns:
         Configured Flask application
     """
-    app = Flask(__name__, instance_relative_config=True)
+    # Resolve template/static folders so they work when bundled with PyInstaller
+    template_dir = _resource_path('app/templates')
+    static_dir = _resource_path('app/static')
+
+    app = Flask(
+        __name__,
+        instance_relative_config=True,
+        template_folder=str(template_dir),
+        static_folder=str(static_dir),
+    )
+
+    # Ensure Jinja can find templates regardless of PyInstaller layout
+    extra_template_paths = [
+        str(template_dir),
+        str(_resource_path('_internal/app/templates')),
+        str(Path(app.root_path) / 'templates'),
+        str(Path(app.root_path).parent / 'app' / 'templates'),
+    ]
+    # Deduplicate while preserving order
+    seen = set()
+    unique_paths = []
+    for p in extra_template_paths:
+        if p and p not in seen:
+            seen.add(p)
+            unique_paths.append(p)
+    app.jinja_loader = ChoiceLoader([app.jinja_loader, FileSystemLoader(unique_paths)])
 
     # Load configuration
     config_class = get_config(config_name)
