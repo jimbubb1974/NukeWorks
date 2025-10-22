@@ -85,6 +85,8 @@ def dashboard():
             query = query.order_by(priority_order.desc(), Company.company_name.asc())
         else:
             query = query.order_by(priority_order.asc(), Company.company_name.asc())
+        # Use distinct to avoid duplicate rows from outer join
+        query = query.distinct(Company.company_id)
     else:
         # Default sort
         query = query.order_by(Company.company_name.asc())
