@@ -62,10 +62,16 @@ def _process_relationship_assignments(project: Project, form_data, user_id: int)
     role_id_map = {role.role_code: role.role_id for role in roles}
 
     # Delete existing relationships for this project
-    db_session.query(CompanyRoleAssignment).filter_by(
+    # NOTE: Using explicit loop instead of bulk .delete() to ensure audit logging captures each deletion
+    existing_relationships = db_session.query(CompanyRoleAssignment).filter_by(
         context_type='Project',
         context_id=project.project_id
-    ).delete()
+    ).all()
+    for rel in existing_relationships:
+        db_session.delete(rel)
+
+    # Commit to flush deletions so they're captured by audit listener before creating new ones
+    db_session.commit()
 
     # Process each relationship type
     for rel_type, role_code in relationship_mapping.items():

@@ -11,10 +11,29 @@ from sqlalchemy.orm import scoped_session, sessionmaker
 from werkzeug.local import LocalProxy
 from config import get_config, _resource_path
 from pathlib import Path
-from jinja2 import ChoiceLoader, FileSystemLoader
+from jinja2 import ChoiceLoader, FileSystemLoader, TemplateNotFound
+from jinja2.loaders import BaseLoader
 import logging
 
 logger = logging.getLogger(__name__)
+
+
+class PersistentFileSystemLoader(BaseLoader):
+    """
+    A Jinja2 loader that wraps FileSystemLoader and persists across requests.
+    Ensures templates bundled in PyInstaller are always found.
+    """
+    def __init__(self, searchpath):
+        self.fs_loader = FileSystemLoader(searchpath)
+
+    def get_source(self, environment, template):
+        try:
+            return self.fs_loader.get_source(environment, template)
+        except TemplateNotFound:
+            raise TemplateNotFound(template)
+
+    def list_templates(self):
+        return self.fs_loader.list_templates()
 
 # Global objects
 login_manager = LoginManager()
@@ -44,21 +63,51 @@ def create_app(config_name=None):
         static_folder=str(static_dir),
     )
 
-    # Ensure Jinja can find templates regardless of PyInstaller layout
-    extra_template_paths = [
-        str(template_dir),
-        str(_resource_path('_internal/app/templates')),
-        str(Path(app.root_path) / 'templates'),
-        str(Path(app.root_path).parent / 'app' / 'templates'),
-    ]
-    # Deduplicate while preserving order
-    seen = set()
-    unique_paths = []
-    for p in extra_template_paths:
-        if p and p not in seen:
-            seen.add(p)
-            unique_paths.append(p)
-    app.jinja_loader = ChoiceLoader([app.jinja_loader, FileSystemLoader(unique_paths)])
+    # Visible startup diagnostics for template resolution (stdout)
+    try:
+        login_rel_path = Path('auth') / 'login.html'
+        print(f"[Templates] template_dir={template_dir} exists={Path(template_dir).exists()} login_exists={(Path(template_dir)/login_rel_path).exists()}")
+        print(f"[Templates] static_dir={static_dir} exists={Path(static_dir).exists()}")
+    except Exception:
+        pass
+
+    # Prepare template search paths; we'll attach them after blueprints register
+    def _compute_template_paths():
+        base = str(template_dir)
+        return [base, str(Path(base) / 'auth')]
+
+    # Debug: Log template search paths and presence of key templates
+    try:
+        login_rel = Path('auth') / 'login.html'
+        paths_to_check = unique_paths
+        logger.info("Planned Jinja template search paths:")
+        for p in paths_to_check:
+            exists = Path(p).joinpath(login_rel).exists()
+            logger.info(" - %s (login.html=%s)", p, 'yes' if exists else 'no')
+    except Exception:
+        pass
+
+    # After registering blueprints (which sets DispatchingJinjaLoader), extend
+    # the environment loader to also look in our explicit filesystem paths.
+    def _attach_template_paths():
+        try:
+            paths = _compute_template_paths()
+            app.jinja_env.loader = ChoiceLoader([app.jinja_env.loader, FileSystemLoader(paths)])
+            # Diagnostics
+            try:
+                loader = app.jinja_env.loader
+                searchpath = getattr(loader, 'searchpath', None)
+                print(f"[JinjaLoader] type={type(loader).__name__} searchpath={searchpath}")
+                with app.app_context():
+                    try:
+                        _ = app.jinja_env.get_template('auth/login.html')
+                        print("[JinjaCheck] auth/login.html resolved OK")
+                    except Exception as exc:
+                        print(f"[JinjaCheck] Failed to resolve auth/login.html: {exc}")
+            except Exception:
+                pass
+        except Exception:
+            pass
 
     # Load configuration
     config_class = get_config(config_name)
@@ -88,6 +137,27 @@ def create_app(config_name=None):
 
     # Register blueprints
     register_blueprints(app)
+    # Attach template paths now that loaders are initialized by blueprints
+    # Force a custom PersistentFileSystemLoader that stays set across requests
+    # This must be done AFTER blueprints are registered but BEFORE request handlers
+    try:
+        persistent_loader = PersistentFileSystemLoader([str(template_dir)])
+        app.jinja_env.loader = persistent_loader
+        print(f"[JinjaLoader] Using PersistentFileSystemLoader -> {template_dir}")
+
+        # Test template resolution in app context
+        with app.app_context():
+            try:
+                tmpl = app.jinja_env.get_template('auth/login.html')
+                print("[JinjaCheck] auth/login.html resolved OK")
+            except Exception as exc:
+                print(f"[JinjaCheck] Failed to resolve auth/login.html: {exc}")
+                raise  # Don't suppress - this is critical
+    except Exception as exc:
+        print(f"[JinjaLoader] ERROR: Failed to set template loader: {exc}")
+        import traceback
+        traceback.print_exc()
+        raise SystemExit("Template loader initialization failed - cannot continue")
 
     # Register error handlers
     register_error_handlers(app)

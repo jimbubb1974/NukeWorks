@@ -5,12 +5,24 @@ Main application entry point
 """
 import os
 import sys
+from pathlib import Path
 import webbrowser
 from threading import Timer
 from dotenv import load_dotenv
 
 # Load environment variables
 load_dotenv()
+
+# When running as a bundled executable, ensure the bundled Python libs directory
+# is on sys.path so importlib.metadata can discover package metadata (e.g., Werkzeug)
+if getattr(sys, 'frozen', False):
+    try:
+        base_dir = Path(getattr(sys, '_MEIPASS', Path(sys.executable).resolve().parent))
+    except Exception:
+        base_dir = Path(sys.executable).resolve().parent
+    internal_dir = base_dir / '_internal'
+    if internal_dir.exists() and str(internal_dir) not in sys.path:
+        sys.path.insert(0, str(internal_dir))
 
 # Import the Flask application factory
 from app import create_app

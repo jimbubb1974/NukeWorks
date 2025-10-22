@@ -357,29 +357,53 @@ def _cleanup_personnel_references(personnel_id: int) -> None:
             'Reassign or remove those contact logs first.'
         )
 
-    # Null out references in client profiles, projects, clients (legacy), and contact logs
+    # Null out references in client profiles, projects, and contact logs
+    # NOTE: Using explicit loops instead of bulk .update() to ensure audit logging captures each change
+
     # Update ClientProfile records that reference this personnel
-    client_profile_updates = {
-        ClientProfile.last_contact_by: None,
-        ClientProfile.next_planned_contact_assigned_to: None,
-    }
-    for column in client_profile_updates:
-        db_session.query(ClientProfile).filter(column == personnel_id).update({column: None}, synchronize_session=False)
+    client_profiles = db_session.query(ClientProfile).filter(
+        (ClientProfile.last_contact_by == personnel_id) |
+        (ClientProfile.next_planned_contact_assigned_to == personnel_id)
+    ).all()
+    for profile in client_profiles:
+        if profile.last_contact_by == personnel_id:
+            profile.last_contact_by = None
+        if profile.next_planned_contact_assigned_to == personnel_id:
+            profile.next_planned_contact_assigned_to = None
 
-    project_updates = {
-        Project.primary_firm_contact: None,
-        Project.last_project_interaction_by: None,
-    }
-    for column in project_updates:
-        db_session.query(Project).filter(column == personnel_id).update({column: None}, synchronize_session=False)
+    # Update Project records that reference this personnel
+    projects = db_session.query(Project).filter(
+        (Project.primary_firm_contact == personnel_id) |
+        (Project.last_project_interaction_by == personnel_id)
+    ).all()
+    for project in projects:
+        if project.primary_firm_contact == personnel_id:
+            project.primary_firm_contact = None
+        if project.last_project_interaction_by == personnel_id:
+            project.last_project_interaction_by = None
 
-    # Legacy Client table references removed - use Company with client role instead
+    # Update ContactLog records that reference this personnel
+    contact_logs = db_session.query(ContactLog).filter(
+        (ContactLog.contact_person_id == personnel_id) |
+        (ContactLog.follow_up_assigned_to == personnel_id)
+    ).all()
+    for log in contact_logs:
+        if log.contact_person_id == personnel_id:
+            log.contact_person_id = None
+        if log.follow_up_assigned_to == personnel_id:
+            log.follow_up_assigned_to = None
 
-    db_session.query(ContactLog).filter(ContactLog.contact_person_id == personnel_id).update({ContactLog.contact_person_id: None}, synchronize_session=False)
-    db_session.query(ContactLog).filter(ContactLog.follow_up_assigned_to == personnel_id).update({ContactLog.follow_up_assigned_to: None}, synchronize_session=False)
+    # Commit after all updates so audit listener captures changes
+    db_session.commit()
 
     # Remove junction-table relationships that point at this personnel
-    db_session.query(PersonCompanyAffiliation).filter_by(personnel_id=personnel_id).delete(synchronize_session=False)
+    # NOTE: Using explicit loop instead of bulk .delete() to ensure audit logging captures each deletion
+    affiliations = db_session.query(PersonCompanyAffiliation).filter_by(personnel_id=personnel_id).all()
+    for affiliation in affiliations:
+        db_session.delete(affiliation)
+
+    # Commit after deletions so audit listener captures them
+    db_session.commit()
     # PersonnelEntityRelationship and EntityTeamMember removed in Phase 4 cleanup
     # ClientPersonnelRelationship removed - use PersonCompanyAffiliation instead
 

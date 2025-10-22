@@ -1,0 +1,386 @@
+{% extends "base.html" %}
+
+{% block title %}Network View - NukeWorks{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2><i class="bi bi-diagram-3"></i> Network View</h2>
+            <p class="text-muted">Flexible view of project relationships with customizable columns and grouping</p>
+        </div>
+    </div>
+
+    <!-- Column and Grouping Controls -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-sliders"></i> View Configuration</h5>
+                </div>
+                <div class="card-body">
+                    <form method="GET" action="{{ url_for('network.network_table') }}" id="networkForm">
+                        <div class="row">
+                            <!-- Group By Selection -->
+                            <div class="col-md-3 mb-3">
+                                <label class="form-label"><strong>Group By:</strong></label>
+                                <select name="group_by" class="form-select" onchange="this.form.submit()">
+                                    {% for key, col in available_columns.items() %}
+                                    <option value="{{ key }}" {% if group_by == key %}selected{% endif %}>{{ col.label }}</option>
+                                    {% endfor %}
+                                </select>
+                                <small class="text-muted">Primary grouping field</small>
+                            </div>
+
+                            <!-- Column Selection -->
+                            <div class="col-md-9 mb-3">
+                                <label class="form-label"><strong>Display Columns:</strong></label>
+                                <div class="d-flex flex-wrap gap-2">
+                                    {% for key, col in available_columns.items() %}
+                                    <div class="form-check form-check-inline">
+                                        <input
+                                            class="form-check-input column-checkbox"
+                                            type="checkbox"
+                                            name="columns_check"
+                                            value="{{ key }}"
+                                            id="col_{{ key }}"
+                                            {% if key in selected_columns %}checked{% endif %}
+                                            onchange="updateColumns()"
+                                        >
+                                        <label class="form-check-label" for="col_{{ key }}">
+                                            {{ col.label }}
+                                        </label>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                <input type="hidden" name="columns" id="columns_input" value="{{ selected_columns|join(',') }}">
+                                <small class="text-muted">Select which columns to display in the table</small>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="badge bg-info">Grouped by: {{ available_columns[group_by].label }}</span>
+                                <span class="badge bg-secondary">{{ selected_columns|length }} columns selected</span>
+                            </div>
+                            <div class="d-flex align-items-center gap-3">
+                                <small class="text-muted">
+                                    <i class="bi bi-info-circle"></i> 
+                                    Drag column edges to resize • Double-click to auto-fit • Hover cells to see full text
+                                </small>
+                                <button type="submit" class="btn btn-primary btn-sm">
+                                    <i class="bi bi-arrow-repeat"></i> Refresh View
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Network Data Table -->
+    <div class="row">
+        <div class="col-12">
+            {% if grouped_data %}
+            <div class="card">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0 resizable-table" id="networkTable">
+                            <thead class="table-light sticky-top">
+                                <tr>
+                                    <th style="width: 150px;">
+                                        {{ available_columns[group_by].label }}
+                                        <div class="resize-handle"></div>
+                                    </th>
+                                    {% for col in selected_columns %}
+                                    {% if col != group_by %}
+                                    <th style="width: 120px;">
+                                        {{ available_columns[col].label }}
+                                        <div class="resize-handle"></div>
+                                    </th>
+                                    {% endif %}
+                                    {% endfor %}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for group in grouped_data %}
+                                    {% if group.projects %}
+                                        {% for item in group.projects %}
+                                        <tr>
+                                            {% if loop.first %}
+                                            <td rowspan="{{ group.projects|length }}" class="align-top bg-light" style="border-right: 2px solid #dee2e6;">
+                                                <strong>{{ group.group_name }}</strong>
+                                                <br><small class="text-muted">{{ group.projects|length }} project(s)</small>
+                                            </td>
+                                            {% endif %}
+                                            {% for col in selected_columns %}
+                                            {% if col != group_by %}
+                                            <td style="padding-left: 1.5rem;">
+                                                {% if col == 'project' %}
+                                                    <a href="{{ url_for('projects.view_project', project_id=item.project_id) }}">
+                                                        {{ item.project_name }}
+                                                    </a>
+                                                {% elif col == 'owner' and item.owners %}
+                                                    {{ item.owners|join(', ') }}
+                                                {% elif col == 'vendor' and item.vendors %}
+                                                    {{ item.vendors|join(', ') }}
+                                                {% elif col == 'technology' and item.technologies %}
+                                                    {{ item.technologies|join(', ') }}
+                                                {% elif col == 'operator' and item.operators %}
+                                                    {{ item.operators|join(', ') }}
+                                                {% elif col == 'offtaker' and item.offtakers %}
+                                                    {{ item.offtakers|join(', ') }}
+                                                {% else %}
+                                                    <span class="text-muted">—</span>
+                                                {% endif %}
+                                            </td>
+                                            {% endif %}
+                                            {% endfor %}
+                                        </tr>
+                                        {% endfor %}
+                                    {% else %}
+                                        <!-- Show groups with no projects -->
+                                        <tr>
+                                            <td class="align-top bg-light" style="border-right: 2px solid #dee2e6;">
+                                                <strong>{{ group.group_name }}</strong>
+                                                <br><small class="text-muted">0 project(s)</small>
+                                            </td>
+                                            {% for col in selected_columns %}
+                                            {% if col != group_by %}
+                                            <td style="padding-left: 1.5rem;">
+                                                <span class="text-muted">—</span>
+                                            </td>
+                                            {% endif %}
+                                            {% endfor %}
+                                        </tr>
+                                    {% endif %}
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle"></i> No data to display. Try adjusting your filters or add some projects.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+function updateColumns() {
+    // Get all checked checkboxes
+    const checkboxes = document.querySelectorAll('.column-checkbox:checked');
+    const selectedColumns = Array.from(checkboxes).map(cb => cb.value);
+
+    // Update hidden input
+    document.getElementById('columns_input').value = selectedColumns.join(',');
+
+    // Auto-submit form
+    document.getElementById('networkForm').submit();
+}
+
+// Resizable columns functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const table = document.getElementById('networkTable');
+    if (!table) return;
+
+    let isResizing = false;
+    let currentColumn = null;
+    let startX = 0;
+    let startWidth = 0;
+    let tableStartWidth = 0;
+
+    // Initialize table with proper widths
+    initializeTable();
+
+    // Add event listeners to all resize handles
+    const resizeHandles = table.querySelectorAll('.resize-handle');
+    resizeHandles.forEach(handle => {
+        handle.addEventListener('mousedown', initResize);
+    });
+
+    function initializeTable() {
+        // Set initial table width to prevent auto-sizing conflicts
+        const headers = table.querySelectorAll('th');
+        let totalWidth = 0;
+        
+        headers.forEach((header, index) => {
+            if (!header.style.width) {
+                // Set default widths if not already set
+                if (index === 0) {
+                    header.style.width = '150px'; // Reduced first column default width
+                } else {
+                    header.style.width = '120px'; // Reduced other columns default width
+                }
+            }
+            totalWidth += parseInt(header.style.width, 10);
+        });
+        
+        // Set table width to exactly match column widths (no minimum enforcement)
+        table.style.width = totalWidth + 'px';
+    }
+
+    function initResize(e) {
+        isResizing = true;
+        currentColumn = e.target.parentElement;
+        startX = e.clientX;
+        startWidth = parseInt(window.getComputedStyle(currentColumn).width, 10);
+        tableStartWidth = parseInt(window.getComputedStyle(table).width, 10);
+        
+        currentColumn.classList.add('resizing');
+        document.body.style.cursor = 'col-resize';
+        document.body.style.userSelect = 'none';
+
+        // Prevent text selection during resize
+        document.addEventListener('selectstart', preventSelection);
+        document.addEventListener('mousemove', doResize);
+        document.addEventListener('mouseup', stopResize);
+        
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
+    function doResize(e) {
+        if (!isResizing) return;
+        
+        const deltaX = e.clientX - startX;
+        const newWidth = startWidth + deltaX;
+        const minWidth = 30; // Even smaller minimum - allows for ultra-narrow columns
+        const maxWidth = 600; // Increased maximum for wider columns if needed
+        
+        // Debug output to console
+        console.log(`Resizing: startWidth=${startWidth}, deltaX=${deltaX}, newWidth=${newWidth}, minWidth=${minWidth}`);
+        
+        if (newWidth >= minWidth && newWidth <= maxWidth) {
+            currentColumn.style.width = newWidth + 'px';
+            console.log(`Set column width to: ${newWidth}px`);
+            
+            // Adjust table width to match the sum of all column widths
+            const headers = table.querySelectorAll('th');
+            let totalWidth = 0;
+            headers.forEach(header => {
+                totalWidth += parseInt(header.style.width, 10);
+            });
+            table.style.width = totalWidth + 'px';
+        } else {
+            console.log(`Width ${newWidth} is outside bounds [${minWidth}, ${maxWidth}]`);
+        }
+    }
+
+    function stopResize() {
+        if (!isResizing) return;
+        
+        isResizing = false;
+        currentColumn.classList.remove('resizing');
+        document.body.style.cursor = '';
+        document.body.style.userSelect = '';
+        
+        document.removeEventListener('selectstart', preventSelection);
+        document.removeEventListener('mousemove', doResize);
+        document.removeEventListener('mouseup', stopResize);
+        
+        currentColumn = null;
+        
+        // Save column widths to localStorage
+        saveColumnWidths();
+    }
+
+    function preventSelection(e) {
+        e.preventDefault();
+    }
+
+    // Save column widths to localStorage
+    function saveColumnWidths() {
+        const headers = table.querySelectorAll('th');
+        const widths = {};
+        
+        headers.forEach((header, index) => {
+            const headerText = header.textContent.trim().replace(/\s+/g, ' ');
+            widths[headerText] = header.style.width;
+        });
+        
+        localStorage.setItem('networkTableColumnWidths', JSON.stringify(widths));
+    }
+
+    // Load column widths from localStorage
+    function loadColumnWidths() {
+        const savedWidths = localStorage.getItem('networkTableColumnWidths');
+        if (!savedWidths) return;
+        
+        try {
+            const widths = JSON.parse(savedWidths);
+            const headers = table.querySelectorAll('th');
+            
+            headers.forEach(header => {
+                const headerText = header.textContent.trim().replace(/\s+/g, ' ');
+                if (widths[headerText]) {
+                    header.style.width = widths[headerText];
+                }
+            });
+            
+            // Recalculate table width after loading saved widths
+            initializeTable();
+        } catch (e) {
+            console.log('Could not load saved column widths');
+        }
+    }
+
+    // Load saved widths on page load
+    loadColumnWidths();
+
+    // Add double-click to auto-resize column
+    resizeHandles.forEach(handle => {
+        handle.addEventListener('dblclick', function(e) {
+            const column = e.target.parentElement;
+            autoResizeColumn(column);
+            e.preventDefault();
+            e.stopPropagation();
+        });
+    });
+
+    function autoResizeColumn(column) {
+        // Get the column index
+        const headers = Array.from(table.querySelectorAll('th'));
+        const columnIndex = headers.indexOf(column);
+        
+        // Find the longest content in this column
+        const cells = table.querySelectorAll(`tr td:nth-child(${columnIndex + 1})`);
+        let maxWidth = 100; // Minimum width
+        
+        // Create a temporary element to measure text width
+        const temp = document.createElement('div');
+        temp.style.visibility = 'hidden';
+        temp.style.position = 'absolute';
+        temp.style.whiteSpace = 'nowrap';
+        temp.style.font = window.getComputedStyle(column).font;
+        temp.style.padding = '8px 12px';
+        document.body.appendChild(temp);
+        
+        // Check header width
+        temp.textContent = column.textContent.trim();
+        maxWidth = Math.max(maxWidth, temp.offsetWidth + 20);
+        
+        // Check cell widths
+        cells.forEach(cell => {
+            temp.textContent = cell.textContent.trim();
+            maxWidth = Math.max(maxWidth, temp.offsetWidth + 20);
+        });
+        
+        document.body.removeChild(temp);
+        
+        // Set the column width
+        const newWidth = Math.min(Math.max(maxWidth, 30), 600); // Reduced minimum from 40 to 30
+        column.style.width = newWidth + 'px';
+        
+        // Update table width to match sum of all columns
+        initializeTable();
+        saveColumnWidths();
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,231 @@
+/* NukeWorks Custom Styles */
+
+body {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+main {
+  flex: 1;
+}
+
+.footer {
+  margin-top: auto;
+}
+
+/* Navigation Bar */
+.navbar-brand {
+  font-weight: bold;
+  font-size: 1.5rem;
+}
+
+/* Cards */
+.card {
+  margin-bottom: 1rem;
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.card-header {
+  background-color: #f8f9fa;
+  font-weight: bold;
+}
+
+/* Badges */
+.badge {
+  margin-left: 0.25rem;
+}
+
+/* Tables */
+.table-hover tbody tr:hover {
+  background-color: #f8f9fa;
+}
+
+/* Resizable Table Columns */
+.table-responsive {
+  overflow-x: auto;
+}
+
+.resizable-table {
+  table-layout: fixed !important;
+  width: auto !important;
+  /* Removed min-width: 100% to allow table to be narrower than container */
+}
+
+.resizable-table th {
+  position: relative !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  min-width: 30px !important; /* Even smaller minimum for headers */
+  padding: 8px 4px !important; /* Reduced padding to allow narrower columns */
+}
+
+.resizable-table th .resize-handle {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 8px;
+  height: 100%;
+  cursor: col-resize;
+  background: transparent;
+  border-right: 2px solid transparent;
+  z-index: 1;
+}
+
+.resizable-table th .resize-handle:hover {
+  border-right-color: #007bff;
+  background: rgba(0, 123, 255, 0.1);
+}
+
+.resizable-table th.resizing .resize-handle {
+  border-right-color: #007bff;
+  background: rgba(0, 123, 255, 0.2);
+}
+
+.resizable-table td {
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  padding: 8px 4px !important; /* Reduced padding to match headers */
+  min-width: 30px !important; /* Even smaller minimum for cells */
+  max-width: 100% !important; /* Ensure content doesn't break out */
+}
+
+/* Show full text on hover with improved tooltip */
+.resizable-table td:hover {
+  position: relative;
+  overflow: visible !important;
+  white-space: normal !important;
+  word-wrap: break-word;
+  z-index: 100;
+  background: #fff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border-radius: 6px;
+  padding: 8px 12px !important;
+  border: 1px solid #ddd;
+  max-width: 300px !important; /* Limit tooltip width */
+}
+
+/* Show ellipsis in header text too */
+.resizable-table th {
+  text-overflow: ellipsis !important;
+  overflow: hidden !important;
+  white-space: nowrap !important;
+}
+
+/* Ensure links in cells also get ellipsis treatment */
+.resizable-table td a {
+  display: block !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  max-width: 100% !important;
+}
+
+/* Override Bootstrap table cell padding for our resizable table */
+.resizable-table th,
+.resizable-table td {
+  padding-left: 4px !important;
+  padding-right: 4px !important;
+}
+
+/* Buttons */
+.btn-sm {
+  font-size: 0.875rem;
+}
+
+/* Forms */
+.form-label {
+  font-weight: 500;
+}
+
+/* Alerts */
+.alert {
+  border-radius: 0.25rem;
+}
+
+/* Utility Classes */
+.text-confidential {
+  color: #dc3545;
+  font-style: italic;
+}
+
+.badge-confidential {
+  background-color: #dc3545;
+}
+
+.badge-ned-team {
+  background-color: #17a2b8;
+}
+
+/* Loading Spinner */
+.spinner-border-sm {
+  width: 1rem;
+  height: 1rem;
+  border-width: 0.15em;
+}
+
+/* Delete confirmation popover */
+.confirm-delete-parent {
+  position: relative;
+  display: inline-block;
+}
+
+.confirm-delete-popup {
+  position: absolute;
+  top: 50%;
+  right: calc(100% + 0.75rem);
+  transform: translateY(-50%);
+  background-color: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  border-radius: 0.375rem;
+  padding: 0.5rem 0.75rem;
+  min-width: 9rem;
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+  display: none;
+  z-index: 1055;
+}
+
+.confirm-delete-popup.show {
+  display: block;
+}
+
+.confirm-delete-title {
+  font-weight: 600;
+  font-size: 0.95rem;
+  margin-bottom: 0.25rem;
+}
+
+.confirm-delete-message {
+  font-size: 0.8rem;
+  color: #6c757d;
+  margin-bottom: 0.5rem;
+}
+
+.confirm-delete-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.confirm-delete-actions .btn {
+  padding: 0.125rem 0.5rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .navbar-brand {
+    font-size: 1.25rem;
+  }
+
+  .card-body {
+    padding: 1rem;
+  }
+
+  .confirm-delete-popup {
+    right: auto;
+    left: 50%;
+    transform: translate(-50%, -110%);
+  }
+}

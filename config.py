@@ -35,39 +35,54 @@ def _resource_path(relative_path: str) -> Path:
     """
     Resolve a resource path that may live inside a PyInstaller bundle.
 
-    Handles the onedir layout where files may be extracted into a directory
-    of the same name (e.g., "<name>/<name>").
+    Tries multiple candidate roots to cover both onedir and onefile layouts,
+    including the executable directory and the _MEIPASS temp dir, with and
+    without the "_internal" subdirectory used by newer PyInstaller versions.
     """
     relative = Path(relative_path)
-    runtime_root = _runtime_root()
-    runtime_candidate = runtime_root / relative
 
-    if runtime_candidate.is_file():
-        return runtime_candidate
-    if runtime_candidate.is_dir():
-        nested = runtime_candidate / relative.name
-        if nested.exists():
-            return nested
+    candidates: list[Path] = []
 
-    # Also check PyInstaller's _internal directory (newer layouts)
-    internal_candidate = runtime_root / "_internal" / relative
-    if internal_candidate.exists():
-        return internal_candidate
+    if getattr(sys, 'frozen', False):
+        exec_dir = Path(sys.executable).resolve().parent
+        meipass = Path(getattr(sys, '_MEIPASS', '')) if getattr(sys, '_MEIPASS', None) else None
 
-    # Also check one level up for onedir where app/ is beside exe
-    parent_candidate = runtime_root.parent / relative
-    if parent_candidate.exists():
-        return parent_candidate
+        # Prefer executable dir first (covers onedir). Try with and without _internal
+        candidates += [
+            exec_dir / relative,
+            exec_dir / '_internal' / relative,
+        ]
 
-    fallback = basedir / relative
-    if fallback.is_file():
-        return fallback
-    if fallback.is_dir():
-        nested = fallback / relative.name
-        if nested.exists():
-            return nested
+        # Then _MEIPASS if present (covers onefile extraction)
+        if meipass:
+            candidates += [
+                meipass / relative,
+                meipass / '_internal' / relative,
+            ]
 
-    return runtime_candidate
+        # Also try parent of exec dir (some layouts collect under <exe>/NukeWorks/_internal)
+        candidates += [
+            exec_dir.parent / relative,
+            exec_dir.parent / '_internal' / relative,
+        ]
+
+    # Development/normal import fallback
+    candidates += [
+        basedir / relative,
+    ]
+
+    for cand in candidates:
+        try:
+            if cand.is_file():
+                return cand
+            if cand.is_dir():
+                nested = cand / relative.name
+                return cand if cand.exists() else nested if nested.exists() else cand
+        except Exception:
+            continue
+
+    # Last resort: return the first computed path even if missing
+    return candidates[0] if candidates else (basedir / relative)
 
 
 def _storage_root() -> Path:

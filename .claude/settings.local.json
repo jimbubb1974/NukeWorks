@@ -1,7 +1,15 @@
 {
   "permissions": {
     "allow": [
-      "Bash(git commit -m \"$(cat <<''EOF''\nfeat: integrate roundtable auto-timestamping and smart form pre-population\n\nMerge roundtable improvements from commit cc0bf83 into current codebase.\n\nBackend Changes:\n- RoundtableHistoryForm: Removed manual meeting_date field\n- CRM routes: Already supports automatic created_timestamp on entry creation\n- Form pre-population: Auto-loads most recent entry data for editing efficiency\n\nFrontend Changes:\n- Roundtable form now shows edit pencil buttons when previous entries exist\n- Fields display previous entry values (read-only) with toggle to edit\n- JavaScript: Auto-resize textareas, readonly field management, form submission handling\n- Sidebar improvements: Company Personnel and Company Information sections are collapsible\n\nBenefits:\n- No more date picking - system auto-timestamps when entries are saved\n- Less data re-entry - previous entry values pre-fill form\n- Better UX - single-click field editing with visual feedback\n- Preserved all existing functionality from current branch\n\nFiles Modified:\n- app/forms/roundtable.py: Removed meeting_date from RoundtableHistoryForm\n- app/routes/crm.py: Added pre-population logic (already existed, verified)\n- app/templates/crm/dashboard.html: Simplified layout, moved filters to bottom\n- app/templates/crm/roundtable_form.html: Added edit toggle UI and JavaScript\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")"
+      "Bash(build_nukeworks.bat)",
+      "Bash(tee:*)",
+      "Bash(cmd /c build_nukeworks.bat)",
+      "Bash(python installer/build_executable.py:*)",
+      "Bash(timeout 15:*)",
+      "Bash(timeout:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(python:*)"
     ],
     "deny": [],
     "ask": []

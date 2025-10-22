@@ -1,0 +1,48 @@
+# NukeWorks - Python Dependencies
+# Core Web Framework
+Flask==3.0.0
+Flask-Login==0.6.3
+Flask-WTF==1.2.1
+Werkzeug==3.0.1
+
+# Database
+SQLAlchemy==2.0.43
+alembic==1.13.0
+
+# Security
+bcrypt==4.1.2
+python-dotenv==1.0.0
+
+# Encryption
+# Note: SQLCipher requires C compilation on Windows which can be problematic
+# Alternative approach: Use Python-based SQLite encryption with cryptography
+cryptography==41.0.7
+# pysqlcipher3==1.2.0  # Commented out - requires C compiler on Windows
+
+# Forms & Validation
+WTForms==3.1.1
+email-validator==2.1.0
+
+# PDF Generation
+reportlab==4.0.7
+Pillow>=11.2.1
+
+# Excel/CSV
+openpyxl==3.1.2
+xlsxwriter==3.1.9
+
+# Date/Time Utilities
+python-dateutil==2.8.2
+
+# Development & Testing
+pytest==7.4.3
+pytest-flask==1.3.0
+pytest-cov==4.1.0
+black==23.12.1
+flake8==7.0.0
+
+# Optional: If using WeasyPrint instead of ReportLab
+# weasyprint==60.1
+
+# Packaging
+pyinstaller==6.16.0
