@@ -331,8 +331,13 @@ def init_db(app):
         template_file = Path(template_path)
 
         if not target_path.exists() and template_file.exists():
-            target_path.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(template_file, target_path)
+            try:
+                target_path.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(template_file, target_path)
+            except (PermissionError, OSError):
+                # If we can't copy the template (e.g., due to OneDrive or read-only restrictions),
+                # continue without it. The database will be created with schema-only.
+                pass
 
         app.config['DATABASE_PATH'] = str(target_path)
         db_path = app.config['DATABASE_PATH']
