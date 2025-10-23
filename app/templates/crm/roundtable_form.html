@@ -157,8 +157,7 @@ company.company_name }} - NukeWorks{% endblock %} {% block content %}
               class="{% if not loop.last %}border-bottom pb-2 mb-2{% endif %}"
             >
               <div>
-                {% set last_name = person.full_name.split()[-1] if
-                person.full_name else 'Unknown' %} {{ last_name }} {% if
+                {{ person.full_name or 'Unknown' }} {% if
                 personnel_mpr_map.get(person.personnel_id) %} {% for
                 mpr_connection in personnel_mpr_map[person.personnel_id] %} {%
                 if loop.first %}

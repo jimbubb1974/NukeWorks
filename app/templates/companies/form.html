@@ -32,22 +32,14 @@
             {% endif %}
           </div>
 
-          <div class="row g-3">
-            <div class="col-md-6">
-              {{ form.company_type.label(class='form-label') }} {{
-              form.company_type(class='form-control') }} {% if
-              form.company_type.errors %}
-              <div class="text-danger small">
-                {{ form.company_type.errors[0] }}
-              </div>
-              {% endif %}
+          <div class="mb-3">
+            {{ form.company_type.label(class='form-label') }} {{
+            form.company_type(class='form-control') }} {% if
+            form.company_type.errors %}
+            <div class="text-danger small">
+              {{ form.company_type.errors[0] }}
             </div>
-            <div class="col-md-6">
-              {{ form.sector.label(class='form-label') }} {{
-              form.sector(class='form-control') }} {% if form.sector.errors %}
-              <div class="text-danger small">{{ form.sector.errors[0] }}</div>
-              {% endif %}
-            </div>
+            {% endif %}
           </div>
 
           <div class="mb-3">
@@ -57,25 +49,14 @@
             {% endif %}
           </div>
 
-          <div class="row g-3">
-            <div class="col-md-6">
-              {{ form.headquarters_country.label(class='form-label') }} {{
-              form.headquarters_country(class='form-control') }} {% if
-              form.headquarters_country.errors %}
-              <div class="text-danger small">
-                {{ form.headquarters_country.errors[0] }}
-              </div>
-              {% endif %}
+          <div class="mb-3">
+            {{ form.headquarters_country.label(class='form-label') }} {{
+            form.headquarters_country(class='form-control') }} {% if
+            form.headquarters_country.errors %}
+            <div class="text-danger small">
+              {{ form.headquarters_country.errors[0] }}
             </div>
-            <div class="col-md-6">
-              {{ form.headquarters_region.label(class='form-label') }} {{
-              form.headquarters_region(class='form-control') }} {% if
-              form.headquarters_region.errors %}
-              <div class="text-danger small">
-                {{ form.headquarters_region.errors[0] }}
-              </div>
-              {% endif %}
-            </div>
+            {% endif %}
           </div>
 
           <div class="row g-3 mt-1">

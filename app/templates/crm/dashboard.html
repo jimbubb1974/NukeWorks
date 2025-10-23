@@ -56,7 +56,7 @@
                                     </td>
                                     <td>
                                         {% if profile and profile.client_priority %}
-                                            <span class="badge bg-{% if profile.client_priority in ['Strategic', 'High'] %}danger{% elif profile.client_priority == 'Medium' %}warning{% else %}secondary{% endif %}">
+                                            <span class="badge bg-{% if profile.client_priority == 'Strategic' %}dark{% elif profile.client_priority == 'High' %}danger{% elif profile.client_priority == 'Medium' %}warning{% else %}secondary{% endif %}" style="{% if profile.client_priority == 'Strategic' %}background-color: #8B0000 !important;{% endif %}">
                                                 {{ profile.client_priority }}
                                             </span>
                                         {% else %}

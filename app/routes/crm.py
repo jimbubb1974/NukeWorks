@@ -47,13 +47,11 @@ def dashboard():
     )
 
     # Apply filters using ClientProfile (left join to include companies without profiles)
-    if priority_filter or status_filter or sort_by == 'priority':
-        # Join ClientProfile if needed for filtering or priority sorting
+    if status_filter:
+        # Join ClientProfile for status filtering (status is not encrypted)
         query = query.outerjoin(ClientProfile)
-        if priority_filter:
-            query = query.filter(ClientProfile.client_priority == priority_filter)
-        if status_filter:
-            query = query.filter(ClientProfile.client_status == status_filter)
+        query = query.filter(ClientProfile.client_status == status_filter)
+    # NOTE: priority_filter is applied in Python after fetching (since client_priority is encrypted)
 
     if poc_filter:
         # Filter by MPR POC through PersonCompanyAffiliation
@@ -62,37 +60,55 @@ def dashboard():
             PersonCompanyAffiliation.personnel_id == int(poc_filter)
         )
 
-    # Apply sorting
-    if sort_by == 'company_name':
-        if sort_order == 'desc':
-            query = query.order_by(Company.company_name.desc())
-        else:
-            query = query.order_by(Company.company_name.asc())
-    elif sort_by == 'priority':
-        # Custom priority sort order: Strategic > High > Medium > Low > Opportunistic
-        # Map priorities to numeric values (lower number = higher priority)
-        priority_order = case(
-            (ClientProfile.client_priority == 'Strategic', 1),
-            (ClientProfile.client_priority == 'High', 2),
-            (ClientProfile.client_priority == 'Medium', 3),
-            (ClientProfile.client_priority == 'Low', 4),
-            (ClientProfile.client_priority == 'Opportunistic', 5),
-            else_=6  # Companies without ClientProfile appear last
-        )
-        # Ascending = highest priority first (Strategic=1 first)
-        # Descending = lowest priority first (Opportunistic=5 first)
-        if sort_order == 'desc':
-            query = query.order_by(priority_order.desc(), Company.company_name.asc())
-        else:
-            query = query.order_by(priority_order.asc(), Company.company_name.asc())
-        # Use distinct to avoid duplicate rows from outer join
-        query = query.distinct(Company.company_id)
-    else:
-        # Default sort
-        query = query.order_by(Company.company_name.asc())
+    # Always fetch with default company_name ordering from database
+    # We'll apply priority sorting in Python if needed (since client_priority is encrypted)
+    query = query.order_by(Company.company_name.asc())
 
     # Get all MPR companies (with optional profiles)
     mpr_companies = query.all()
+
+    # Apply Python-based sorting for priority or apply priority filter
+    if sort_by == 'priority' or priority_filter:
+        # Define priority order mapping
+        priority_order = {
+            'Strategic': 1,
+            'High': 2,
+            'Medium': 3,
+            'Low': 4,
+            'Opportunistic': 5,
+        }
+
+        if sort_by == 'priority':
+            # Sort by priority (encrypted field - must be done in Python)
+            def priority_sort_key(company):
+                profile = company.client_profile
+                if profile and profile.client_priority:
+                    return (priority_order.get(profile.client_priority, 6), company.company_name)
+                return (6, company.company_name)  # No profile = appears last
+
+            mpr_companies.sort(key=priority_sort_key, reverse=(sort_order == 'desc'))
+
+        # Apply priority filter (in Python since it's encrypted)
+        if priority_filter:
+            mpr_companies = [c for c in mpr_companies
+                           if c.client_profile and c.client_profile.client_priority == priority_filter]
+
+    elif sort_by == 'company_name':
+        # Sort by company name (already done in database query)
+        if sort_order == 'desc':
+            mpr_companies.sort(key=lambda c: c.company_name, reverse=True)
+
+    # DEBUG: Log sorting information
+    print(f"\n[CRM Dashboard Debug]")
+    print(f"  sort_by={sort_by}, sort_order={sort_order}, priority_filter={priority_filter}")
+    print(f"  Total companies returned: {len(mpr_companies)}")
+    if mpr_companies:
+        print(f"  First 3 companies:")
+        for i, company in enumerate(mpr_companies[:3]):
+            profile = company.client_profile
+            priority = profile.client_priority if profile else "No profile"
+            print(f"    {i+1}. {company.company_name}: {priority}")
+    print()
 
     # Get detailed data for each company
     companies_with_details = []

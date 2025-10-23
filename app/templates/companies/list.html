@@ -145,10 +145,9 @@
                     <thead class="table-light">
                         <tr>
                             <th>Company</th>
-                            <th>Type</th>
                             <th>Roles</th>
-                            <th>MPR Client</th>
-                            <th class="text-end">Actions</th>
+                            <th>Client/Target</th>
+                            <th class="text-end" style="min-width: 130px;">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -161,7 +160,6 @@
                                 <div class="small text-muted">{{ company.notes[:120] }}{% if company.notes|length > 120 %}…{% endif %}</div>
                                 {% endif %}
                             </td>
-                            <td>{{ company.company_type or '—' }}</td>
                             <td>
                                 {% set roles = company.role_assignments %}
                                 {% if roles %}

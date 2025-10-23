@@ -52,10 +52,8 @@ def create_company():
             company = Company(
                 company_name=form.company_name.data,
                 company_type=form.company_type.data or None,
-                sector=form.sector.data or None,
                 website=form.website.data or None,
                 headquarters_country=form.headquarters_country.data or None,
-                headquarters_region=form.headquarters_region.data or None,
                 is_mpr_client=bool(form.is_mpr_client.data),
                 is_internal=bool(form.is_internal.data),
                 notes=form.notes.data or None,
@@ -268,10 +266,8 @@ def edit_company(company_id):
             # Update basic company fields
             company.company_name = form.company_name.data
             company.company_type = form.company_type.data or None
-            company.sector = form.sector.data or None
             company.website = form.website.data or None
             company.headquarters_country = form.headquarters_country.data or None
-            company.headquarters_region = form.headquarters_region.data or None
             company.is_mpr_client = bool(form.is_mpr_client.data)
             company.is_internal = bool(form.is_internal.data)
             company.notes = form.notes.data or None
