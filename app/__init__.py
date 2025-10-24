@@ -318,34 +318,6 @@ def init_db(app):
 
     # Create default engine and session (for initial setup)
     db_path = app.config['DATABASE_PATH']
-    template_path = app.config.get('DEFAULT_DB_TEMPLATE')
-
-    if (
-        template_path
-        and isinstance(template_path, str)
-        and template_path
-        and db_path
-        and db_path != ':memory:'
-    ):
-        target_path = Path(db_path).expanduser()
-        template_file = Path(template_path)
-
-        if not target_path.exists() and template_file.exists():
-            try:
-                target_path.parent.mkdir(parents=True, exist_ok=True)
-                # Try to copy the template, but if it fails, continue without it
-                try:
-                    shutil.copy2(template_file, target_path)
-                except (PermissionError, OSError, FileNotFoundError):
-                    # If we can't copy the template (permissions, file not found, etc.),
-                    # continue without it. The database will be created with schema-only.
-                    pass
-            except (PermissionError, OSError):
-                # If even mkdir fails, just continue - the database will be created in-memory or elsewhere
-                pass
-
-        app.config['DATABASE_PATH'] = str(target_path)
-        db_path = app.config['DATABASE_PATH']
 
     engine, default_session = get_or_create_engine_session(db_path, app)
 
@@ -503,30 +475,6 @@ def register_commands(app):
         click.echo('Database initialized successfully!')
 
     @app.cli.command()
-    @click.option('--username', prompt=True)
-    @click.option('--email', prompt=True)
-    @click.option('--password', prompt=True, hide_input=True, confirmation_prompt=True)
-    def create_admin(username, email, password):
-        """Create an admin user"""
-        from app.models import User
-
-        user = User(
-            username=username,
-            email=email,
-            full_name='Administrator',
-            is_admin=True,
-            has_confidential_access=True,
-            is_ned_team=True,
-            is_active=True
-        )
-        user.set_password(password)
-
-        db_session.add(user)
-        db_session.commit()
-
-        click.echo(f'Admin user {username} created successfully!')
-
-    @app.cli.command()
     def check_migrations():
         """Check database migration status"""
         from app.utils.migrations import get_current_schema_version, get_required_schema_version, get_schema_version_info
@@ -661,21 +609,14 @@ def register_db_selector_middleware(app):
 
             return
 
-        # Require authentication before selecting a database
-        # Allow auth routes (login/logout) so authentication works even when no DB selected
-        if request.endpoint and request.endpoint.startswith('auth.'):
+        # Architecture 1 (Database-First): Allow DB selection BEFORE login
+
+        # Skip for db_select routes (allow unauthenticated access)
+        if request.endpoint and request.endpoint.startswith('db_select.'):
             return
 
-        # If the user is not authenticated, redirect to login first
-        try:
-            from flask_login import current_user as _cu
-            if not _cu.is_authenticated:
-                return redirect(url_for('auth.login'))
-        except Exception:
-            pass
-
-        # Skip for db_select routes
-        if request.endpoint and request.endpoint.startswith('db_select.'):
+        # Allow auth routes (login/logout) after database is selected
+        if request.endpoint and request.endpoint.startswith('auth.'):
             return
 
         # Skip API endpoints so AJAX helpers can function without redirect
