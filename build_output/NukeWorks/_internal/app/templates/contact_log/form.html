@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }} - Contact Log{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2><i class="bi bi-journal-medical"></i> {{ title }}</h2>
+            <p class="text-muted mb-0">{{ entity_label }}</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{{ url_for('contact_log.list_contact_logs', entity_type=form.entity_type.data, entity_id=form.entity_id.data) }}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Back to Contact Log
+            </a>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <form method="post" novalidate>
+                {{ form.hidden_tag() }}
+
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label">Contact Date</label>
+                        {{ form.contact_date(class="form-control", max=today if today else None, required=True) }}
+                        {% for error in form.contact_date.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Contact Type</label>
+                        {{ form.contact_type(class="form-select", required=True) }}
+                        {% for error in form.contact_type.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Your Firm Representative</label>
+                        {{ form.contacted_by(class="form-select", required=True) }}
+                        {% for error in form.contacted_by.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+                    </div>
+                </div>
+
+                <div class="row g-3 mt-1">
+                    <div class="col-md-6">
+                        <label class="form-label">Client Contact (from contacts)</label>
+                        {{ form.contact_person_id(class="form-select") }}
+                        {% for error in form.contact_person_id.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Client Contact (name &amp; title)</label>
+                        {{ form.contact_person_freetext(class="form-control", placeholder="e.g., Jane Doe, VP Operations") }}
+                        {% for error in form.contact_person_freetext.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+                    </div>
+                </div>
+
+                <div class="mt-3">
+                    <label class="form-label">Summary</label>
+                    {{ form.summary(class="form-control", rows="6", placeholder="Describe the interaction, topics discussed, outcomes...") }}
+                    {% for error in form.summary.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+                </div>
+
+                <div class="form-check form-switch mt-4">
+                    {{ form.follow_up_needed(class="form-check-input", id="follow-up-toggle", onchange="toggleFollowupFields()", checked=form.follow_up_needed.data) }}
+                    <label class="form-check-label" for="follow-up-toggle">Follow-up required</label>
+                </div>
+
+                <div id="followup-fields" class="row g-3 mt-1" {% if not followup_checked %}style="display:none;"{% endif %}>
+                    <div class="col-md-4">
+                        <label class="form-label">Follow-up Date</label>
+                        {{ form.follow_up_date(class="form-control", min=today if today else None) }}
+                        {% for error in form.follow_up_date.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Assign To</label>
+                        {{ form.follow_up_assigned_to(class="form-select") }}
+                        {% for error in form.follow_up_assigned_to.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+                    </div>
+                </div>
+
+                <div class="form-check mt-4">
+                    {{ form.is_confidential(class="form-check-input", id="confidential-flag") }}
+                    <label class="form-check-label" for="confidential-flag">Mark this contact log as confidential</label>
+                </div>
+
+                <div class="mt-4 text-end">
+                    <a href="{{ url_for('contact_log.list_contact_logs', entity_type=form.entity_type.data, entity_id=form.entity_id.data) }}" class="btn btn-outline-secondary">Cancel</a>
+                    {{ form.submit(class="btn btn-primary") }}
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleFollowupFields() {
+    const checkbox = document.getElementById('follow-up-toggle');
+    const container = document.getElementById('followup-fields');
+    if (!checkbox || !container) { return; }
+    container.style.display = checkbox.checked ? 'flex' : 'none';
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    toggleFollowupFields();
+});
+</script>
+{% endblock %}

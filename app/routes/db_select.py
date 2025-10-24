@@ -85,15 +85,25 @@ def select_database_post():
     custom_name = request.form.get('custom_name', '').strip()
     apply_migration = request.form.get('apply_migration') == 'yes'
 
+    # DEBUG: Log database selection attempt
+    logger.info(f"[DEBUG DB_SELECT] Database selection POST request")
+    logger.info(f"[DEBUG DB_SELECT] Requested DB path: {db_path}")
+    logger.info(f"[DEBUG DB_SELECT] Custom name: {custom_name}")
+
     if not db_path:
+        logger.warning(f"[DEBUG DB_SELECT] No database path provided")
         flash('Please select or enter a database path', 'warning')
         return redirect(url_for('db_select.select_database'))
 
     # Normalize path
     db_path = os.path.abspath(db_path)
+    logger.info(f"[DEBUG DB_SELECT] Normalized path: {db_path}")
+    logger.info(f"[DEBUG DB_SELECT] Path exists: {os.path.exists(db_path)}")
 
     # Validate database file
+    logger.info(f"[DEBUG DB_SELECT] Validating database file...")
     validation = db_helpers.validate_database_file(db_path)
+    logger.info(f"[DEBUG DB_SELECT] Validation result: valid={validation.get('valid')}, error={validation.get('error')}")
 
     if not validation['valid']:
         flash(f"Invalid database: {validation['error']}", 'danger')
@@ -157,8 +167,10 @@ def select_database_post():
         db_helpers.set_db_display_name(db_path, custom_name)
 
     # Update session
+    logger.info(f"[DEBUG DB_SELECT] Setting session['selected_db_path'] = {db_path}")
     session['selected_db_path'] = db_path
     session.permanent = True
+    logger.info(f"[DEBUG DB_SELECT] Session updated. Confirmed session value: {session.get('selected_db_path')}")
 
     # Update cache
     db_selector_cache.add_recent_path(db_path)

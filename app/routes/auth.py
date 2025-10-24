@@ -16,6 +16,9 @@ logger = logging.getLogger(__name__)
 @bp.route('/login', methods=['GET', 'POST'])
 def login():
     """User login with security features"""
+    from flask import session as flask_session
+    import os
+
     if current_user.is_authenticated:
         # Already logged in - go to dashboard
         return redirect(url_for('dashboard.index'))
@@ -27,28 +30,58 @@ def login():
         password = form.password.data
         remember = form.remember_me.data
 
+        # DEBUG: Log session and database context
+        selected_db = flask_session.get('selected_db_path')
+        logger.info(f"[DEBUG LOGIN] Username: {username}")
+        logger.info(f"[DEBUG LOGIN] Session selected_db_path: {selected_db}")
+        if selected_db:
+            logger.info(f"[DEBUG LOGIN] DB exists: {os.path.exists(selected_db)}")
+            if os.path.exists(selected_db):
+                logger.info(f"[DEBUG LOGIN] DB size: {os.path.getsize(selected_db)} bytes")
+
         # Query user from currently selected database
+        logger.info(f"[DEBUG LOGIN] Querying User table for username='{username}'")
         user = db_session.query(User).filter_by(username=username).first()
+
+        if user is None:
+            logger.warning(f"[DEBUG LOGIN] User '{username}' not found in database")
+            # DEBUG: Check how many users exist in the database
+            try:
+                user_count = db_session.query(User).count()
+                logger.info(f"[DEBUG LOGIN] Total users in database: {user_count}")
+                all_users = db_session.query(User).all()
+                for u in all_users:
+                    logger.info(f"[DEBUG LOGIN] Available user: {u.username}")
+            except Exception as e:
+                logger.error(f"[DEBUG LOGIN] Error querying users: {e}")
+        else:
+            logger.info(f"[DEBUG LOGIN] User '{username}' found, checking password")
+            password_valid = user.check_password(password)
+            logger.info(f"[DEBUG LOGIN] Password valid: {password_valid}")
 
         # Check credentials
         if user is None or not user.check_password(password):
             logger.warning(f'Failed login attempt for username: {username} from IP: {request.remote_addr}')
+            logger.warning(f"[DEBUG LOGIN] Auth failed - user_exists={user is not None}, password_correct={user.check_password(password) if user else 'N/A'}")
             flash('Invalid username or password', 'danger')
             return redirect(url_for('auth.login'))
 
         # Check if account is active
         if not user.is_active:
             logger.warning(f'Login attempt for inactive account: {username}')
+            logger.warning(f"[DEBUG LOGIN] Account inactive for user: {username}")
             flash('Your account has been deactivated. Please contact an administrator.', 'danger')
             return redirect(url_for('auth.login'))
 
         # Update last login timestamp
+        logger.info(f"[DEBUG LOGIN] Updating last_login for user: {username}")
         user.update_last_login()
         db_session.commit()
 
         # Log user in
         login_user(user, remember=remember)
         logger.info(f'User {username} logged in successfully from IP: {request.remote_addr}')
+        logger.info(f"[DEBUG LOGIN] Login successful, redirecting to dashboard")
         flash(f'Welcome back, {user.full_name or user.username}!', 'success')
 
         # After successful login, go to dashboard

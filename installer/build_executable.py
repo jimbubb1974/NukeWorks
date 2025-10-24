@@ -118,12 +118,25 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
 
 
 def main(argv: list[str] | None = None) -> None:
-    args = parse_args(argv or sys.argv[1:])
-    build_executable(
-        clean=args.clean,
-        build_dir=Path(args.build_dir).resolve(),
-        dist_dir=Path(args.dist_dir).resolve(),
-    )
+    try:
+        args = parse_args(argv or sys.argv[1:])
+        print(f"[BUILD] Starting build with clean={args.clean}", flush=True)
+        print(f"[BUILD] Build dir: {args.build_dir}", flush=True)
+        print(f"[BUILD] Dist dir: {args.dist_dir}", flush=True)
+        sys.stdout.flush()
+        sys.stderr.flush()
+
+        build_executable(
+            clean=args.clean,
+            build_dir=Path(args.build_dir).resolve(),
+            dist_dir=Path(args.dist_dir).resolve(),
+        )
+        print("[BUILD] Build completed successfully!", flush=True)
+    except Exception as e:
+        print(f"[BUILD] FATAL ERROR: {e}", file=sys.stderr, flush=True)
+        import traceback
+        traceback.print_exc(file=sys.stderr)
+        sys.exit(1)
 
 
 if __name__ == "__main__":

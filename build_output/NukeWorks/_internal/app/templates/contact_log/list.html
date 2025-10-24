@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+
+{% block title %}Contact Log - NukeWorks{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2><i class="bi bi-journal-text"></i> Contact Log</h2>
+            {% if entity_type and entity_id %}
+            <p class="text-muted mb-0">Showing entries for {{ entity_type }} {{ entity_id }}</p>
+            {% endif %}
+        </div>
+        <div class="col-md-4 text-end">
+            {% if entity_id %}
+            <a href="{{ url_for('contact_log.add_contact_log', entity_type=entity_type or 'Owner', entity_id=entity_id) }}" class="btn btn-primary">
+                <i class="bi bi-plus-lg"></i> Add Contact Log
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <form method="get" class="row g-3 align-items-end mb-4">
+        <div class="col-md-3">
+            <label class="form-label">Entity Type</label>
+            <select name="entity_type" class="form-select">
+                <option value="" {% if not entity_type %}selected{% endif %}>All</option>
+                <option value="Owner" {% if entity_type == 'Owner' %}selected{% endif %}>Owner / Developer</option>
+                <option value="Vendor" {% if entity_type == 'Vendor' %}selected{% endif %}>Technology Vendor</option>
+                <option value="Project" {% if entity_type == 'Project' %}selected{% endif %}>Project</option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label">Entity ID</label>
+            <input type="number" name="entity_id" value="{{ entity_id or '' }}" class="form-control" placeholder="e.g., 1">
+        </div>
+        <div class="col-md-4">
+            <label class="form-label">Search Summary</label>
+            <input type="text" name="search" value="{{ search or '' }}" class="form-control" placeholder="Search summary or contact name">
+        </div>
+        <div class="col-md-2 text-end">
+            <button type="submit" class="btn btn-outline-primary w-100">Apply Filters</button>
+        </div>
+    </form>
+
+    <div class="card">
+        <div class="card-body">
+            {% if contact_logs %}
+            <div class="table-responsive">
+                <table class="table table-sm align-middle">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Entity</th>
+                            <th>Type</th>
+                            <th>By</th>
+                            <th>Summary</th>
+                            <th>Follow-up</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in contact_logs %}
+                        {% set log = item.log %}
+                        <tr>
+                            <td>{{ log.contact_date }}</td>
+                            <td>{{ item.entity_label }}</td>
+                            <td>{{ log.contact_type or '—' }}</td>
+                            <td>{{ log.contacted_by_person.full_name if log.contacted_by_person else '—' }}</td>
+                            <td>
+                                {{ log.summary|default('', true)|truncate(80) }}
+                                {% if log.is_confidential %}<span class="badge bg-warning ms-1">Confidential</span>{% endif %}
+                            </td>
+                            <td>
+                                {% if log.follow_up_needed %}
+                                    <span class="badge bg-info text-dark">{{ log.follow_up_date or 'Scheduled' }}</span>
+                                {% else %}
+                                    <span class="text-muted">—</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end">
+                                <a href="{{ url_for('contact_log.view_contact_log', contact_id=log.contact_id) }}" class="btn btn-sm btn-outline-secondary">View</a>
+                                <a href="{{ url_for('contact_log.edit_contact_log', contact_id=log.contact_id) }}" class="btn btn-sm btn-outline-primary">Edit</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-muted mb-0">No contact log entries found.</p>
+            {% endif %}
+
+            {% if hidden_count > 0 %}
+            <div class="alert alert-warning mt-3 mb-0" role="alert">
+                {{ hidden_count }} confidential entries are hidden from your view.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

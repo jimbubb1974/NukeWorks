@@ -630,25 +630,38 @@ def register_db_selector_middleware(app):
         # Check if database is selected in session (no default fallback)
         selected_db_path = session.get('selected_db_path')
 
+        logger.info(f"[DEBUG MIDDLEWARE] Checking for selected_db_path in session")
+        logger.info(f"[DEBUG MIDDLEWARE] selected_db_path from session: {selected_db_path}")
+
         if not selected_db_path:
             # No database selected - redirect to selector
+            logger.warning(f"[DEBUG MIDDLEWARE] No selected_db_path in session, redirecting to db_select.select_database")
             return redirect(url_for('db_select.select_database'))
 
         # Database is selected - set up per-request session
         abs_path = os.path.abspath(selected_db_path)
+        logger.info(f"[DEBUG MIDDLEWARE] Absolute path: {abs_path}")
+        logger.info(f"[DEBUG MIDDLEWARE] Path exists: {os.path.exists(abs_path)}")
 
         # Get or create engine/session for this database
         try:
+            logger.info(f"[DEBUG MIDDLEWARE] Getting or creating engine/session for: {abs_path}")
             engine, db_sess = get_or_create_engine_session(abs_path, app)
             g.db_session = db_sess
             g.selected_db_path = abs_path
+            logger.info(f"[DEBUG MIDDLEWARE] Successfully set g.db_session and g.selected_db_path")
 
             # Also set snapshot directory for this database
             from app.utils.db_helpers import get_snapshot_dir_for_db
             g.snapshot_dir = get_snapshot_dir_for_db(abs_path)
+            logger.info(f"[DEBUG MIDDLEWARE] Set snapshot_dir: {g.snapshot_dir}")
 
         except Exception as e:
-            logger.error(f"Failed to initialize database session: {e}")
+            logger.error(f"[DEBUG MIDDLEWARE] Failed to initialize database session: {e}")
+            logger.error(f"[DEBUG MIDDLEWARE] Exception type: {type(e).__name__}")
+            import traceback
+            logger.error(f"[DEBUG MIDDLEWARE] Traceback: {traceback.format_exc()}")
+
             # Clear invalid selection and redirect to selector
             session.pop('selected_db_path', None)
             from flask import flash

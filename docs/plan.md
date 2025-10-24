@@ -47,3 +47,4 @@ Notes
 - The UI label can remain "Owner/Developer" but the stored role_code must be 'developer'.
 - The app accepts legacy 'owner' only as a display alias (read-only). All writes should use 'developer'.
 
+

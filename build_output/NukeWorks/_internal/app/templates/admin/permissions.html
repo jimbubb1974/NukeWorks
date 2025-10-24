@@ -1,0 +1,244 @@
+{% extends "base.html" %}
+
+{% block title %}Permission Scrubbing Tool - NukeWorks{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0">Permission Scrubbing Tool</h1>
+            <p class="text-muted mb-0">Review and modify all confidentiality flags across the system.</p>
+        </div>
+        <div>
+            <a href="{{ url_for('admin.index') }}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Back to Admin</a>
+        </div>
+    </div>
+
+    <div class="alert alert-info" role="alert">
+        <strong>Summary:</strong>
+        <span class="ms-2">Confidential fields: {{ confidential_field_count }}</span>
+        <span class="ms-2">Confidential relationships: {{ relationship_confidential }}</span>
+    </div>
+
+    <form class="row g-2 mb-4" method="get">
+        <div class="col-md-3">
+            <label class="form-label">View</label>
+            <select name="view" class="form-select" onchange="this.form.submit()">
+                <option value="confidential" {% if view == 'confidential' %}selected{% endif %}>Confidential items only</option>
+                <option value="all" {% if view == 'all' %}selected{% endif %}>Show all items</option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label">Filter by Company</label>
+            <select name="filter_company" class="form-select" onchange="this.form.submit()">
+                <option value="">All Companies</option>
+                {% for company in companies %}
+                <option value="{{ company.company_id }}" {% if filter_company_id == company.company_id %}selected{% endif %}>
+                    {{ company.company_name }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label">Filter by Project</label>
+            <select name="filter_project" class="form-select" onchange="this.form.submit()">
+                <option value="">All Projects</option>
+                {% for project in projects %}
+                <option value="{{ project.project_id }}" {% if filter_project_id == project.project_id %}selected{% endif %}>
+                    {{ project.project_name }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-3 d-flex align-items-end">
+            <button type="submit" class="btn btn-outline-secondary w-100">
+                <i class="bi bi-arrow-clockwise"></i> Apply Filters
+            </button>
+        </div>
+    </form>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">Add / Update Field Confidentiality</h5>
+        </div>
+        <div class="card-body">
+            <form method="post" action="{{ url_for('admin.mark_field_permission') }}" class="row g-3">
+                {{ field_form.hidden_tag() }}
+                <input type="hidden" name="view" value="{{ view }}">
+                <div class="col-md-3">
+                    <label class="form-label">Table Name</label>
+                    <input type="text" class="form-control" name="table_name" placeholder="projects" required>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Record ID</label>
+                    <input type="number" class="form-control" name="record_id" placeholder="1" min="1" required>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Field Name</label>
+                    <input type="text" class="form-control" name="field_name" placeholder="capex" required>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Set To</label>
+                    <select name="value" class="form-select">
+                        <option value="1">Confidential</option>
+                        <option value="0">Public</option>
+                    </select>
+                </div>
+                <div class="col-md-1 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">Apply</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">Confidential Fields</h5>
+        </div>
+        <div class="card-body">
+            {% if field_entries %}
+            <div class="table-responsive">
+                <table class="table table-sm align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Entity</th>
+                            <th>Field</th>
+                            <th>Status</th>
+                            <th>Marked By</th>
+                            <th>Marked Date</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for entry in field_entries %}
+                        <tr>
+                            <td>{{ entry.entity_label }}</td>
+                            <td>{{ entry.field_name }}</td>
+                            <td>
+                                {% if entry.flag.is_confidential %}
+                                <span class="badge bg-warning text-dark">Confidential</span>
+                                {% else %}
+                                <span class="badge bg-secondary">Public</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ entry.flag.marked_by or '—' }}</td>
+                            <td>{{ entry.flag.marked_date.strftime('%Y-%m-%d %H:%M') if entry.flag.marked_date else '—' }}</td>
+                            <td class="text-end">
+                                <form method="post" action="{{ url_for('admin.set_field_confidential', flag_id=entry.flag.flag_id, view=view) }}" class="d-inline">
+                                    {{ field_toggle_form.hidden_tag() }}
+                                    <input type="hidden" name="value" value="1">
+                                    <button type="submit" class="btn btn-sm btn-outline-primary" {% if entry.flag.is_confidential %}disabled{% endif %}>Make Confidential</button>
+                                </form>
+                                <form method="post" action="{{ url_for('admin.set_field_confidential', flag_id=entry.flag.flag_id, view=view) }}" class="d-inline">
+                                    {{ field_toggle_form.hidden_tag() }}
+                                    <input type="hidden" name="value" value="0">
+                                    <button type="submit" class="btn btn-sm btn-outline-secondary" {% if not entry.flag.is_confidential %}disabled{% endif %}>Make Public</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-muted mb-0">No field-level confidentiality flags found for the current view.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">Relationship Confidentiality</h5>
+        </div>
+        <div class="card-body">
+            {% if relationship_entries %}
+            <div class="table-responsive">
+                <table class="table table-sm align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Relationship</th>
+                            <th>Status</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for rel in relationship_entries %}
+                        <tr>
+                            <td>{{ rel.label }}</td>
+                            <td>
+                                {% if rel.is_confidential %}
+                                <span class="badge bg-warning text-dark">Confidential</span>
+                                {% else %}
+                                <span class="badge bg-success text-white">Public</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end">
+                                <form method="post" action="{{ url_for('admin.set_relationship_confidential', rel_type=rel.type, relationship_id=rel.id, view=view) }}" class="d-inline">
+                                    {{ relationship_toggle_form.hidden_tag() }}
+                                    {% if rel.is_confidential %}
+                                    <input type="hidden" name="value" value="0">
+                                    <button type="submit" class="btn btn-sm btn-success" title="Click to make public">
+                                        <i class="bi bi-unlock"></i> Make Public
+                                    </button>
+                                    {% else %}
+                                    <input type="hidden" name="value" value="1">
+                                    <button type="submit" class="btn btn-sm btn-warning" title="Click to make confidential">
+                                        <i class="bi bi-lock"></i> Make Confidential
+                                    </button>
+                                    {% endif %}
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-muted mb-0">No relationship confidentiality flags for the current view.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">Confidential Contact Logs</h5>
+        </div>
+        <div class="card-body">
+            {% if contact_logs %}
+            <div class="table-responsive">
+                <table class="table table-sm align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Entity</th>
+                            <th>Date</th>
+                            <th>Type</th>
+                            <th>Summary</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for log in contact_logs %}
+                        <tr>
+                            <td>{{ log.entity_type }} #{{ log.entity_id }}</td>
+                            <td>{{ log.contact_date }}</td>
+                            <td>{{ log.contact_type or '—' }}</td>
+                            <td>{{ log.summary|truncate(80) }}</td>
+                            <td class="text-end">
+                                <form method="post" action="{{ url_for('admin.set_contact_confidential', contact_id=log.contact_id, view=view) }}" class="d-inline">
+                                    {{ contact_toggle_form.hidden_tag() }}
+                                    <input type="hidden" name="value" value="0">
+                                    <button type="submit" class="btn btn-sm btn-outline-secondary">Make Public</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-muted mb-0">No confidential contact log entries found.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
