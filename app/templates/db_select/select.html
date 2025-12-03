@@ -102,15 +102,16 @@ endblock %} {% block content %}
                 <input
                   type="text"
                   class="form-control"
-                  id="db_path"
-                  name="db_path"
+                  id="manual_db_path"
+                  name="manual_db_path"
                   placeholder="C:\path\to\database.sqlite or \\network\path\database.sqlite"
-                  value="{{ current_selection or '' }}"
+                  value=""
                 />
               </div>
               <small class="form-text text-muted">
                 Enter absolute path to a .sqlite database file. UNC paths are
                 supported.
+                <strong>This will override any radio selection above.</strong>
               </small>
             </div>
 
@@ -168,20 +169,31 @@ endblock %} {% block content %}
         const radio = this.querySelector('input[type="radio"]');
         if (radio) {
           radio.checked = true;
-          // Also update the manual text input
-          document.getElementById("db_path").value = radio.value;
+          // Clear manual text input when radio is selected
+          document.getElementById("manual_db_path").value = "";
         }
       }
     });
   });
 
-  // Update manual text input when radio is selected
+  // Clear manual text input when any radio button is selected
   document
     .querySelectorAll('input[type="radio"][name="db_path"]')
     .forEach((radio) => {
       radio.addEventListener("change", function () {
-        document.getElementById("db_path").value = this.value;
+        document.getElementById("manual_db_path").value = "";
       });
+    });
+
+  // Clear radio selections when typing in manual field
+  document
+    .getElementById("manual_db_path")
+    .addEventListener("input", function () {
+      document
+        .querySelectorAll('input[type="radio"][name="db_path"]')
+        .forEach((radio) => {
+          radio.checked = false;
+        });
     });
 </script>
 {% endblock %}

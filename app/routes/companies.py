@@ -300,6 +300,25 @@ def edit_company(company_id):
                     db_session.delete(company.client_profile)
 
             db_session.commit()
+            
+            # DEBUG: Log successful commit with timestamp
+            import time
+            print(f"\n{'='*60}")
+            print(f"[DB COMMIT] Company #{company_id} updated")
+            print(f"[DB COMMIT] User: {current_user.username}")
+            print(f"[DB COMMIT] Company: {company.company_name}")
+            print(f"[DB COMMIT] Timestamp: {time.time()}")
+            print(f"[DB COMMIT] Modified Date: {company.modified_date}")
+            
+            # Force a fresh query to verify the change is visible
+            from app import db_session as verify_session
+            verify_company = verify_session.query(Company).filter_by(company_id=company_id).first()
+            if verify_company:
+                print(f"[DB VERIFY] Re-queried company modified_date: {verify_company.modified_date}")
+                if verify_company.client_profile:
+                    print(f"[DB VERIFY] Client priority: {verify_company.client_profile.client_priority}")
+            print(f"{'='*60}\n")
+            
             flash('Company updated successfully.', 'success')
             return redirect(url_for('companies.view_company', company_id=company.company_id))
         except Exception as exc:

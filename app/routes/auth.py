@@ -32,16 +32,38 @@ def login():
 
         # DEBUG: Log session and database context
         selected_db = flask_session.get('selected_db_path')
+        logger.info(f"[DEBUG LOGIN] ========== LOGIN ATTEMPT ==========")
         logger.info(f"[DEBUG LOGIN] Username: {username}")
         logger.info(f"[DEBUG LOGIN] Session selected_db_path: {selected_db}")
+        logger.info(f"[DEBUG LOGIN] Flask session keys: {list(flask_session.keys())}")
+        
+        # Check database file
+        if not selected_db:
+            logger.error(f"[DEBUG LOGIN] CRITICAL: No database selected in session!")
+            flash('No database selected. Please select a database first.', 'danger')
+            return redirect(url_for('db_select.select_database'))
+        
         if selected_db:
             logger.info(f"[DEBUG LOGIN] DB exists: {os.path.exists(selected_db)}")
             if os.path.exists(selected_db):
                 logger.info(f"[DEBUG LOGIN] DB size: {os.path.getsize(selected_db)} bytes")
+            else:
+                logger.error(f"[DEBUG LOGIN] CRITICAL: Selected database file does not exist!")
+                flash('Selected database file not found. Please select a different database.', 'danger')
+                return redirect(url_for('db_select.select_database'))
 
         # Query user from currently selected database
         logger.info(f"[DEBUG LOGIN] Querying User table for username='{username}'")
-        user = db_session.query(User).filter_by(username=username).first()
+        
+        try:
+            user = db_session.query(User).filter_by(username=username).first()
+        except Exception as e:
+            logger.error(f"[DEBUG LOGIN] CRITICAL: Failed to query User table: {e}")
+            logger.error(f"[DEBUG LOGIN] Exception type: {type(e).__name__}")
+            import traceback
+            logger.error(f"[DEBUG LOGIN] Traceback: {traceback.format_exc()}")
+            flash('Database error. The selected database may be corrupted or missing required tables.', 'danger')
+            return redirect(url_for('db_select.select_database'))
 
         if user is None:
             logger.warning(f"[DEBUG LOGIN] User '{username}' not found in database")
@@ -49,9 +71,16 @@ def login():
             try:
                 user_count = db_session.query(User).count()
                 logger.info(f"[DEBUG LOGIN] Total users in database: {user_count}")
+                
+                if user_count == 0:
+                    logger.error(f"[DEBUG LOGIN] CRITICAL: Database has NO users! Database needs initialization.")
+                    flash('This database has no users. Please initialize the database or select a different one.', 'danger')
+                    return redirect(url_for('db_select.select_database'))
+                
+                logger.info(f"[DEBUG LOGIN] Listing all available usernames:")
                 all_users = db_session.query(User).all()
                 for u in all_users:
-                    logger.info(f"[DEBUG LOGIN] Available user: {u.username}")
+                    logger.info(f"[DEBUG LOGIN]   - Username: '{u.username}' | Active: {u.is_active} | Admin: {u.is_admin}")
             except Exception as e:
                 logger.error(f"[DEBUG LOGIN] Error querying users: {e}")
         else:

@@ -18,14 +18,23 @@ logger = logging.getLogger(__name__)
 
 
 @bp.route('/select-db', methods=['GET'])
-@login_required
 def select_database():
     """
     Show database selector page
     Displays scanned databases and allows browsing
+    
+    NOTE: No @login_required - this MUST be accessible before login
+    This is the entry point for unauthenticated users to select a database
     """
+    logger.info(f"[DEBUG DB_SELECT] ========== DATABASE SELECTION PAGE ==========")
+    logger.info(f"[DEBUG DB_SELECT] User authenticated: {current_user.is_authenticated}")
+    logger.info(f"[DEBUG DB_SELECT] Current working directory: {os.getcwd()}")
+    logger.info(f"[DEBUG DB_SELECT] Executable location: {os.path.dirname(os.path.abspath(__file__))}")
+    
     # Get scanned databases from databases/ directory
+    logger.info(f"[DEBUG DB_SELECT] Scanning databases/ directory...")
     scanned_databases = db_helpers.scan_databases_directory()
+    logger.info(f"[DEBUG DB_SELECT] Found {len(scanned_databases)} scanned databases")
 
     # Get recent paths from cache
     recent_paths = db_selector_cache.get_recent_paths()
@@ -81,31 +90,71 @@ def select_database_post():
     Process database selection
     Validates, checks schema, and optionally runs migrations
     """
-    db_path = request.form.get('db_path', '').strip()
+    # DEBUG: Print all form data received
+    print(f"\n{'='*60}")
+    print(f"[DEBUG DB_SELECT POST] ========== DATABASE SELECTION POST ==========")
+    print(f"[DEBUG DB_SELECT POST] All form data received:")
+    for key, value in request.form.items():
+        print(f"[DEBUG DB_SELECT POST]   {key} = '{value}'")
+    print(f"{'='*60}\n")
+    
+    # Check both manual entry and radio selection (manual takes priority)
+    manual_path = request.form.get('manual_db_path', '').strip()
+    radio_path = request.form.get('db_path', '').strip()
     custom_name = request.form.get('custom_name', '').strip()
     apply_migration = request.form.get('apply_migration') == 'yes'
+    
+    # Use manual path if provided, otherwise use radio selection
+    if manual_path:
+        db_path = manual_path
+        print(f"[DEBUG DB_SELECT POST] Using MANUAL PATH")
+    else:
+        db_path = radio_path
+        print(f"[DEBUG DB_SELECT POST] Using RADIO SELECTION")
 
     # DEBUG: Log database selection attempt
+    print(f"[DEBUG DB_SELECT POST] Extracted values:")
+    print(f"[DEBUG DB_SELECT POST]   manual_path: '{manual_path}'")
+    print(f"[DEBUG DB_SELECT POST]   radio_path: '{radio_path}'")
+    print(f"[DEBUG DB_SELECT POST]   final db_path: '{db_path}'")
+    print(f"[DEBUG DB_SELECT POST]   custom_name: '{custom_name}'")
+    print(f"[DEBUG DB_SELECT POST]   apply_migration: {apply_migration}")
+    
     logger.info(f"[DEBUG DB_SELECT] Database selection POST request")
     logger.info(f"[DEBUG DB_SELECT] Requested DB path: {db_path}")
     logger.info(f"[DEBUG DB_SELECT] Custom name: {custom_name}")
 
     if not db_path:
+        print(f"[DEBUG DB_SELECT POST] ERROR: No database path provided in form!")
         logger.warning(f"[DEBUG DB_SELECT] No database path provided")
         flash('Please select or enter a database path', 'warning')
         return redirect(url_for('db_select.select_database'))
 
     # Normalize path
+    print(f"[DEBUG DB_SELECT POST] Original path: '{db_path}'")
     db_path = os.path.abspath(db_path)
+    print(f"[DEBUG DB_SELECT POST] Normalized (absolute) path: '{db_path}'")
+    print(f"[DEBUG DB_SELECT POST] File exists: {os.path.exists(db_path)}")
+    
+    if not os.path.exists(db_path):
+        print(f"[DEBUG DB_SELECT POST] WARNING: File does not exist at normalized path!")
+        print(f"[DEBUG DB_SELECT POST] Current working directory: {os.getcwd()}")
+    
     logger.info(f"[DEBUG DB_SELECT] Normalized path: {db_path}")
     logger.info(f"[DEBUG DB_SELECT] Path exists: {os.path.exists(db_path)}")
 
     # Validate database file
+    print(f"[DEBUG DB_SELECT POST] Validating database file...")
     logger.info(f"[DEBUG DB_SELECT] Validating database file...")
     validation = db_helpers.validate_database_file(db_path)
+    print(f"[DEBUG DB_SELECT POST] Validation result:")
+    print(f"[DEBUG DB_SELECT POST]   valid: {validation.get('valid')}")
+    print(f"[DEBUG DB_SELECT POST]   error: {validation.get('error')}")
+    print(f"[DEBUG DB_SELECT POST]   schema_version: {validation.get('schema_version')}")
     logger.info(f"[DEBUG DB_SELECT] Validation result: valid={validation.get('valid')}, error={validation.get('error')}")
 
     if not validation['valid']:
+        print(f"[DEBUG DB_SELECT POST] Validation FAILED - redirecting back to selector")
         flash(f"Invalid database: {validation['error']}", 'danger')
         return redirect(url_for('db_select.select_database'))
 
@@ -167,9 +216,15 @@ def select_database_post():
         db_helpers.set_db_display_name(db_path, custom_name)
 
     # Update session
+    print(f"\n[DEBUG DB_SELECT POST] ========== UPDATING SESSION ==========")
+    print(f"[DEBUG DB_SELECT POST] Setting session['selected_db_path'] = '{db_path}'")
     logger.info(f"[DEBUG DB_SELECT] Setting session['selected_db_path'] = {db_path}")
     session['selected_db_path'] = db_path
     session.permanent = True
+    print(f"[DEBUG DB_SELECT POST] Session updated successfully")
+    print(f"[DEBUG DB_SELECT POST] Confirmed session value: '{session.get('selected_db_path')}'")
+    print(f"[DEBUG DB_SELECT POST] Session ID: {session.sid if hasattr(session, 'sid') else 'N/A'}")
+    print(f"[DEBUG DB_SELECT POST] ========================================\n")
     logger.info(f"[DEBUG DB_SELECT] Session updated. Confirmed session value: {session.get('selected_db_path')}")
 
     # Update cache
@@ -198,11 +253,14 @@ def select_database_post():
     flash(f'Database "{display_name}" selected successfully', 'success')
 
     # Redirect appropriately
+    print(f"[DEBUG DB_SELECT POST] User authenticated: {current_user.is_authenticated}")
     if current_user.is_authenticated:
         # Go to dashboard
+        print(f"[DEBUG DB_SELECT POST] Redirecting to dashboard (user already logged in)")
         return redirect(url_for('dashboard.index'))
     else:
         # Go to login
+        print(f"[DEBUG DB_SELECT POST] Redirecting to login (user not authenticated)")
         return redirect(url_for('auth.login'))
 
 

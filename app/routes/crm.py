@@ -66,6 +66,21 @@ def dashboard():
 
     # Get all MPR companies (with optional profiles)
     mpr_companies = query.all()
+    
+    # DEBUG: Log what data was retrieved
+    import time
+    print(f"\n{'='*60}")
+    print(f"[DB READ] CRM Dashboard - Loading companies")
+    print(f"[DB READ] User: {current_user.username}")
+    print(f"[DB READ] Timestamp: {time.time()}")
+    print(f"[DB READ] Total companies: {len(mpr_companies)}")
+    if mpr_companies:
+        print(f"[DB READ] Sample company modified dates:")
+        for company in mpr_companies[:3]:  # Show first 3
+            print(f"[DB READ]   {company.company_name}: modified={company.modified_date}")
+            if company.client_profile:
+                print(f"[DB READ]     Profile modified={company.client_profile.modified_date}")
+    print(f"{'='*60}\n")
 
     # Apply Python-based sorting for priority or apply priority filter
     if sort_by == 'priority' or priority_filter:

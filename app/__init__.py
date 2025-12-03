@@ -237,9 +237,30 @@ def get_or_create_engine_session(db_path, app=None):
     def set_sqlite_pragma(dbapi_conn, connection_record):
         """Set SQLite PRAGMAs for optimization"""
         cursor = dbapi_conn.cursor()
-        cursor.execute("PRAGMA journal_mode=WAL")
+        
+        # Enable WAL mode
+        result = cursor.execute("PRAGMA journal_mode=WAL").fetchone()
+        print(f"[DB CONNECTION] Journal mode set to: {result[0] if result else 'unknown'}")
+        
+        # Enable foreign keys
         cursor.execute("PRAGMA foreign_keys=ON")
+        
+        # Set busy timeout
         cursor.execute(f"PRAGMA busy_timeout={timeout}")
+        
+        # Get database file path (for debugging)
+        db_file = cursor.execute("PRAGMA database_list").fetchall()
+        if db_file:
+            print(f"[DB CONNECTION] Connected to database:")
+            for row in db_file:
+                if row[1] == 'main':
+                    print(f"[DB CONNECTION]   File: {row[2]}")
+                    import os
+                    if os.path.exists(row[2]):
+                        stat = os.stat(row[2])
+                        print(f"[DB CONNECTION]   Size: {stat.st_size:,} bytes")
+                        print(f"[DB CONNECTION]   Modified: {stat.st_mtime}")
+        
         cursor.close()
 
     # Create scoped session
@@ -316,26 +337,20 @@ def init_db(app):
     """
     global db_session, _default_db_session
 
-    # Create default engine and session (for initial setup)
-    db_path = app.config['DATABASE_PATH']
-
-    engine, default_session = get_or_create_engine_session(db_path, app)
-
-    _default_db_session = default_session
-
-    # Attach audit logging listeners before the session is used
-    from app.services.audit import init_audit_logging
-    init_audit_logging(default_session)
-
-    # Import models to register them
+    # IMPORTANT: Do NOT create a default database connection at startup!
+    # The user must select a database first via /select-db
+    # This prevents creating local AppData databases that cause confusion
+    
+    print("[INIT] Skipping default database connection - user will select database")
+    
+    # Import models so they're registered (but don't create tables yet)
     from app import models
-
-    # Create all tables if they don't exist
-    models.Base.metadata.create_all(engine)
-    _ensure_product_columns(engine)
-
-    # Store default db_session in app for easy access
-    app.db_session = default_session
+    
+    # Set default_session to None - will be created when user selects database
+    _default_db_session = None
+    app.db_session = None
+    
+    # Note: Audit logging will be initialized when database is selected
 
     # Replace global db_session with LocalProxy
     db_session = LocalProxy(get_db_session)
@@ -347,8 +362,9 @@ def init_db(app):
         # Remove per-request session if it exists
         if hasattr(g, 'db_session') and g.db_session is not None:
             g.db_session.remove()
-        # Also remove default session
-        _default_db_session.remove()
+        # Also remove default session (if it exists)
+        if _default_db_session is not None:
+            _default_db_session.remove()
 
 
 def _ensure_product_columns(engine):
@@ -650,6 +666,14 @@ def register_db_selector_middleware(app):
             g.db_session = db_sess
             g.selected_db_path = abs_path
             logger.info(f"[DEBUG MIDDLEWARE] Successfully set g.db_session and g.selected_db_path")
+            
+            # Initialize audit logging for this database session (if not already done)
+            from app.services.audit import init_audit_logging
+            try:
+                init_audit_logging(db_sess)
+                logger.info(f"[DEBUG MIDDLEWARE] Initialized audit logging for this session")
+            except Exception as audit_err:
+                logger.warning(f"[DEBUG MIDDLEWARE] Audit logging initialization warning: {audit_err}")
 
             # Also set snapshot directory for this database
             from app.utils.db_helpers import get_snapshot_dir_for_db
