@@ -45,9 +45,9 @@ def write_test_marker(db_path):
     
     cursor.execute("""
         INSERT OR REPLACE INTO system_settings 
-        (setting_name, setting_value, setting_category, created_by, modified_by)
-        VALUES (?, ?, 'System', 1, 1)
-    """, ('concurrent_test_marker', test_marker))
+        (setting_name, setting_value, setting_type, description, modified_by, modified_date)
+        VALUES (?, ?, ?, ?, ?, ?)
+    """, ('concurrent_test_marker', test_marker, 'text', 'Test marker for concurrent access', 1, datetime.fromtimestamp(test_timestamp)))
     
     conn.commit()
     
