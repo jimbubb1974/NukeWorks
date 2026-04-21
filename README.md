@@ -81,6 +81,7 @@ nukeworks/
 │       └── db_init.py      # Database initialization
 │
 ├── migrations/              # Database migrations
+├── scripts/                 # Utility and migration scripts
 ├── tests/                   # Test suite
 └── docs/                    # Specification documents
 ```
@@ -209,7 +210,7 @@ pytest
 pytest --cov=app --cov-report=html
 
 # Run specific test file
-pytest tests/test_models.py
+pytest tests/test_validators.py
 ```
 
 ### Code Formatting
