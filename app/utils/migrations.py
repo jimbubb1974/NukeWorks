@@ -25,7 +25,7 @@ class ValidationError(Exception):
 
 # Application version and required schema version
 APPLICATION_VERSION = "1.0.0"
-APPLICATION_REQUIRED_SCHEMA_VERSION = 12  # Updated for complete legacy table cleanup
+APPLICATION_REQUIRED_SCHEMA_VERSION = 13  # Updated for encrypted columns migration
 
 
 def get_migrations_directory():
