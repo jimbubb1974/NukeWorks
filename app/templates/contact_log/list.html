@@ -12,7 +12,7 @@
             {% endif %}
         </div>
         <div class="col-md-4 text-end">
-            {% if entity_id %}
+            {% if entity_id and current_user.can_edit() %}
             <a href="{{ url_for('contact_log.add_contact_log', entity_type=entity_type or 'Owner', entity_id=entity_id) }}" class="btn btn-primary">
                 <i class="bi bi-plus-lg"></i> Add Contact Log
             </a>
@@ -80,7 +80,9 @@
                             </td>
                             <td class="text-end">
                                 <a href="{{ url_for('contact_log.view_contact_log', contact_id=log.contact_id) }}" class="btn btn-sm btn-outline-secondary">View</a>
+                                {% if current_user.can_edit() %}
                                 <a href="{{ url_for('contact_log.edit_contact_log', contact_id=log.contact_id) }}" class="btn btn-sm btn-outline-primary">Edit</a>
+                                {% endif %}
                             </td>
                         </tr>
                         {% endfor %}

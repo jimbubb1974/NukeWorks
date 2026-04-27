@@ -111,6 +111,7 @@ class CreateUserForm(FlaskForm):
     has_confidential_access = BooleanField('Confidential Access (Tier 1)')
     is_ned_team = BooleanField('NED Team Access (Tier 2)')
     is_admin = BooleanField('Administrator')
+    is_read_only = BooleanField('Read-Only Access (Type 3)')
     is_active = BooleanField('Active', default=True)
 
     submit = SubmitField('Create User')
@@ -154,6 +155,7 @@ class EditUserForm(FlaskForm):
     has_confidential_access = BooleanField('Confidential Access (Tier 1)')
     is_ned_team = BooleanField('NED Team Access (Tier 2)')
     is_admin = BooleanField('Administrator')
+    is_read_only = BooleanField('Read-Only Access (Type 3)')
     is_active = BooleanField('Active')
 
     submit = SubmitField('Update User')

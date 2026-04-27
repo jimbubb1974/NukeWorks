@@ -11,6 +11,7 @@ from app import db_session
 from app.models import Company, CompanyRole, CompanyRoleAssignment
 from app.forms.companies import CompanyForm
 from app.forms.relationships import ConfirmActionForm
+from app.utils.permissions import edit_required
 
 bp = Blueprint('companies', __name__, url_prefix='/companies')
 
@@ -39,6 +40,7 @@ def _assignment_link(assignment: CompanyRoleAssignment) -> str | None:
 
 @bp.route('/create', methods=['GET', 'POST'])
 @login_required
+@edit_required
 def create_company():
     """Create a new company"""
     if not _can_manage_companies(current_user):
@@ -175,7 +177,7 @@ def _get_company_or_404(company_id: int) -> Company:
 
 def _can_manage_companies(user) -> bool:
     """Check if user can manage companies"""
-    return bool(user and (user.is_admin or getattr(user, 'is_ned_team', False)))
+    return bool(user and (user.is_admin or getattr(user, 'is_ned_team', False)) and user.can_edit())
 
 
 @bp.route('/<int:company_id>')
@@ -239,6 +241,7 @@ def view_company(company_id):
 
 @bp.route('/<int:company_id>/edit', methods=['GET', 'POST'])
 @login_required
+@edit_required
 def edit_company(company_id):
     """Edit company details"""
     company = _get_company_or_404(company_id)
@@ -335,6 +338,7 @@ def edit_company(company_id):
 
 @bp.route('/<int:company_id>/delete', methods=['POST'])
 @login_required
+@edit_required
 def delete_company(company_id):
     """Delete a company"""
     company = _get_company_or_404(company_id)
@@ -361,6 +365,7 @@ def delete_company(company_id):
 
 @bp.route('/<int:company_id>/personnel', methods=['POST'])
 @login_required
+@edit_required
 def link_personnel_to_company(company_id):
     """Link personnel to a company"""
     company = _get_company_or_404(company_id)
@@ -400,6 +405,7 @@ def link_personnel_to_company(company_id):
 
 @bp.route('/<int:company_id>/personnel/<int:personnel_id>/unlink', methods=['POST'])
 @login_required
+@edit_required
 def unlink_personnel_from_company(company_id, personnel_id):
     """Unlink personnel from a company"""
     company = _get_company_or_404(company_id)
@@ -438,6 +444,7 @@ def unlink_personnel_from_company(company_id, personnel_id):
 
 @bp.route('/<int:company_id>/toggle-mpr', methods=['POST'])
 @login_required
+@edit_required
 def toggle_mpr_client(company_id):
     """Toggle MPR client status for a company"""
     company = _get_company_or_404(company_id)

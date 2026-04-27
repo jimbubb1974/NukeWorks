@@ -158,7 +158,7 @@ class Config:
     # Migration settings
     MIGRATIONS_DIR = str(MIGRATIONS_ROOT)
     APPLICATION_VERSION = '1.0.0'
-    REQUIRED_SCHEMA_VERSION = 13  # Updated for encrypted columns migration
+    REQUIRED_SCHEMA_VERSION = 15  # Updated to add read-only user flag
 
     # Report settings
     COMPANY_NAME = 'MPR Associates'

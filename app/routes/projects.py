@@ -17,7 +17,7 @@ from app.forms.relationships import (
 )
 from app.forms.projects import ProjectForm
 from app import db_session
-from app.utils.permissions import filter_relationships, mark_field_confidential
+from app.utils.permissions import filter_relationships, mark_field_confidential, edit_required
 from app.models.confidential import ConfidentialFieldFlag
 # Legacy personnel sync and utilities removed during unification cleanup
 
@@ -33,7 +33,7 @@ def _get_project_or_404(project_id: int) -> Project:
 
 
 def _can_manage_relationships(user) -> bool:
-    return bool(user and (user.is_admin or getattr(user, 'is_ned_team', False)))
+    return bool(user and (user.is_admin or getattr(user, 'is_ned_team', False)) and user.can_edit())
 
 
 def _get_company_choices():
@@ -153,6 +153,7 @@ def map_view():
 
 @bp.route('/create', methods=['GET', 'POST'])
 @login_required
+@edit_required
 def create_project():
     """Create a new project."""
     if not _can_manage_relationships(current_user):
@@ -304,6 +305,7 @@ def view_project(project_id):
 
 @bp.route('/<int:project_id>/edit', methods=['GET', 'POST'])
 @login_required
+@edit_required
 def edit_project(project_id):
     """Edit core project details."""
     project = _get_project_or_404(project_id)
@@ -440,6 +442,7 @@ def edit_project(project_id):
 
 @bp.route('/<int:project_id>/delete', methods=['POST'])
 @login_required
+@edit_required
 def delete_project(project_id):
     """Delete a project"""
     project = _get_project_or_404(project_id)
@@ -488,6 +491,7 @@ def delete_project(project_id):
 
 @bp.route('/<int:project_id>/relationships/companies', methods=['POST'])
 @login_required
+@edit_required
 def add_project_company_relationship(project_id):
     """Add a company relationship to a project"""
     project = _get_project_or_404(project_id)
@@ -558,6 +562,7 @@ def add_project_company_relationship(project_id):
 
 @bp.route('/<int:project_id>/relationships/companies/<int:assignment_id>/delete', methods=['POST'])
 @login_required
+@edit_required
 def delete_project_company_relationship(project_id, assignment_id):
     """Delete a company relationship from a project"""
     project = _get_project_or_404(project_id)

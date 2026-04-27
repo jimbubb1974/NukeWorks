@@ -53,14 +53,15 @@
                     <td>{{ user.full_name or '—' }}</td>
                     <td>{{ user.email }}</td>
                     <td>
-                        {% set perms = [] %}
-                        {% if user.is_admin %}{% set _ = perms.append('Admin') %}{% endif %}
-                        {% if user.is_ned_team %}{% set _ = perms.append('NED') %}{% endif %}
-                        {% if user.has_confidential_access %}{% set _ = perms.append('Conf') %}{% endif %}
-                        {% if perms %}
-                            {{ perms|join(', ') }}
+                        {% if user.is_admin %}
+                            <span class="badge bg-danger">Admin</span>
                         {% else %}
-                            <span class="text-muted">None</span>
+                            {% if user.is_ned_team %}<span class="badge bg-info text-dark">NED</span> {% endif %}
+                            {% if user.has_confidential_access %}<span class="badge bg-primary">Conf</span> {% endif %}
+                            {% if user.is_read_only %}<span class="badge bg-secondary">Read-Only</span>{% endif %}
+                            {% if not user.is_ned_team and not user.has_confidential_access and not user.is_read_only %}
+                                <span class="text-muted">Standard</span>
+                            {% endif %}
                         {% endif %}
                     </td>
                     <td>

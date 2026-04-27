@@ -22,7 +22,7 @@ from app.models import (
     Personnel
 )
 from app.forms.contact_log import ContactLogForm
-from app.utils.permissions import can_view_relationship
+from app.utils.permissions import can_view_relationship, edit_required
 from app.utils.validators import VALID_CONTACT_TYPES
 from app.services.company_query import (
     get_company_for_vendor,
@@ -272,6 +272,7 @@ def list_contact_logs():
 
 @bp.route('/add', methods=['GET', 'POST'])
 @login_required
+@edit_required
 def add_contact_log():
     entity_type = request.args.get('entity_type', 'Owner')
     entity_id = request.args.get('entity_id', type=int)
@@ -363,6 +364,7 @@ def view_contact_log(contact_id):
 
 @bp.route('/<int:contact_id>/edit', methods=['GET', 'POST'])
 @login_required
+@edit_required
 def edit_contact_log(contact_id):
     contact_log = db_session.get(ContactLog, contact_id)
     if not contact_log:

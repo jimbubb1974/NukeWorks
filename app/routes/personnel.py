@@ -19,6 +19,7 @@ from app.models import (
 # PersonnelEntityRelationship and EntityTeamMember removed in Phase 4 cleanup
 from app.forms.personnel import PersonnelForm, PersonnelRelationshipForm
 from app.forms.relationships import ConfirmActionForm
+from app.utils.permissions import edit_required
 
 
 bp = Blueprint('personnel', __name__, url_prefix='/personnel')
@@ -140,6 +141,7 @@ def list_personnel():
 
 @bp.route('/create', methods=['GET', 'POST'])
 @login_required
+@edit_required
 def create_personnel():
     """Create a new external personnel record."""
     from app.models import Company
@@ -180,6 +182,7 @@ def create_personnel():
 
 @bp.route('/<int:personnel_id>/edit', methods=['GET', 'POST'])
 @login_required
+@edit_required
 def edit_personnel(personnel_id: int):
     """Edit a personnel record."""
     from app.models import Company
@@ -310,6 +313,7 @@ def edit_personnel(personnel_id: int):
 
 @bp.route('/<int:personnel_id>/relationships/<int:relationship_id>/delete', methods=['POST'])
 @login_required
+@edit_required
 def delete_personnel_relationship(personnel_id: int, relationship_id: int):
     """Delete a personnel relationship."""
     relationship = db_session.get(PersonnelRelationship, relationship_id)
@@ -410,6 +414,7 @@ def _cleanup_personnel_references(personnel_id: int) -> None:
 
 @bp.route('/<int:personnel_id>/delete', methods=['POST'])
 @login_required
+@edit_required
 def delete_personnel(personnel_id: int):
     """Delete a personnel record after clearing dependent references."""
     if not current_user.is_admin:

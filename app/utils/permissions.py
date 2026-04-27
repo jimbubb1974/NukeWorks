@@ -363,6 +363,33 @@ def ned_team_required(f):
     return decorated_function
 
 
+def edit_required(f):
+    """
+    Decorator to block read-only users from write operations (Type 3 permission).
+    Admins always pass. Any user with is_read_only=True gets a 403.
+
+    Usage:
+        @bp.route('/companies/create', methods=['GET', 'POST'])
+        @login_required
+        @edit_required
+        def create_company():
+            ...
+    """
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not current_user.is_authenticated:
+            flash('Please log in to access this page.', 'warning')
+            return redirect(url_for('auth.login'))
+
+        if not current_user.can_edit():
+            flash('Access denied. Your account has read-only access.', 'danger')
+            return abort(403)
+
+        return f(*args, **kwargs)
+
+    return decorated_function
+
+
 def admin_required(f):
     """
     Decorator to require Administrator permission

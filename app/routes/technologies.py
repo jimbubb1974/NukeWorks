@@ -9,6 +9,7 @@ from app import db_session
 from app.forms.relationships import ConfirmActionForm
 from app.forms.technologies import TechnologyForm
 from app.models import Product, Company
+from app.utils.permissions import edit_required
 
 bp = Blueprint('technologies', __name__, url_prefix='/technologies')
 
@@ -27,7 +28,7 @@ def _get_product_or_404(product_id: int) -> Product:
 
 
 def _can_manage(user) -> bool:
-    return bool(user and (user.is_admin or getattr(user, 'is_ned_team', False)))
+    return bool(user and (user.is_admin or getattr(user, 'is_ned_team', False)) and user.can_edit())
 
 
 def _company_choices(include_placeholder: bool = True):
@@ -56,6 +57,7 @@ def list_technologies():
 
 @bp.route('/create', methods=['GET', 'POST'])
 @login_required
+@edit_required
 def create_technology():
     if not _can_manage(current_user):
         flash('You do not have permission to create technologies.', 'danger')
@@ -121,6 +123,7 @@ def view_technology(product_id):
 
 @bp.route('/<int:product_id>/edit', methods=['GET', 'POST'])
 @login_required
+@edit_required
 def edit_technology(product_id):
     product = _get_product_or_404(product_id)
 
@@ -168,6 +171,7 @@ def edit_technology(product_id):
 
 @bp.route('/<int:product_id>/delete', methods=['POST'])
 @login_required
+@edit_required
 def delete_technology(product_id):
     product = _get_product_or_404(product_id)
 

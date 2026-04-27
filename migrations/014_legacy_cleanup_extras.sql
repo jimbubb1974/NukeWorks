@@ -1,5 +1,6 @@
 -- Migration: 014_legacy_cleanup_extras.sql
--- Purpose: Extra cleanup of legacy tables, protective indexes, and housekeeping
+-- Purpose: Extra cleanup of legacy tables, protective indexes, housekeeping,
+--          and add missing roundtable_history encrypted column
 
 BEGIN TRANSACTION;
 
@@ -22,15 +23,16 @@ CREATE INDEX IF NOT EXISTS idx_company_role_company ON company_role_assignments 
 CREATE INDEX IF NOT EXISTS idx_company_role_role ON company_role_assignments (role_id);
 CREATE INDEX IF NOT EXISTS idx_company_role_context ON company_role_assignments (context_type, context_id);
 
+-- Add missing encrypted column omitted from migration 013
+ALTER TABLE roundtable_history ADD COLUMN client_strategic_objectives_encrypted BLOB;
+
+-- Schema version update
+INSERT INTO schema_version (version, applied_date, applied_by, description)
+VALUES (
+    14,
+    datetime('now'),
+    'system',
+    'Legacy table cleanup and add roundtable client_strategic_objectives_encrypted column'
+);
+
 COMMIT;
-
--- Optional (run separately):
--- PRAGMA optimize;
--- VACUUM;
-
-
-
-
-
-
-

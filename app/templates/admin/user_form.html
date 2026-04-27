@@ -89,6 +89,13 @@
                             <div class="form-text">View confidential financial and relationship data.</div>
                         </div>
                     </div>
+                    <div class="col-md-4">
+                        <div class="form-check">
+                            {{ form.is_read_only(class="form-check-input", id="perm-readonly") }}
+                            <label class="form-check-label" for="perm-readonly">Read-Only</label>
+                            <div class="form-text">Can view data but cannot create, edit, or delete anything. Ignored if Administrator is set.</div>
+                        </div>
+                    </div>
                 </div>
 
                 <hr>

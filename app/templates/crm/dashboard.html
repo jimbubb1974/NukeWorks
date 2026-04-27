@@ -80,11 +80,13 @@
                                         {% endif %}
                                     </td>
                                     <td class="text-center">
-                                        <a href="{{ url_for('crm.add_roundtable_entry', company_id=company.company_id) }}" 
-                                           class="btn btn-sm btn-outline-primary" 
+                                        {% if current_user.can_edit() %}
+                                        <a href="{{ url_for('crm.add_roundtable_entry', company_id=company.company_id) }}"
+                                           class="btn btn-sm btn-outline-primary"
                                            title="Add Roundtable Discussion">
                                             <i class="bi bi-clipboard-check"></i>
                                         </a>
+                                        {% endif %}
                                     </td>
                                 </tr>
                                 {% endfor %}
@@ -141,7 +143,7 @@
                             <select name="poc" class="form-select" onchange="this.form.submit()">
                                 <option value="">All POCs</option>
                                 {% for poc in poc_choices %}
-                                <option value="{{ poc.user_id }}" {% if poc_filter == poc.user_id|string %}selected{% endif %}>{{ poc.full_name }}</option>
+                                <option value="{{ poc.personnel_id }}" {% if poc_filter == poc.personnel_id|string %}selected{% endif %}>{{ poc.full_name }}</option>
                                 {% endfor %}
                             </select>
                         </div>
@@ -312,7 +314,7 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                 <a href="{{ url_for('companies.view_company', company_id=company.company_id) }}" class="btn btn-primary">View Full Company</a>
-                <a href="{{ url_for('companies.edit_company', company_id=company.company_id) }}" class="btn btn-outline-secondary">Edit Company</a>
+                {% if current_user.can_edit() %}<a href="{{ url_for('companies.edit_company', company_id=company.company_id) }}" class="btn btn-outline-secondary">Edit Company</a>{% endif %}
             </div>
         </div>
     </div>

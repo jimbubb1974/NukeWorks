@@ -30,10 +30,11 @@ class User(Base, UserMixin):
     password_hash = Column(String(255), nullable=False)
     full_name = Column(String(120))
 
-    # Permission flags (two independent tiers)
+    # Permission flags
     has_confidential_access = Column(Boolean, default=False, nullable=False)
     is_ned_team = Column(Boolean, default=False, nullable=False)
     is_admin = Column(Boolean, default=False, nullable=False)
+    is_read_only = Column(Boolean, default=False, nullable=False)
 
     # Account status
     created_date = Column(DateTime, default=datetime.utcnow, nullable=False)
@@ -97,6 +98,10 @@ class User(Base, UserMixin):
         self.last_login = datetime.now()
 
     # Permission helper methods
+    def can_edit(self):
+        """Check if user can make any writes (False for read-only users)"""
+        return self.is_admin or not self.is_read_only
+
     def can_view_confidential(self):
         """Check if user can view confidential business data (Tier 1)"""
         return self.has_confidential_access or self.is_admin
@@ -134,6 +139,7 @@ class User(Base, UserMixin):
             'has_confidential_access': self.has_confidential_access,
             'is_ned_team': self.is_ned_team,
             'is_admin': self.is_admin,
+            'is_read_only': self.is_read_only,
             'is_active': self.is_active,
             'created_date': self.created_date.isoformat() if self.created_date else None,
             'last_login': self.last_login.isoformat() if self.last_login else None,

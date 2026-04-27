@@ -433,7 +433,14 @@ def init_login_manager(app):
     def load_user(user_id):
         """Load user by ID for Flask-Login"""
         from app.models import User
-        return db_session.query(User).get(int(user_id))
+        from sqlalchemy.exc import OperationalError
+        try:
+            return db_session.query(User).get(int(user_id))
+        except OperationalError:
+            # Schema mismatch (e.g. pending migration) — treat as not logged in
+            # so the migration prompt can be shown on next request
+            db_session.remove()
+            return None
 
 
 def register_blueprints(app):

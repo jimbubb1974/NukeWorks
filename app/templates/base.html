@@ -140,10 +140,23 @@
                 >Project Map</a
               >
             </li>
-            {% endif %} {% if current_user.is_ned_team or current_user.is_admin
-            %}
-            <li class="nav-item">
-              <a class="nav-link" href="{{ url_for('crm.dashboard') }}">CRM</a>
+            {% endif %} {% if current_user.is_ned_team or current_user.is_admin %}
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" id="crmDropdown" role="button" data-bs-toggle="dropdown">
+                CRM
+              </a>
+              <ul class="dropdown-menu">
+                <li>
+                  <a class="dropdown-item" href="{{ url_for('crm.dashboard') }}">
+                    <i class="bi bi-people-fill"></i> Client Dashboard
+                  </a>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="{{ url_for('crm.roundtable_meeting') }}">
+                    <i class="bi bi-clipboard-check"></i> Roundtable Meeting
+                  </a>
+                </li>
+              </ul>
             </li>
             {% endif %} {% if has_endpoint('personnel.list_personnel') %}
             <li class="nav-item">

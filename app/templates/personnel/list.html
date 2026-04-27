@@ -45,6 +45,7 @@ endblock %} {% block content %}
         </h2>
         <div class="d-flex align-items-center gap-2">
           <span class="badge bg-primary">{{ internal_personnel|length }}</span>
+          {% if current_user.can_edit() %}
           <a
             href="{{ url_for('personnel.create_personnel', personnel_type='Internal') }}"
             class="btn btn-sm btn-outline-primary"
@@ -52,6 +53,7 @@ endblock %} {% block content %}
           >
             <i class="bi bi-person-plus"></i>
           </a>
+          {% endif %}
         </div>
       </div>
       <div class="table-responsive">
@@ -91,6 +93,7 @@ endblock %} {% block content %}
                 {% endif %}
               </td>
               <td class="text-end">
+                {% if current_user.can_edit() %}
                 <a
                   href="{{ url_for('personnel.edit_personnel', personnel_id=person.personnel_id, type='internal') }}"
                   class="btn btn-sm btn-outline-primary me-1"
@@ -98,7 +101,8 @@ endblock %} {% block content %}
                 >
                   <i class="bi bi-pencil"></i>
                 </a>
-                {% if can_delete %}
+                {% endif %}
+                {% if can_delete and current_user.can_edit() %}
                 <form
                   method="post"
                   action="{{ url_for('personnel.delete_personnel', personnel_id=person.personnel_id) }}"
@@ -143,6 +147,7 @@ endblock %} {% block content %}
           <span class="badge bg-secondary"
             >{{ external_personnel|length }}</span
           >
+          {% if current_user.can_edit() %}
           <a
             href="{{ url_for('personnel.create_personnel', personnel_type='Client_Contact') }}"
             class="btn btn-sm btn-outline-secondary"
@@ -150,6 +155,7 @@ endblock %} {% block content %}
           >
             <i class="bi bi-person-plus"></i>
           </a>
+          {% endif %}
         </div>
       </div>
       <div class="table-responsive">
@@ -187,6 +193,7 @@ endblock %} {% block content %}
                 {% endif %}
               </td>
               <td class="text-end">
+                {% if current_user.can_edit() %}
                 <a
                   href="{{ url_for('personnel.edit_personnel', personnel_id=person.personnel_id, type='external') }}"
                   class="btn btn-sm btn-outline-primary me-1"
@@ -194,7 +201,8 @@ endblock %} {% block content %}
                 >
                   <i class="bi bi-pencil"></i>
                 </a>
-                {% if can_delete %}
+                {% endif %}
+                {% if can_delete and current_user.can_edit() %}
                 <form
                   method="post"
                   action="{{ url_for('personnel.delete_personnel', personnel_id=person.personnel_id) }}"

@@ -17,7 +17,7 @@ from app.models import (
 )
 from app.forms.roundtable import RoundtableHistoryForm
 from app import db_session
-from app.utils.permissions import ned_team_required
+from app.utils.permissions import ned_team_required, edit_required
 
 bp = Blueprint('crm', __name__, url_prefix='/crm')
 
@@ -57,7 +57,7 @@ def dashboard():
         # Filter by MPR POC through PersonCompanyAffiliation
         from app.models import PersonCompanyAffiliation
         query = query.join(PersonCompanyAffiliation).filter(
-            PersonCompanyAffiliation.personnel_id == int(poc_filter)
+            PersonCompanyAffiliation.person_id == int(poc_filter)
         )
 
     # Always fetch with default company_name ordering from database
@@ -200,7 +200,7 @@ def dashboard():
         'crm/dashboard.html',
         mpr_companies=mpr_companies,
         companies_with_details=companies_with_details,
-        mpr_personnel=mpr_personnel,
+        poc_choices=mpr_personnel,
         recent_roundtables=recent_roundtables,
         roundtable_companies=roundtable_companies,
         stats=stats,
@@ -262,6 +262,7 @@ def roundtable_meeting():
 @bp.route('/roundtable/<int:company_id>', methods=['GET', 'POST'])
 @login_required
 @ned_team_required
+@edit_required
 def add_roundtable_entry(company_id):
     """
     Add/edit roundtable entry for a company

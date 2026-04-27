@@ -54,9 +54,11 @@
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h2 class="mb-0"><i class="bi bi-building"></i> Companies</h2>
         <div class="d-flex gap-2">
+            {% if current_user.can_edit() %}
             <a href="{{ url_for('companies.create_company') }}" class="btn btn-primary">
                 <i class="bi bi-plus-circle"></i> Add Company
             </a>
+            {% endif %}
             <form method="get" class="d-flex gap-2" role="search">
                 <select name="role" class="form-select form-select-sm" onchange="this.form.submit()">
                     <option value="">All Roles</option>
@@ -193,12 +195,14 @@
                                 <a href="{{ url_for('companies.view_company', company_id=company.company_id) }}" class="btn btn-sm btn-outline-primary" title="View">
                                     <i class="bi bi-eye"></i>
                                 </a>
+                                {% if current_user.can_edit() %}
                                 <a href="{{ url_for('companies.edit_company', company_id=company.company_id) }}" class="btn btn-sm btn-outline-secondary" title="Edit">
                                     <i class="bi bi-pencil"></i>
                                 </a>
                                 <a href="{{ url_for('companies.delete_company', company_id=company.company_id) }}" class="btn btn-sm btn-outline-danger" title="Delete">
                                     <i class="bi bi-trash"></i>
                                 </a>
+                                {% endif %}
                             </td>
                         </tr>
                         {% endfor %}

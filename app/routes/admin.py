@@ -569,13 +569,15 @@ def create_user():
     form = CreateUserForm()
 
     if form.validate_on_submit():
+        is_admin = form.is_admin.data
         user = User(
             username=form.username.data,
             email=form.email.data.lower(),
             full_name=form.full_name.data,
             has_confidential_access=form.has_confidential_access.data,
             is_ned_team=form.is_ned_team.data,
-            is_admin=form.is_admin.data,
+            is_admin=is_admin,
+            is_read_only=form.is_read_only.data and not is_admin,
             is_active=form.is_active.data
         )
 
@@ -612,6 +614,7 @@ def edit_user(user_id):
         user.has_confidential_access = form.has_confidential_access.data
         user.is_ned_team = form.is_ned_team.data
         user.is_admin = form.is_admin.data
+        user.is_read_only = form.is_read_only.data and not form.is_admin.data
         user.is_active = form.is_active.data
         db_session.commit()
 

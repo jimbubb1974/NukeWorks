@@ -166,8 +166,29 @@ def select_database_post():
 
     # Handle migration if needed
     if current_version < required_version:
-        # Migration required
-        if not current_user.is_authenticated or not current_user.is_admin:
+        # Check admin status via raw SQL so a schema mismatch on the users table
+        # (e.g. the very migration we're about to apply adds a column to users)
+        # doesn't prevent admins from reaching the migration prompt.
+        def _raw_is_admin(path):
+            import sqlite3 as _sqlite3
+            from flask import session as _session
+            user_id = _session.get('_user_id')
+            if not user_id:
+                return None  # No session — can't determine, allow migration prompt
+            try:
+                conn = _sqlite3.connect(path)
+                row = conn.execute(
+                    "SELECT is_admin FROM users WHERE user_id = ? AND is_active = 1",
+                    (int(user_id),)
+                ).fetchone()
+                conn.close()
+                return bool(row and row[0])
+            except Exception:
+                return None  # Can't query — allow migration prompt
+
+        raw_admin = _raw_is_admin(db_path)
+        if raw_admin is False:
+            # Definitively a non-admin logged-in user
             flash(
                 f'This database requires migration (v{current_version} → v{required_version}). '
                 'Only administrators can migrate databases. Please contact an administrator.',
@@ -175,7 +196,7 @@ def select_database_post():
             )
             return redirect(url_for('db_select.select_database'))
 
-        # Admin user - check if they want to apply migration
+        # Admin user (or no session yet) - check if they want to apply migration
         if not apply_migration:
             # Show migration prompt
             pending_count = required_version - current_version

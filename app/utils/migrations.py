@@ -25,7 +25,7 @@ class ValidationError(Exception):
 
 # Application version and required schema version
 APPLICATION_VERSION = "1.0.0"
-APPLICATION_REQUIRED_SCHEMA_VERSION = 13  # Updated for encrypted columns migration
+APPLICATION_REQUIRED_SCHEMA_VERSION = 15  # Updated to add read-only user flag
 
 
 def get_migrations_directory():
