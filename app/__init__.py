@@ -236,10 +236,22 @@ def get_or_create_engine_session(db_path, app=None):
     @event.listens_for(engine, "connect")
     def set_sqlite_pragma(dbapi_conn, connection_record):
         """Set SQLite PRAGMAs for optimization"""
+        from app.utils.db_helpers import is_network_path
         cursor = dbapi_conn.cursor()
-        
-        # Enable WAL mode
-        result = cursor.execute("PRAGMA journal_mode=WAL").fetchone()
+
+        # WAL mode breaks cross-machine locking on network drives (SMB/mapped drives).
+        # The .sqlite-shm shared-memory file is machine-local, so a second machine
+        # trying to open the same WAL-mode database needs an exclusive lock for WAL
+        # recovery — which it can never get while any other connection is alive.
+        # Actively switch to DELETE journal mode on network paths so that a database
+        # previously opened locally (which would have been set to WAL) is converted
+        # back to a mode that allows multiple machines to coexist.
+        on_network = is_network_path(abs_path)
+        if on_network:
+            print(f"[DB CONNECTION] Network drive detected — switching to DELETE journal mode")
+            result = cursor.execute("PRAGMA journal_mode=DELETE").fetchone()
+        else:
+            result = cursor.execute("PRAGMA journal_mode=WAL").fetchone()
         print(f"[DB CONNECTION] Journal mode set to: {result[0] if result else 'unknown'}")
         
         # Enable foreign keys

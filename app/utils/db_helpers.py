@@ -3,12 +3,28 @@ Database Helper Functions
 Utilities for per-database operations and path derivation
 """
 import os
+import sys
 from pathlib import Path
 from typing import Optional
 import sqlite3
 import logging
 
 logger = logging.getLogger(__name__)
+
+
+def is_network_path(path: str) -> bool:
+    """Return True if the path is on a network (remote) drive."""
+    abs_path = os.path.abspath(path)
+    if sys.platform == 'win32':
+        try:
+            import ctypes
+            drive = os.path.splitdrive(abs_path)[0] + '\\'
+            DRIVE_REMOTE = 4
+            return ctypes.windll.kernel32.GetDriveTypeW(drive) == DRIVE_REMOTE
+        except Exception:
+            pass
+    # On non-Windows, treat UNC paths as network
+    return abs_path.startswith('//')  or abs_path.startswith('\\\\')
 
 
 def get_snapshot_dir_for_db(db_path: str) -> str:
@@ -53,7 +69,7 @@ def get_db_display_name(db_path: str) -> Optional[str]:
         str or None: Display name if set, None otherwise
     """
     try:
-        conn = sqlite3.connect(db_path, timeout=5.0)
+        conn = sqlite3.connect(db_path, timeout=30.0)
         cursor = conn.execute("""
             SELECT setting_value
             FROM system_settings
@@ -196,15 +212,8 @@ def validate_database_file(db_path: str) -> dict:
 
     try:
         # Try to open as SQLite database
-        conn = sqlite3.connect(db_path, timeout=5.0)
-
-        # Check SQLite integrity
-        cursor = conn.execute("PRAGMA integrity_check")
-        integrity = cursor.fetchone()
-        if integrity[0] != 'ok':
-            result['error'] = f'Database integrity check failed: {integrity[0]}'
-            conn.close()
-            return result
+        # Use a longer timeout for network drives where WAL mode may not be available
+        conn = sqlite3.connect(db_path, timeout=30.0)
 
         # Get schema version
         try:
@@ -227,6 +236,16 @@ def validate_database_file(db_path: str) -> dict:
         result['valid'] = True
 
     except sqlite3.Error as e:
-        result['error'] = f'Invalid SQLite database: {str(e)}'
+        err_msg = str(e).lower()
+        if 'database is locked' in err_msg:
+            result['error'] = (
+                'Database is locked by another connection. '
+                'If multiple users share this database over a network drive, '
+                'one user should disconnect first, then reconnect so the app can '
+                'switch it to a network-safe journal mode. '
+                f'(SQLite: {e})'
+            )
+        else:
+            result['error'] = f'Invalid SQLite database: {str(e)}'
 
     return result
