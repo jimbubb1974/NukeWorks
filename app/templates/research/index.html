@@ -1,0 +1,233 @@
+{% extends "base.html" %}
+{% block title %}Research Workflow - NukeWorks{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h1 class="h3 mb-0">Research Workflow</h1>
+      <p class="text-muted mb-0">Export DB context for AI research, then import and review the response.</p>
+    </div>
+  </div>
+
+  <div class="row g-4">
+
+    <!-- Export -->
+    <div class="col-lg-6">
+      <div class="card h-100">
+        <div class="card-header"><strong>Step 1 — Generate Export Package</strong></div>
+        <div class="card-body">
+          <p class="text-muted small mb-3">
+            Exports current non-confidential database content alongside the research
+            prompt. Deliver the file(s) to your AI agent of choice, then upload the
+            response below.
+          </p>
+
+          <div class="alert alert-info small mb-3" role="alert">
+            <strong>Scope:</strong> {{ stats.companies }} companies &middot;
+            {{ stats.projects }} projects &middot;
+            {{ stats.relationships }} relationships<br>
+            <strong>Suggested chunks:</strong> {{ suggested_chunks }}
+            (at {{ export_form.chunk_size.data or 20 }} companies per chunk)
+          </div>
+
+          <form method="post" action="{{ url_for('research.export') }}">
+            {{ export_form.hidden_tag() }}
+
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Scope</label>
+              {% for subfield in export_form.scope %}
+              <div class="form-check">
+                {{ subfield(class="form-check-input") }}
+                <label class="form-check-label" for="{{ subfield.id }}">{{ subfield.label.text }}</label>
+              </div>
+              {% endfor %}
+            </div>
+
+            <!-- Company selector (shown when scope = selected) -->
+            <div id="company-selector" class="mb-3" style="display:none;">
+              <label class="form-label fw-semibold">Select Companies</label>
+              <div class="border rounded p-2" style="max-height:220px; overflow-y:auto;">
+                {% for company in companies %}
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox"
+                         name="selected_company_ids" value="{{ company.company_id }}"
+                         id="co_{{ company.company_id }}">
+                  <label class="form-check-label small" for="co_{{ company.company_id }}">
+                    {{ company.company_name }}
+                  </label>
+                </div>
+                {% endfor %}
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Companies per chunk</label>
+              {{ export_form.chunk_size(class="form-control", style="width:100px;") }}
+              <div class="form-text">5–100. Lower = more focused AI responses.</div>
+            </div>
+
+            {{ export_form.submit(class="btn btn-primary") }}
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Import -->
+    <div class="col-lg-6">
+      <div class="card h-100">
+        <div class="card-header"><strong>Step 2 — Import AI Response</strong></div>
+        <div class="card-body">
+          <p class="text-muted small mb-3">
+            After receiving the AI agent's JSON response, upload it here. The import
+            will stage all proposed changes for your review — nothing is written to
+            the database until you explicitly accept each item.
+          </p>
+
+          <form method="post" action="{{ url_for('research.import_response') }}"
+                enctype="multipart/form-data">
+            {{ import_form.hidden_tag() }}
+
+            <div class="mb-3">
+              <label class="form-label fw-semibold">{{ import_form.run_name.label.text }}</label>
+              {{ import_form.run_name(class="form-control") }}
+              {% for e in import_form.run_name.errors %}
+                <div class="text-danger small">{{ e }}</div>
+              {% endfor %}
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label fw-semibold">{{ import_form.response_file.label.text }}</label>
+              {{ import_form.response_file(class="form-control") }}
+              <div class="form-text">Upload one JSON file. For multi-chunk runs, import each chunk separately.</div>
+              {% for e in import_form.response_file.errors %}
+                <div class="text-danger small">{{ e }}</div>
+              {% endfor %}
+            </div>
+
+            {{ import_form.submit(class="btn btn-success") }}
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Research Prompt -->
+  <div class="card mt-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <strong><i class="bi bi-file-text"></i> Research Prompt</strong>
+      <div class="d-flex gap-2">
+        <button class="btn btn-sm btn-outline-secondary" id="copy-prompt-btn"
+                onclick="copyPrompt()">
+          <i class="bi bi-clipboard"></i> Copy to Clipboard
+        </button>
+        <a href="{{ url_for('research.download_prompt') }}" class="btn btn-sm btn-outline-secondary">
+          <i class="bi bi-download"></i> Download .txt
+        </a>
+        <button class="btn btn-sm btn-outline-secondary" type="button"
+                data-bs-toggle="collapse" data-bs-target="#prompt-collapse">
+          <i class="bi bi-chevron-down"></i> Show / Hide
+        </button>
+      </div>
+    </div>
+    <div class="collapse" id="prompt-collapse">
+      <div class="card-body p-0">
+        <textarea id="prompt-text" class="form-control font-monospace border-0 rounded-0"
+                  rows="20" readonly
+                  style="font-size:0.78rem; resize:vertical;">{{ prompt_text }}</textarea>
+      </div>
+    </div>
+    <div class="card-footer text-muted small">
+      Paste this prompt into your AI agent, then upload the
+      <code>existing_data</code> JSON file from the export package alongside it.
+      The export zip contains both <code>research_prompt.txt</code> and the data file(s).
+    </div>
+  </div>
+
+  <!-- Run history -->
+  {% if runs %}
+  <div class="card mt-4">
+    <div class="card-header"><strong>Import History</strong></div>
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>Run Name</th>
+            <th>Date</th>
+            <th>Items</th>
+            <th>Accepted</th>
+            <th>Skipped</th>
+            <th>Pending</th>
+            <th>Status</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for run in runs %}
+          <tr>
+            <td>{{ run.run_name }}</td>
+            <td>{{ run.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+            <td>{{ run.total_items }}</td>
+            <td><span class="text-success">{{ run.accepted_items }}</span></td>
+            <td><span class="text-muted">{{ run.skipped_items }}</span></td>
+            <td>
+              {% set pending = run.total_items - run.accepted_items - run.skipped_items %}
+              {% if pending > 0 %}
+                <span class="badge bg-warning text-dark">{{ pending }}</span>
+              {% else %}
+                <span class="text-muted">0</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if run.status == 'complete' %}
+                <span class="badge bg-success">Complete</span>
+              {% else %}
+                <span class="badge bg-primary">In Progress</span>
+              {% endif %}
+            </td>
+            <td>
+              <div class="d-flex gap-1">
+                <a href="{{ url_for('research.run_detail', run_id=run.run_id) }}"
+                   class="btn btn-sm btn-outline-primary">Review</a>
+                {% if current_user.can_edit() %}
+                <form method="post"
+                      action="{{ url_for('research.delete_run', run_id=run.run_id) }}"
+                      onsubmit='return confirm("Delete run \"{{ run.run_name }}\" and all {{ run.total_items }} staged items? This cannot be undone.")'>
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                </form>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+<script>
+  document.querySelectorAll('input[name="scope"]').forEach(function(radio) {
+    radio.addEventListener('change', function() {
+      document.getElementById('company-selector').style.display =
+        this.value === 'selected' ? 'block' : 'none';
+    });
+  });
+
+  function copyPrompt() {
+    var text = document.getElementById('prompt-text').value;
+    navigator.clipboard.writeText(text).then(function() {
+      var btn = document.getElementById('copy-prompt-btn');
+      var original = btn.innerHTML;
+      btn.innerHTML = '<i class="bi bi-check"></i> Copied!';
+      btn.classList.replace('btn-outline-secondary', 'btn-success');
+      setTimeout(function() {
+        btn.innerHTML = original;
+        btn.classList.replace('btn-success', 'btn-outline-secondary');
+      }, 2000);
+    });
+  }
+</script>
+{% endblock %}

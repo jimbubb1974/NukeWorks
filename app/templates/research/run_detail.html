@@ -1,0 +1,371 @@
+{% extends "base.html" %}
+{% block title %}Research Review — {{ run.run_name }} - NukeWorks{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+      <h1 class="h3 mb-0">{{ run.run_name }}</h1>
+      <p class="text-muted mb-0">
+        Imported {{ run.created_at.strftime('%Y-%m-%d %H:%M') }} &middot;
+        {{ run.total_items }} items &middot;
+        <span class="text-success">{{ run.accepted_items }} accepted</span> &middot;
+        <span class="text-muted">{{ run.skipped_items }} skipped</span> &middot;
+        <span class="{% if pending_count > 0 %}text-warning fw-semibold{% else %}text-muted{% endif %}">
+          {{ pending_count }} pending
+        </span>
+      </p>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="{{ url_for('research.index') }}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left"></i> Back
+      </a>
+      {% if pending_count > 0 and current_user.can_edit() %}
+      <form method="post" action="{{ url_for('research.skip_all', run_id=run.run_id) }}"
+            onsubmit="return confirm('Skip all {{ pending_count }} remaining items?')">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="btn btn-outline-secondary btn-sm">Skip All Remaining</button>
+      </form>
+      {% endif %}
+    </div>
+  </div>
+
+  {% if not grouped['conflict'] and not grouped['update'] and not grouped['new'] %}
+    <div class="alert alert-success">All items have been reviewed. This run is complete.</div>
+  {% endif %}
+
+
+  {# ===========================================================
+     MACRO: full interactive card for pending items
+     =========================================================== #}
+  {% macro item_card(item) %}
+  {% set proposed = item.get_proposed() %}
+  {% set current  = item.get_current() %}
+  {% set changed  = item.get_changed_fields() %}
+  {% set sources  = item.get_source_urls() %}
+
+  <div class="card mb-3">
+    <div class="card-header d-flex justify-content-between align-items-center py-2">
+      <div>
+        <span class="badge
+          {% if item.change_type == 'conflict' %}bg-danger
+          {% elif item.change_type == 'update' %}bg-warning text-dark
+          {% else %}bg-primary{% endif %} me-2">
+          {{ item.change_type | capitalize }}
+        </span>
+        <span class="badge bg-secondary me-2">{{ item.entity_type }}</span>
+        <strong>{{ item.entity_name }}</strong>
+      </div>
+      {# Accept / Skip buttons only for new-entity pending items #}
+      {% if item.change_type == 'new' and current_user.can_edit() %}
+      <div class="d-flex gap-1">
+        <form method="post"
+              action="{{ url_for('research.accept_item', run_id=run.run_id, item_id=item.item_id) }}"
+              class="d-inline">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="btn btn-sm btn-success">Accept</button>
+        </form>
+        <form method="post"
+              action="{{ url_for('research.skip_item', run_id=run.run_id, item_id=item.item_id) }}"
+              class="d-inline">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="btn btn-sm btn-outline-secondary">Skip</button>
+        </form>
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="card-body py-2">
+
+      {# New entity: grid of proposed fields #}
+      {% if item.change_type == 'new' %}
+        <div class="row row-cols-2 row-cols-md-3 g-2 small">
+          {% for key, val in proposed.items() %}
+            {% if key not in ('db_id', 'slug', 'sources') and val is not none and val != '' and val != [] %}
+            <div class="col">
+              <span class="text-muted">{{ key }}:</span>
+              <span>
+                {% if val is iterable and val is not string %}{{ val | join(', ') }}
+                {% else %}{{ val }}{% endif %}
+              </span>
+            </div>
+            {% endif %}
+          {% endfor %}
+        </div>
+
+      {# Update / conflict: field-level selection form #}
+      {% elif current_user.can_edit() %}
+        <form method="post"
+              action="{{ url_for('research.accept_item', run_id=run.run_id, item_id=item.item_id) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <table class="table table-sm table-borderless small mb-0"
+                 style="table-layout:fixed;width:100%">
+            <thead class="table-light">
+              <tr>
+                <th style="width:4%" class="text-center" title="Apply this field">
+                  <i class="bi bi-check2-square"></i>
+                </th>
+                <th style="width:13%">Field</th>
+                <th style="width:38%">Current</th>
+                <th style="width:45%">Proposed <span class="text-muted fw-normal">(click <i class="bi bi-pencil-square"></i> to edit)</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for field in changed %}
+              {% set prop_val = proposed.get(field) %}
+              {% set curr_val = current.get(field) %}
+              <tr {% if item.change_type == 'conflict' and curr_val %}class="table-warning"{% endif %}>
+                <td class="text-center align-top pt-2">
+                  <input type="checkbox" name="fields" value="{{ field }}" checked
+                         class="form-check-input">
+                </td>
+                <td class="text-muted align-top pt-1" style="word-break:break-word">{{ field }}</td>
+                <td class="align-top pt-1" style="word-break:break-word;white-space:pre-wrap">{{ curr_val or '—' }}</td>
+                <td class="align-top pt-1">
+                  <div id="pd_{{ item.item_id }}_{{ field }}">
+                    <span style="word-break:break-word;white-space:pre-wrap">{{ prop_val or '—' }}</span>
+                    <button type="button"
+                            class="btn btn-link btn-sm p-0 ms-1 text-muted"
+                            title="Edit value before applying"
+                            onclick='showCustom({{ item.item_id }}, {{ field | tojson }}, {{ (prop_val or "") | tojson }})'>
+                      <i class="bi bi-pencil-square"></i>
+                    </button>
+                  </div>
+                  <div class="d-none" id="ce_{{ item.item_id }}_{{ field }}">
+                    <textarea class="form-control form-control-sm"
+                              name="custom_value_{{ field }}"
+                              rows="3"
+                              style="font-size:0.8rem;white-space:pre-wrap"></textarea>
+                    <button type="button"
+                            class="btn btn-link btn-sm p-0 mt-1 text-muted"
+                            onclick='hideCustom({{ item.item_id }}, {{ field | tojson }})'>
+                      <i class="bi bi-arrow-left-short"></i> Use proposed
+                    </button>
+                  </div>
+                  <input type="hidden" name="use_custom_{{ field }}"
+                         id="uc_{{ item.item_id }}_{{ field }}" value="0">
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+          <div class="mt-2 d-flex gap-2 align-items-center">
+            <button type="submit" class="btn btn-sm btn-success">Apply Selected Fields</button>
+            <span class="text-muted small">or</span>
+          </div>
+        </form>
+        <form method="post"
+              action="{{ url_for('research.skip_item', run_id=run.run_id, item_id=item.item_id) }}"
+              class="d-inline">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="btn btn-sm btn-outline-secondary mt-1">Skip Entire Item</button>
+        </form>
+
+      {# Read-only view for users without edit permission #}
+      {% else %}
+        <table class="table table-sm table-borderless small mb-0"
+               style="table-layout:fixed;width:100%">
+          <thead class="table-light">
+            <tr>
+              <th style="width:14%">Field</th>
+              <th style="width:43%">Current</th>
+              <th style="width:43%">Proposed</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for field in changed %}
+            <tr {% if item.change_type == 'conflict' and current.get(field) %}class="table-warning"{% endif %}>
+              <td class="text-muted" style="word-break:break-word">{{ field }}</td>
+              <td style="word-break:break-word;white-space:pre-wrap">{{ current.get(field) or '—' }}</td>
+              <td class="fw-semibold" style="word-break:break-word;white-space:pre-wrap">{{ proposed.get(field) or '—' }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% endif %}
+
+      {% if sources %}
+      <div class="mt-2 small">
+        <span class="text-muted">Sources:</span>
+        {% for url in sources %}
+          <a href="{{ url }}" target="_blank" rel="noopener" class="ms-1 text-truncate d-inline-block"
+             style="max-width:350px;vertical-align:bottom;">{{ url }}</a>{% if not loop.last %},{% endif %}
+        {% endfor %}
+      </div>
+      {% endif %}
+
+    </div>
+  </div>
+  {% endmacro %}
+
+
+  {# ===========================================================
+     MACRO: collapsed summary row for reviewed (accepted/skipped) items
+     =========================================================== #}
+  {% macro reviewed_card(item) %}
+  {% set proposed = item.get_proposed() %}
+  {% set current  = item.get_current() %}
+  {% set changed  = item.get_changed_fields() %}
+  {% set sources  = item.get_source_urls() %}
+
+  <div class="card mb-1 {% if item.status == 'accepted' %}border-success{% else %}border-secondary{% endif %}"
+       style="opacity:0.75">
+    <div class="card-header py-1 d-flex justify-content-between align-items-center small"
+         role="button"
+         data-bs-toggle="collapse"
+         data-bs-target="#reviewed_{{ item.item_id }}"
+         aria-expanded="false"
+         aria-controls="reviewed_{{ item.item_id }}"
+         style="cursor:pointer">
+      <div>
+        <span class="badge
+          {% if item.change_type == 'conflict' %}bg-danger
+          {% elif item.change_type == 'update' %}bg-warning text-dark
+          {% else %}bg-primary{% endif %} me-1" style="font-size:0.65rem">
+          {{ item.change_type | capitalize }}
+        </span>
+        <span class="badge bg-secondary me-1" style="font-size:0.65rem">{{ item.entity_type }}</span>
+        {{ item.entity_name }}
+      </div>
+      <div class="d-flex gap-2 align-items-center">
+        {% if item.status == 'accepted' %}
+          <span class="badge bg-success">Accepted</span>
+        {% else %}
+          <span class="badge bg-secondary">Skipped</span>
+        {% endif %}
+        {% if item.reviewed_at %}
+          <span class="text-muted" style="font-size:0.72rem">
+            {{ item.reviewed_at.strftime('%H:%M') }}
+          </span>
+        {% endif %}
+        <i class="bi bi-chevron-down text-muted" style="font-size:0.72rem"></i>
+      </div>
+    </div>
+    <div class="collapse" id="reviewed_{{ item.item_id }}">
+      <div class="card-body py-2">
+
+        {% if item.change_type == 'new' %}
+          <div class="row row-cols-2 row-cols-md-3 g-2 small">
+            {% for key, val in proposed.items() %}
+              {% if key not in ('db_id', 'slug', 'sources') and val is not none and val != '' and val != [] %}
+              <div class="col">
+                <span class="text-muted">{{ key }}:</span>
+                <span>
+                  {% if val is iterable and val is not string %}{{ val | join(', ') }}
+                  {% else %}{{ val }}{% endif %}
+                </span>
+              </div>
+              {% endif %}
+            {% endfor %}
+          </div>
+        {% else %}
+          <table class="table table-sm table-borderless small mb-0"
+                 style="table-layout:fixed;width:100%">
+            <thead class="table-light">
+              <tr>
+                <th style="width:14%">Field</th>
+                <th style="width:43%">Current (at import)</th>
+                <th style="width:43%">Proposed</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for field in changed %}
+              <tr {% if item.change_type == 'conflict' and current.get(field) %}class="table-warning"{% endif %}>
+                <td class="text-muted" style="word-break:break-word">{{ field }}</td>
+                <td style="word-break:break-word;white-space:pre-wrap">{{ current.get(field) or '—' }}</td>
+                <td style="word-break:break-word;white-space:pre-wrap">{{ proposed.get(field) or '—' }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        {% endif %}
+
+        {% if sources %}
+        <div class="mt-2 small">
+          <span class="text-muted">Sources:</span>
+          {% for url in sources %}
+            <a href="{{ url }}" target="_blank" rel="noopener" class="ms-1 text-truncate d-inline-block"
+               style="max-width:350px;vertical-align:bottom;">{{ url }}</a>{% if not loop.last %},{% endif %}
+          {% endfor %}
+        </div>
+        {% endif %}
+
+      </div>
+    </div>
+  </div>
+  {% endmacro %}
+
+
+  {# ===========================================================
+     HELPER MACRO: render one section (conflicts / updates / new)
+     splitting pending items above reviewed items
+     =========================================================== #}
+  {% macro render_section(items) %}
+    {% set pending  = items | selectattr('status', 'eq', 'pending')  | list %}
+    {% set reviewed = items | selectattr('status', 'ne', 'pending')  | list %}
+
+    {% for item in pending %}{{ item_card(item) }}{% endfor %}
+
+    {% if reviewed %}
+      <div class="d-flex align-items-center gap-2 mt-3 mb-1 text-muted small">
+        <hr class="flex-grow-1 my-0">
+        <span>{{ reviewed | length }} reviewed</span>
+        <hr class="flex-grow-1 my-0">
+      </div>
+      {% for item in reviewed %}{{ reviewed_card(item) }}{% endfor %}
+    {% endif %}
+  {% endmacro %}
+
+
+  {# ---- Conflicts first ---- #}
+  {% if grouped['conflict'] %}
+  <h5 class="text-danger mt-3">
+    <i class="bi bi-exclamation-triangle-fill"></i>
+    Conflicts ({{ grouped['conflict'] | length }})
+  </h5>
+  <p class="text-muted small">AI data differs from values already in your database. Review carefully.</p>
+  {{ render_section(grouped['conflict']) }}
+  {% endif %}
+
+  {# ---- Updates ---- #}
+  {% if grouped['update'] %}
+  <h5 class="text-warning mt-4">
+    <i class="bi bi-arrow-repeat"></i>
+    Updates ({{ grouped['update'] | length }})
+  </h5>
+  <p class="text-muted small">AI found newer information for these existing records.</p>
+  {{ render_section(grouped['update']) }}
+  {% endif %}
+
+  {# ---- New entities ---- #}
+  {% if grouped['new'] %}
+  <h5 class="text-primary mt-4">
+    <i class="bi bi-plus-circle"></i>
+    New ({{ grouped['new'] | length }})
+  </h5>
+  <p class="text-muted small">Entities and relationships not currently in your database.</p>
+  {{ render_section(grouped['new']) }}
+  {% endif %}
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function showCustom(itemId, field, proposedVal) {
+    document.getElementById('pd_' + itemId + '_' + field).classList.add('d-none');
+    const editDiv = document.getElementById('ce_' + itemId + '_' + field);
+    editDiv.classList.remove('d-none');
+    const ta = editDiv.querySelector('textarea');
+    if (!ta.value) ta.value = proposedVal;
+    ta.focus();
+    document.getElementById('uc_' + itemId + '_' + field).value = '1';
+}
+function hideCustom(itemId, field) {
+    document.getElementById('pd_' + itemId + '_' + field).classList.remove('d-none');
+    document.getElementById('ce_' + itemId + '_' + field).classList.add('d-none');
+    document.getElementById('uc_' + itemId + '_' + field).value = '0';
+}
+</script>
+{% endblock %}

@@ -6,6 +6,7 @@ import shutil
 from pathlib import Path
 from flask import Flask, g, session
 from flask_login import LoginManager
+from flask_wtf.csrf import CSRFProtect
 from sqlalchemy import create_engine, event, text
 from sqlalchemy.orm import scoped_session, sessionmaker
 from werkzeug.local import LocalProxy
@@ -37,6 +38,7 @@ class PersistentFileSystemLoader(BaseLoader):
 
 # Global objects
 login_manager = LoginManager()
+csrf = CSRFProtect()
 db_session = None  # Will be replaced with LocalProxy after create_app
 _engine_cache = {}  # Cache of {absolute_db_path: (engine, scoped_session)}
 _default_db_session = None  # Fallback for initial setup
@@ -424,6 +426,7 @@ def init_login_manager(app):
     Args:
         app: Flask application
     """
+    csrf.init_app(app)
     login_manager.init_app(app)
     login_manager.login_view = 'auth.login'
     login_manager.login_message = 'Please log in to access this page.'
@@ -450,7 +453,7 @@ def register_blueprints(app):
     Args:
         app: Flask application
     """
-    from app.routes import auth, dashboard, projects, companies, crm, reports, admin, contact_log, network, personnel, db_select
+    from app.routes import auth, dashboard, projects, companies, crm, reports, admin, contact_log, network, personnel, db_select, research
 
     app.register_blueprint(db_select.bp)
     app.register_blueprint(auth.bp)
@@ -463,6 +466,7 @@ def register_blueprints(app):
     app.register_blueprint(contact_log.bp)
     app.register_blueprint(network.bp)
     app.register_blueprint(personnel.bp)
+    app.register_blueprint(research.bp)
 
     # Legacy blueprints removed in Phase 4 cleanup (2025-10-10):
     # - operators, constructors, offtakers, technologies (use /companies?role=X instead)
