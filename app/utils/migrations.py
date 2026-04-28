@@ -25,7 +25,7 @@ class ValidationError(Exception):
 
 # Application version and required schema version
 APPLICATION_VERSION = "1.0.0"
-APPLICATION_REQUIRED_SCHEMA_VERSION = 16  # Updated to add research queue tables
+APPLICATION_REQUIRED_SCHEMA_VERSION = 18  # Drop contact tracking and relationship_strength fields
 
 
 def get_migrations_directory():

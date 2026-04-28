@@ -6,13 +6,22 @@ company.company_name }} - NukeWorks{% endblock %} {% block content %}
     <div class="col-12">
       <div class="d-flex justify-content-between align-items-center">
         <h2 class="mb-0">{{ company.company_name }}</h2>
-        <a
-          href="{{ url_for('crm.dashboard') }}"
-          class="btn btn-outline-secondary"
-          title="Back to CRM Dashboard"
-        >
-          <i class="bi bi-arrow-left"></i>
-        </a>
+        <div class="d-flex gap-2">
+          <a
+            href="{{ url_for('companies.edit_company', company_id=company.company_id) }}"
+            class="btn btn-outline-primary btn-sm"
+            title="Edit company record"
+          >
+            <i class="bi bi-pencil-square"></i> Edit Company
+          </a>
+          <a
+            href="{{ url_for('crm.dashboard') }}"
+            class="btn btn-outline-secondary btn-sm"
+            title="Back to CRM Dashboard"
+          >
+            <i class="bi bi-arrow-left"></i>
+          </a>
+        </div>
       </div>
     </div>
   </div>
@@ -137,6 +146,29 @@ company.company_name }} - NukeWorks{% endblock %} {% block content %}
 
     <!-- Sidebar with Previous Entries -->
     <div class="col-md-4">
+
+      <!-- Client Classification -->
+      <div class="card mb-3">
+        <div class="card-header">
+          <h6 class="mb-0"><i class="bi bi-tag"></i> Client Classification</h6>
+        </div>
+        <div class="card-body">
+          <div class="row g-2">
+            <div class="col-6">
+              {{ form.client_tier.label(class="form-label form-label-sm mb-1") }}
+              {{ form.client_tier(class="form-select form-select-sm") }}
+            </div>
+            <div class="col-6">
+              {{ form.client_priority.label(class="form-label form-label-sm mb-1") }}
+              {{ form.client_priority(class="form-select form-select-sm") }}
+            </div>
+          </div>
+          <div class="mt-2">
+            <small class="text-muted">Saved with the roundtable entry below.</small>
+          </div>
+        </div>
+      </div>
+
       <!-- Company Personnel -->
       <div class="card mb-3">
         <div

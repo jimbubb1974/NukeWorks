@@ -13,7 +13,7 @@ from app.models import (
     ContactLog,
     Personnel,
     Company,
-    ClientProfile
+    ClientProfile,
 )
 from app.forms.roundtable import RoundtableHistoryForm
 from app import db_session
@@ -295,8 +295,16 @@ def add_roundtable_entry(company_id):
                 discussion=form.discussion.data,
                 created_by=current_user.user_id
             )
-
             db_session.add(entry)
+
+            # Update ClientProfile tier and priority
+            profile = company.client_profile
+            if not profile:
+                profile = ClientProfile(company_id=company.company_id)
+                db_session.add(profile)
+            profile.client_tier = form.client_tier.data or None
+            profile.client_priority = form.client_priority.data or None
+
             db_session.commit()
 
             flash(f'Roundtable entry saved successfully', 'success')
@@ -319,11 +327,15 @@ def add_roundtable_entry(company_id):
     most_recent_entry = previous_entries[0] if previous_entries else None
 
     # Pre-fill form with most recent entry data (if exists and form not submitted)
-    if not form.is_submitted() and most_recent_entry:
-        form.next_steps.data = most_recent_entry.next_steps
-        form.client_near_term_focus.data = most_recent_entry.client_near_term_focus
-        form.mpr_work_targets.data = most_recent_entry.mpr_work_targets
-        form.discussion.data = most_recent_entry.discussion
+    if not form.is_submitted():
+        if most_recent_entry:
+            form.next_steps.data = most_recent_entry.next_steps
+            form.client_near_term_focus.data = most_recent_entry.client_near_term_focus
+            form.mpr_work_targets.data = most_recent_entry.mpr_work_targets
+            form.discussion.data = most_recent_entry.discussion
+        profile = company.client_profile
+        form.client_tier.data = (profile.client_tier or '') if profile else ''
+        form.client_priority.data = (profile.client_priority or '') if profile else ''
 
     # Get external personnel for this company with their MPR relationships
     from app.models import ExternalPersonnel, PersonnelRelationship, InternalPersonnel

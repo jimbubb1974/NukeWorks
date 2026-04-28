@@ -8,8 +8,11 @@ from werkzeug.routing import BuildError
 from datetime import datetime
 
 from app import db_session
-from app.models import Company, CompanyRole, CompanyRoleAssignment
-from app.forms.companies import CompanyForm
+from app.models import (
+    Company, CompanyRole, CompanyRoleAssignment,
+    ExternalPersonnel, InternalPersonnel, PersonnelRelationship,
+)
+from app.forms.companies import CompanyForm, CompanyPersonnelRelationshipForm
 from app.forms.relationships import ConfirmActionForm
 from app.utils.permissions import edit_required
 
@@ -76,12 +79,7 @@ def create_company():
                     client_priority=form.client_priority.data or None,
                     client_tier=form.client_tier.data or None,
                     client_status=form.client_status.data or None,
-                    relationship_strength=form.relationship_strength.data or None,
                     relationship_notes=form.relationship_notes.data or None,
-                    last_contact_date=form.last_contact_date.data,
-                    last_contact_type=form.last_contact_type.data or None,
-                    next_planned_contact_date=form.next_planned_contact_date.data,
-                    next_planned_contact_type=form.next_planned_contact_type.data or None,
                     created_by=current_user.user_id,
                     modified_by=current_user.user_id,
                     created_date=datetime.utcnow(),
@@ -259,12 +257,7 @@ def edit_company(company_id):
         form.client_priority.data = company.client_profile.client_priority
         form.client_tier.data = company.client_profile.client_tier
         form.client_status.data = company.client_profile.client_status
-        form.relationship_strength.data = company.client_profile.relationship_strength
         form.relationship_notes.data = company.client_profile.relationship_notes
-        form.last_contact_date.data = company.client_profile.last_contact_date
-        form.last_contact_type.data = company.client_profile.last_contact_type
-        form.next_planned_contact_date.data = company.client_profile.next_planned_contact_date
-        form.next_planned_contact_type.data = company.client_profile.next_planned_contact_type
     
     if form.validate_on_submit():
         try:
@@ -292,12 +285,7 @@ def edit_company(company_id):
                 client_profile.client_priority = form.client_priority.data or None
                 client_profile.client_tier = form.client_tier.data or None
                 client_profile.client_status = form.client_status.data or None
-                client_profile.relationship_strength = form.relationship_strength.data or None
                 client_profile.relationship_notes = form.relationship_notes.data or None
-                client_profile.last_contact_date = form.last_contact_date.data
-                client_profile.last_contact_type = form.last_contact_type.data or None
-                client_profile.next_planned_contact_date = form.next_planned_contact_date.data
-                client_profile.next_planned_contact_type = form.next_planned_contact_type.data or None
                 client_profile.modified_by = current_user.user_id
                 client_profile.modified_date = datetime.utcnow()
             else:
@@ -331,11 +319,44 @@ def edit_company(company_id):
             db_session.rollback()
             flash(f'Error updating company: {exc}', 'danger')
 
+    # Build relationship data for the sidebar
+    ext_personnel = db_session.query(ExternalPersonnel).filter_by(
+        company_id=company_id, is_active=True
+    ).order_by(ExternalPersonnel.full_name).all()
+
+    relationships = []
+    if ext_personnel:
+        ext_ids = [p.personnel_id for p in ext_personnel]
+        from sqlalchemy.orm import joinedload as _jl
+        relationships = (
+            db_session.query(PersonnelRelationship)
+            .filter(PersonnelRelationship.external_personnel_id.in_(ext_ids))
+            .options(_jl(PersonnelRelationship.internal_personnel),
+                     _jl(PersonnelRelationship.external_personnel))
+            .order_by(PersonnelRelationship.relationship_type)
+            .all()
+        )
+
+    int_personnel = db_session.query(InternalPersonnel).filter_by(
+        is_active=True
+    ).order_by(InternalPersonnel.full_name).all()
+
+    rel_form = CompanyPersonnelRelationshipForm(prefix='rel')
+    rel_form.external_personnel_id.choices = [
+        (p.personnel_id, p.full_name) for p in ext_personnel
+    ]
+    rel_form.internal_personnel_id.choices = [
+        (p.personnel_id, p.full_name) for p in int_personnel
+    ]
+
     return render_template(
         'companies/form.html',
         form=form,
         company=company,
-        title=f'Edit Company: {company.company_name}'
+        title=f'Edit Company: {company.company_name}',
+        relationships=relationships,
+        rel_form=rel_form,
+        ext_personnel=ext_personnel,
     )
 
 
@@ -364,6 +385,83 @@ def delete_company(company_id):
         db_session.rollback()
         flash(f'Error deleting company: {exc}', 'danger')
         return redirect(url_for('companies.view_company', company_id=company_id))
+
+
+@bp.route('/<int:company_id>/relationships/add', methods=['POST'])
+@login_required
+@edit_required
+def add_company_relationship(company_id):
+    """Add a PersonnelRelationship between a client contact and an MPR person."""
+    company = _get_company_or_404(company_id)
+
+    if not _can_manage_companies(current_user):
+        flash('You do not have permission to manage relationships.', 'danger')
+        return redirect(url_for('companies.edit_company', company_id=company_id))
+
+    ext_personnel = db_session.query(ExternalPersonnel).filter_by(
+        company_id=company_id, is_active=True
+    ).order_by(ExternalPersonnel.full_name).all()
+    int_personnel = db_session.query(InternalPersonnel).filter_by(
+        is_active=True
+    ).order_by(InternalPersonnel.full_name).all()
+
+    rel_form = CompanyPersonnelRelationshipForm(prefix='rel')
+    rel_form.external_personnel_id.choices = [(p.personnel_id, p.full_name) for p in ext_personnel]
+    rel_form.internal_personnel_id.choices = [(p.personnel_id, p.full_name) for p in int_personnel]
+
+    if rel_form.validate_on_submit():
+        try:
+            rel = PersonnelRelationship(
+                external_personnel_id=rel_form.external_personnel_id.data,
+                internal_personnel_id=rel_form.internal_personnel_id.data,
+                relationship_type=rel_form.relationship_type.data or None,
+                notes=rel_form.notes.data or None,
+                created_by=current_user.user_id,
+                modified_by=current_user.user_id,
+            )
+            db_session.add(rel)
+            db_session.commit()
+            flash('Relationship added.', 'success')
+        except Exception as exc:
+            db_session.rollback()
+            flash(f'Error adding relationship: {exc}', 'danger')
+    else:
+        for field, errors in rel_form.errors.items():
+            for err in errors:
+                flash(f'{field}: {err}', 'danger')
+
+    return redirect(url_for('companies.edit_company', company_id=company_id))
+
+
+@bp.route('/<int:company_id>/relationships/<int:rel_id>/delete', methods=['POST'])
+@login_required
+@edit_required
+def delete_company_relationship(company_id, rel_id):
+    """Delete a PersonnelRelationship."""
+    _get_company_or_404(company_id)
+
+    if not _can_manage_companies(current_user):
+        flash('You do not have permission to manage relationships.', 'danger')
+        return redirect(url_for('companies.edit_company', company_id=company_id))
+
+    rel = db_session.get(PersonnelRelationship, rel_id)
+    if not rel:
+        flash('Relationship not found.', 'warning')
+        return redirect(url_for('companies.edit_company', company_id=company_id))
+
+    # Verify it belongs to this company
+    if rel.external_personnel.company_id != company_id:
+        abort(403)
+
+    try:
+        db_session.delete(rel)
+        db_session.commit()
+        flash('Relationship removed.', 'success')
+    except Exception as exc:
+        db_session.rollback()
+        flash(f'Error removing relationship: {exc}', 'danger')
+
+    return redirect(url_for('companies.edit_company', company_id=company_id))
 
 
 @bp.route('/<int:company_id>/personnel', methods=['POST'])
@@ -433,10 +531,11 @@ def unlink_personnel_from_company(company_id, personnel_id):
             flash('Person not found or not linked to this company.', 'error')
             return redirect(url_for('companies.view_company', company_id=company_id))
         
-        # Unlink the personnel from the company
-        personnel.company_id = None
+        # Remove the personnel record (external contacts are tied to a specific company)
+        name = personnel.full_name
+        db_session.delete(personnel)
         db_session.commit()
-        flash(f'{personnel.full_name} unlinked from {company.company_name} successfully.', 'success')
+        flash(f'{name} removed from {company.company_name} successfully.', 'success')
         
     except Exception as exc:
         db_session.rollback()

@@ -23,36 +23,28 @@
   </div>
   {% else %}
 
+  {# Determine whether the "No Priority" column is needed #}
+  {% set show_no_priority_col = namespace(v=false) %}
+  {% for t in tiers + ['—'] %}
+    {% if matrix[t]['—'] %}{% set show_no_priority_col.v = true %}{% endif %}
+  {% endfor %}
+
   <!-- Matrix -->
   <div class="card">
     <div class="card-body p-0">
       <table class="table table-bordered mb-0 roundtable-matrix">
         <thead class="table-dark">
           <tr>
-            <th class="text-center align-middle" style="width:10%">Tier \ Priority</th>
+            <th class="text-center align-middle">Tier \ Priority</th>
             {% for p in priorities %}
-            <th class="text-center align-middle">
-              <span class="badge fs-6
-                {%- if p == 'High' %} bg-danger
-                {%- elif p == 'Medium' %} bg-warning text-dark
-                {%- else %} bg-secondary
-                {%- endif %}">{{ p }}</span>
-            </th>
+            <th class="text-center align-middle">{{ p }}</th>
             {% endfor %}
-            {% set unclassified_priority_exists = namespace(v=false) %}
-            {% for t in tiers + ['—'] %}
-              {% if matrix[t]['—'] %}{% set unclassified_priority_exists.v = true %}{% endif %}
-            {% endfor %}
-            {% if unclassified_priority_exists.v %}
+            {% if show_no_priority_col.v %}
             <th class="text-center align-middle text-muted">No Priority</th>
             {% endif %}
           </tr>
         </thead>
         <tbody>
-          {% set show_no_priority_col = namespace(v=false) %}
-          {% for t in tiers + ['—'] %}
-            {% if matrix[t]['—'] %}{% set show_no_priority_col.v = true %}{% endif %}
-          {% endfor %}
 
           {% for tier in tiers %}
           <tr>
@@ -60,24 +52,16 @@
               {{ tier }}
             </td>
             {% for p in priorities %}
-            {% set cell = matrix[tier][p] %}
-            <td class="align-top p-2" style="min-width:160px">
+            <td class="align-top p-2">
+              {% set cell = matrix[tier][p] %}
               {% if cell %}
               <ul class="list-unstyled mb-0">
                 {% for company in cell %}
-                {% set latest = latest_roundtables.get(company.company_id) %}
                 <li class="mb-1">
                   <a href="{{ url_for('crm.add_roundtable_entry', company_id=company.company_id) }}"
                      class="text-decoration-none fw-semibold">
                     {{ company.company_name }}
                   </a>
-                  {% if latest %}
-                  <br><small class="text-muted">
-                    Last: {{ latest.created_timestamp.strftime('%b %d, %Y') }}
-                  </small>
-                  {% else %}
-                  <br><small class="text-warning">No entries yet</small>
-                  {% endif %}
                 </li>
                 {% endfor %}
               </ul>
@@ -90,17 +74,11 @@
               {% if cell %}
               <ul class="list-unstyled mb-0">
                 {% for company in cell %}
-                {% set latest = latest_roundtables.get(company.company_id) %}
                 <li class="mb-1">
                   <a href="{{ url_for('crm.add_roundtable_entry', company_id=company.company_id) }}"
                      class="text-decoration-none fw-semibold text-secondary">
                     {{ company.company_name }}
                   </a>
-                  {% if latest %}
-                  <br><small class="text-muted">Last: {{ latest.created_timestamp.strftime('%b %d, %Y') }}</small>
-                  {% else %}
-                  <br><small class="text-warning">No entries yet</small>
-                  {% endif %}
                 </li>
                 {% endfor %}
               </ul>
@@ -124,17 +102,11 @@
               {% if cell %}
               <ul class="list-unstyled mb-0">
                 {% for company in cell %}
-                {% set latest = latest_roundtables.get(company.company_id) %}
                 <li class="mb-1">
                   <a href="{{ url_for('crm.add_roundtable_entry', company_id=company.company_id) }}"
                      class="text-decoration-none fw-semibold text-secondary">
                     {{ company.company_name }}
                   </a>
-                  {% if latest %}
-                  <br><small class="text-muted">Last: {{ latest.created_timestamp.strftime('%b %d, %Y') }}</small>
-                  {% else %}
-                  <br><small class="text-warning">No entries yet</small>
-                  {% endif %}
                 </li>
                 {% endfor %}
               </ul>
@@ -147,17 +119,11 @@
               {% if cell %}
               <ul class="list-unstyled mb-0">
                 {% for company in cell %}
-                {% set latest = latest_roundtables.get(company.company_id) %}
                 <li class="mb-1">
                   <a href="{{ url_for('crm.add_roundtable_entry', company_id=company.company_id) }}"
                      class="text-decoration-none fw-semibold text-secondary">
                     {{ company.company_name }}
                   </a>
-                  {% if latest %}
-                  <br><small class="text-muted">Last: {{ latest.created_timestamp.strftime('%b %d, %Y') }}</small>
-                  {% else %}
-                  <br><small class="text-warning">No entries yet</small>
-                  {% endif %}
                 </li>
                 {% endfor %}
               </ul>
@@ -179,8 +145,14 @@
 </div>
 
 <style>
-.roundtable-matrix td, .roundtable-matrix th {
+.roundtable-matrix {
+  table-layout: fixed;
+  width: 100%;
+}
+.roundtable-matrix th,
+.roundtable-matrix td {
   vertical-align: top;
+  width: auto;
 }
 .roundtable-matrix tbody tr td:first-child {
   vertical-align: middle;

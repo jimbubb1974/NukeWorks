@@ -6,10 +6,7 @@
       <h1 class="h3 mb-1"><i class="bi bi-building"></i> {{ title }}</h1>
       <p class="text-muted mb-0">Company Information</p>
     </div>
-    <a
-      href="{{ url_for('companies.list_companies') }}"
-      class="btn btn-outline-secondary"
-    >
+    <a href="{{ url_for('companies.list_companies') }}" class="btn btn-outline-secondary">
       <i class="bi bi-arrow-left"></i> Back to Companies
     </a>
   </div>
@@ -17,72 +14,64 @@
 
 <div class="row">
   <div class="col-lg-8 col-xl-6">
-    <div class="card">
+
+    <!-- Main company form -->
+    <div class="card mb-4">
       <div class="card-body">
         <form method="post">
           {{ form.hidden_tag() }}
 
           <div class="mb-3">
-            {{ form.company_name.label(class='form-label') }} {{
-            form.company_name(class='form-control') }} {% if
-            form.company_name.errors %}
-            <div class="text-danger small">
-              {{ form.company_name.errors[0] }}
-            </div>
+            {{ form.company_name.label(class='form-label') }}
+            {{ form.company_name(class='form-control') }}
+            {% if form.company_name.errors %}
+            <div class="text-danger small">{{ form.company_name.errors[0] }}</div>
             {% endif %}
           </div>
 
           <div class="mb-3">
-            {{ form.company_type.label(class='form-label') }} {{
-            form.company_type(class='form-control') }} {% if
-            form.company_type.errors %}
-            <div class="text-danger small">
-              {{ form.company_type.errors[0] }}
-            </div>
+            {{ form.company_type.label(class='form-label') }}
+            {{ form.company_type(class='form-control') }}
+            {% if form.company_type.errors %}
+            <div class="text-danger small">{{ form.company_type.errors[0] }}</div>
             {% endif %}
           </div>
 
           <div class="mb-3">
-            {{ form.website.label(class='form-label') }} {{
-            form.website(class='form-control') }} {% if form.website.errors %}
+            {{ form.website.label(class='form-label') }}
+            {{ form.website(class='form-control') }}
+            {% if form.website.errors %}
             <div class="text-danger small">{{ form.website.errors[0] }}</div>
             {% endif %}
           </div>
 
           <div class="mb-3">
-            {{ form.headquarters_country.label(class='form-label') }} {{
-            form.headquarters_country(class='form-control') }} {% if
-            form.headquarters_country.errors %}
-            <div class="text-danger small">
-              {{ form.headquarters_country.errors[0] }}
-            </div>
+            {{ form.headquarters_country.label(class='form-label') }}
+            {{ form.headquarters_country(class='form-control') }}
+            {% if form.headquarters_country.errors %}
+            <div class="text-danger small">{{ form.headquarters_country.errors[0] }}</div>
             {% endif %}
           </div>
 
           <div class="row g-3 mt-1">
             <div class="col-md-6">
               <div class="form-check form-switch">
-                {{ form.is_mpr_client(class='form-check-input',
-                id='mprClientSwitch') }}
-                <label class="form-check-label" for="mprClientSwitch"
-                  >MPR Client</label
-                >
+                {{ form.is_mpr_client(class='form-check-input', id='mprClientSwitch') }}
+                <label class="form-check-label" for="mprClientSwitch">MPR Client</label>
               </div>
             </div>
             <div class="col-md-6">
               <div class="form-check form-switch">
-                {{ form.is_internal(class='form-check-input',
-                id='internalSwitch') }}
-                <label class="form-check-label" for="internalSwitch"
-                  >Internal Company</label
-                >
+                {{ form.is_internal(class='form-check-input', id='internalSwitch') }}
+                <label class="form-check-label" for="internalSwitch">Internal Company</label>
               </div>
             </div>
           </div>
 
           <div class="mb-3 mt-3">
-            {{ form.notes.label(class='form-label') }} {{
-            form.notes(class='form-control') }} {% if form.notes.errors %}
+            {{ form.notes.label(class='form-label') }}
+            {{ form.notes(class='form-control') }}
+            {% if form.notes.errors %}
             <div class="text-danger small">{{ form.notes.errors[0] }}</div>
             {% endif %}
           </div>
@@ -90,116 +79,132 @@
           <!-- MPR Client CRM Fields (shown only when MPR Client is checked) -->
           <div id="mprClientFields" class="mt-4" style="display: none">
             <hr />
-            <h5 class="mb-3">
-              <i class="bi bi-people-fill"></i> MPR Client CRM Data
-            </h5>
+            <h5 class="mb-3"><i class="bi bi-people-fill"></i> MPR Client CRM Data</h5>
 
             <div class="row g-3">
               <div class="col-md-4">
-                {{ form.client_priority.label(class='form-label') }} {{
-                form.client_priority(class='form-select') }} {% if
-                form.client_priority.errors %}
-                <div class="text-danger small">
-                  {{ form.client_priority.errors[0] }}
-                </div>
+                {{ form.client_priority.label(class='form-label') }}
+                {{ form.client_priority(class='form-select') }}
+                {% if form.client_priority.errors %}
+                <div class="text-danger small">{{ form.client_priority.errors[0] }}</div>
                 {% endif %}
               </div>
               <div class="col-md-4">
-                {{ form.client_tier.label(class='form-label') }} {{
-                form.client_tier(class='form-select') }} {% if
-                form.client_tier.errors %}
-                <div class="text-danger small">
-                  {{ form.client_tier.errors[0] }}
-                </div>
+                {{ form.client_tier.label(class='form-label') }}
+                {{ form.client_tier(class='form-select') }}
+                {% if form.client_tier.errors %}
+                <div class="text-danger small">{{ form.client_tier.errors[0] }}</div>
                 {% endif %}
               </div>
               <div class="col-md-4">
-                {{ form.client_status.label(class='form-label') }} {{
-                form.client_status(class='form-select') }} {% if
-                form.client_status.errors %}
-                <div class="text-danger small">
-                  {{ form.client_status.errors[0] }}
-                </div>
-                {% endif %}
-              </div>
-            </div>
-
-            <div class="row g-3 mt-2">
-              <div class="col-md-6">
-                {{ form.relationship_strength.label(class='form-label') }} {{
-                form.relationship_strength(class='form-select') }} {% if
-                form.relationship_strength.errors %}
-                <div class="text-danger small">
-                  {{ form.relationship_strength.errors[0] }}
-                </div>
-                {% endif %}
-              </div>
-              <div class="col-md-6">
-                {{ form.last_contact_type.label(class='form-label') }} {{
-                form.last_contact_type(class='form-select') }} {% if
-                form.last_contact_type.errors %}
-                <div class="text-danger small">
-                  {{ form.last_contact_type.errors[0] }}
-                </div>
-                {% endif %}
-              </div>
-            </div>
-
-            <div class="row g-3 mt-2">
-              <div class="col-md-6">
-                {{ form.last_contact_date.label(class='form-label') }} {{
-                form.last_contact_date(class='form-control') }} {% if
-                form.last_contact_date.errors %}
-                <div class="text-danger small">
-                  {{ form.last_contact_date.errors[0] }}
-                </div>
-                {% endif %}
-              </div>
-              <div class="col-md-6">
-                {{ form.next_planned_contact_date.label(class='form-label') }}
-                {{ form.next_planned_contact_date(class='form-control') }} {% if
-                form.next_planned_contact_date.errors %}
-                <div class="text-danger small">
-                  {{ form.next_planned_contact_date.errors[0] }}
-                </div>
-                {% endif %}
-              </div>
-            </div>
-
-            <div class="row g-3 mt-2">
-              <div class="col-md-6">
-                {{ form.next_planned_contact_type.label(class='form-label') }}
-                {{ form.next_planned_contact_type(class='form-select') }} {% if
-                form.next_planned_contact_type.errors %}
-                <div class="text-danger small">
-                  {{ form.next_planned_contact_type.errors[0] }}
-                </div>
+                {{ form.client_status.label(class='form-label') }}
+                {{ form.client_status(class='form-select') }}
+                {% if form.client_status.errors %}
+                <div class="text-danger small">{{ form.client_status.errors[0] }}</div>
                 {% endif %}
               </div>
             </div>
 
             <div class="mb-3 mt-3">
-              {{ form.relationship_notes.label(class='form-label') }} {{
-              form.relationship_notes(class='form-control') }} {% if
-              form.relationship_notes.errors %}
-              <div class="text-danger small">
-                {{ form.relationship_notes.errors[0] }}
-              </div>
+              {{ form.relationship_notes.label(class='form-label') }}
+              {{ form.relationship_notes(class='form-control') }}
+              {% if form.relationship_notes.errors %}
+              <div class="text-danger small">{{ form.relationship_notes.errors[0] }}</div>
               {% endif %}
             </div>
           </div>
 
           <div class="d-flex justify-content-end gap-2">
-            <a
-              href="{{ url_for('companies.list_companies') }}"
-              class="btn btn-outline-secondary"
-              >Cancel</a
-            >
+            <a href="{{ url_for('companies.list_companies') }}" class="btn btn-outline-secondary">Cancel</a>
             {{ form.submit(class='btn btn-primary') }}
           </div>
         </form>
       </div>
     </div>
+
+    {% if company and company.company_id %}
+    <!-- MPR Relationships -->
+    <div class="card">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="bi bi-diagram-3"></i> MPR Relationships</h5>
+        <small class="text-muted">Links between client contacts and MPR staff</small>
+      </div>
+      <div class="card-body">
+
+        {% if relationships %}
+        <table class="table table-sm table-hover mb-3">
+          <thead class="table-light">
+            <tr>
+              <th>Client Contact</th>
+              <th>MPR Person</th>
+              <th>Type</th>
+              <th>Notes</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for rel in relationships %}
+            <tr>
+              <td>{{ rel.external_personnel.full_name }}</td>
+              <td>{{ rel.internal_personnel.full_name }}</td>
+              <td><span class="badge bg-secondary">{{ rel.relationship_type or '—' }}</span></td>
+              <td class="text-muted small">{{ rel.notes or '' }}</td>
+              <td class="text-end">
+                <form method="post"
+                      action="{{ url_for('companies.delete_company_relationship', company_id=company.company_id, rel_id=rel.relationship_id) }}"
+                      onsubmit="return confirm('Remove this relationship?')">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <button type="submit" class="btn btn-outline-danger btn-sm" title="Remove">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </form>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+        <p class="text-muted small mb-3">No relationships recorded yet.</p>
+        {% endif %}
+
+        {% if ext_personnel %}
+        <hr />
+        <h6 class="mb-3">Add Relationship</h6>
+        <form method="post" action="{{ url_for('companies.add_company_relationship', company_id=company.company_id) }}">
+          {{ rel_form.hidden_tag() }}
+          <div class="row g-2 align-items-end">
+            <div class="col-md-3">
+              {{ rel_form.external_personnel_id.label(class='form-label form-label-sm mb-1') }}
+              {{ rel_form.external_personnel_id(class='form-select form-select-sm') }}
+            </div>
+            <div class="col-md-3">
+              {{ rel_form.internal_personnel_id.label(class='form-label form-label-sm mb-1') }}
+              {{ rel_form.internal_personnel_id(class='form-select form-select-sm') }}
+            </div>
+            <div class="col-md-2">
+              {{ rel_form.relationship_type.label(class='form-label form-label-sm mb-1') }}
+              {{ rel_form.relationship_type(class='form-select form-select-sm') }}
+            </div>
+            <div class="col-md-3">
+              {{ rel_form.notes.label(class='form-label form-label-sm mb-1') }}
+              {{ rel_form.notes(class='form-control form-control-sm', rows=1) }}
+            </div>
+            <div class="col-md-1">
+              <button type="submit" class="btn btn-primary btn-sm w-100">Add</button>
+            </div>
+          </div>
+        </form>
+        {% else %}
+        <p class="text-muted small mb-0">
+          <i class="bi bi-info-circle"></i>
+          Add client contacts for this company first before linking to MPR staff.
+        </p>
+        {% endif %}
+
+      </div>
+    </div>
+    {% endif %}
+
   </div>
 </div>
 {% endblock %} {% block extra_js %}
@@ -208,7 +213,6 @@
     const mprClientSwitch = document.getElementById("mprClientSwitch");
     const mprClientFields = document.getElementById("mprClientFields");
 
-    // Function to toggle MPR client fields visibility
     function toggleMprFields() {
       if (mprClientSwitch.checked) {
         mprClientFields.style.display = "block";
@@ -217,10 +221,7 @@
       }
     }
 
-    // Initial state
     toggleMprFields();
-
-    // Add event listener
     mprClientSwitch.addEventListener("change", toggleMprFields);
   });
 </script>

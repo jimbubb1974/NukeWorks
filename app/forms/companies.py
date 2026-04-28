@@ -72,57 +72,48 @@ class CompanyForm(FlaskForm):
         validators=[Optional()]
     )
 
-    relationship_strength = SelectField(
-        'Relationship Strength',
-        choices=[
-            ('', '-- Select Strength --'),
-            ('Strong', 'Strong'),
-            ('Good', 'Good'),
-            ('Needs Attention', 'Needs Attention'),
-            ('At Risk', 'At Risk'),
-            ('New', 'New')
-        ],
-        validators=[Optional()]
-    )
-
     relationship_notes = TextAreaField(
         'Relationship Notes',
         validators=[Optional(), Length(max=2000)],
         render_kw={'rows': 3, 'placeholder': 'Internal strategy notes and relationship insights'}
     )
 
-    last_contact_date = DateField(
-        'Last Contact Date',
-        validators=[Optional()]
-    )
-
-    last_contact_type = SelectField(
-        'Last Contact Type',
-        choices=[
-            ('', '-- Select Type --'),
-            ('In-person', 'In-person'),
-            ('Phone', 'Phone'),
-            ('Email', 'Email'),
-            ('Video', 'Video')
-        ],
-        validators=[Optional()]
-    )
-
-    next_planned_contact_date = DateField(
-        'Next Planned Contact Date',
-        validators=[Optional()]
-    )
-
-    next_planned_contact_type = SelectField(
-        'Next Contact Type',
-        choices=[
-            ('', '-- Select Type --'),
-            ('In-person', 'In-person'),
-            ('Phone', 'Phone'),
-            ('Email', 'Email'),
-            ('Video', 'Video')
-        ],
-        validators=[Optional()]
-    )
-
     submit = SubmitField('Save')
+
+
+class CompanyPersonnelRelationshipForm(FlaskForm):
+    """Add a relationship between a client contact and an MPR person."""
+
+    external_personnel_id = SelectField(
+        'Client Contact',
+        coerce=int,
+        choices=[],
+        validators=[DataRequired(message='Select a client contact')]
+    )
+
+    internal_personnel_id = SelectField(
+        'MPR Person',
+        coerce=int,
+        choices=[],
+        validators=[DataRequired(message='Select an MPR person')]
+    )
+
+    relationship_type = SelectField(
+        'Relationship Type',
+        choices=[
+            ('Primary Contact', 'Primary Contact'),
+            ('Technical Contact', 'Technical Contact'),
+            ('Business Contact', 'Business Contact'),
+            ('Account Manager', 'Account Manager'),
+            ('Other', 'Other'),
+        ],
+        validators=[Optional()]
+    )
+
+    notes = TextAreaField(
+        'Notes',
+        validators=[Optional(), Length(max=1000)],
+        render_kw={'rows': 2}
+    )
+
+    submit = SubmitField('Add')

@@ -2,7 +2,7 @@
 from datetime import date
 
 from flask_wtf import FlaskForm
-from wtforms import DateField, TextAreaField, SubmitField
+from wtforms import DateField, SelectField, TextAreaField, SubmitField
 from wtforms.validators import DataRequired, Length, ValidationError
 
 from app.utils.validators import validate_meeting_date, validate_string_field, ValidationError as AppValidationError
@@ -61,6 +61,27 @@ class RoundtableHistoryForm(FlaskForm):
         'General Discussion',
         validators=[Length(max=10000)],
         render_kw={"placeholder": "General discussion notes (optional)"}
+    )
+
+    client_tier = SelectField(
+        'Tier',
+        choices=[
+            ('', '— No Tier —'),
+            ('Tier 1', 'Tier 1'),
+            ('Tier 2', 'Tier 2'),
+            ('Tier 3', 'Tier 3'),
+            ('Tier 4', 'Tier 4'),
+        ]
+    )
+
+    client_priority = SelectField(
+        'Priority',
+        choices=[
+            ('', '— No Priority —'),
+            ('High', 'High'),
+            ('Medium', 'Medium'),
+            ('Low', 'Low'),
+        ]
     )
 
     submit = SubmitField('Save Roundtable Entry')

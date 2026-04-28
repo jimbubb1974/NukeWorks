@@ -275,29 +275,6 @@
                             <dl class="row mb-0">
                                 <dt class="col-sm-4">Status:</dt>
                                 <dd class="col-sm-8">{{ profile.client_status or '—' }}</dd>
-                                <dt class="col-sm-4">Relationship:</dt>
-                                <dd class="col-sm-8">{{ profile.relationship_strength or '—' }}</dd>
-                            </dl>
-                        </div>
-                        <div class="col-md-6">
-                            <dl class="row mb-0">
-                                <dt class="col-sm-4">Last Contact:</dt>
-                                <dd class="col-sm-8">
-                                    {% if profile.last_contact_date %}
-                                        {{ profile.last_contact_date.strftime('%Y-%m-%d') }}
-                                        {% if profile.last_contact_type %}({{ profile.last_contact_type }}){% endif %}
-                                    {% else %}
-                                        Never
-                                    {% endif %}
-                                </dd>
-                                <dt class="col-sm-4">Next Contact:</dt>
-                                <dd class="col-sm-8">
-                                    {% if profile.next_planned_contact_date %}
-                                        {{ profile.next_planned_contact_date.strftime('%Y-%m-%d') }}
-                                    {% else %}
-                                        Not planned
-                                    {% endif %}
-                                </dd>
                             </dl>
                         </div>
                     </div>
