@@ -3,4 +3,10 @@
 
 ALTER TABLE client_profiles ADD COLUMN client_tier_encrypted BLOB;
 
-UPDATE schema_version SET version = 17;
+INSERT INTO schema_version (version, applied_date, applied_by, description)
+VALUES (
+    17,
+    datetime('now'),
+    'system',
+    'Add client_tier_encrypted column to client_profiles for Tier 1-4 classification'
+);
