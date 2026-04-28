@@ -222,18 +222,25 @@ def roundtable_meeting():
     - Show previous roundtable notes
     - Quick add/edit roundtable entries
     """
-    # Get all MPR clients ordered by priority
     companies = db_session.query(Company).filter(
         Company.is_mpr_client == True
-    ).outerjoin(ClientProfile).order_by(
-        case(
-            (ClientProfile.client_priority == 'High', 1),
-            (ClientProfile.client_priority == 'Medium', 2),
-            (ClientProfile.client_priority == 'Low', 3),
-            else_=4
-        ).asc(),
-        Company.company_name
-    ).all()
+    ).order_by(Company.company_name).all()
+
+    tiers = ['Tier 1', 'Tier 2', 'Tier 3', 'Tier 4']
+    priorities = ['High', 'Medium', 'Low']
+
+    # Build matrix: {tier_key: {priority_key: [company, ...]}}
+    matrix = {t: {p: [] for p in priorities + ['—']} for t in tiers + ['—']}
+
+    for company in companies:
+        profile = company.client_profile
+        tier = profile.client_tier if (profile and profile.client_tier) else '—'
+        priority = profile.client_priority if (profile and profile.client_priority) else '—'
+        if tier not in matrix:
+            tier = '—'
+        if priority not in matrix[tier]:
+            priority = '—'
+        matrix[tier][priority].append(company)
 
     # Get latest roundtable entry for each company
     latest_roundtables = {}
@@ -242,12 +249,14 @@ def roundtable_meeting():
             RoundtableHistory.entity_type == 'Company',
             RoundtableHistory.entity_id == company.company_id
         ).order_by(RoundtableHistory.created_timestamp.desc()).first()
-
         if latest:
             latest_roundtables[company.company_id] = latest
 
     return render_template(
         'crm/roundtable.html',
+        matrix=matrix,
+        tiers=tiers,
+        priorities=priorities,
         companies=companies,
         latest_roundtables=latest_roundtables,
         today=date.today()
