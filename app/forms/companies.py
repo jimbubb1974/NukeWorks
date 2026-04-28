@@ -41,11 +41,21 @@ class CompanyForm(FlaskForm):
         'Client Priority',
         choices=[
             ('', '-- Select Priority --'),
-            ('Strategic', 'Strategic'),
             ('High', 'High'),
             ('Medium', 'Medium'),
             ('Low', 'Low'),
-            ('Opportunistic', 'Opportunistic')
+        ],
+        validators=[Optional()]
+    )
+
+    client_tier = SelectField(
+        'Client Tier',
+        choices=[
+            ('', '-- Select Tier --'),
+            ('Tier 1', 'Tier 1'),
+            ('Tier 2', 'Tier 2'),
+            ('Tier 3', 'Tier 3'),
+            ('Tier 4', 'Tier 4'),
         ],
         validators=[Optional()]
     )

@@ -160,12 +160,14 @@ class ClientProfile(Base, TimestampMixin):
     _relationship_notes_encrypted = Column('relationship_notes_encrypted', LargeBinary)
     _client_priority_encrypted = Column('client_priority_encrypted', LargeBinary)
     _client_status_encrypted = Column('client_status_encrypted', LargeBinary)
+    _client_tier_encrypted = Column('client_tier_encrypted', LargeBinary)
 
     # Properties with automatic encryption/decryption
     relationship_strength = EncryptedField('_relationship_strength_encrypted', 'ned_team', '[NED Team Only]')
     relationship_notes = EncryptedField('_relationship_notes_encrypted', 'ned_team', '[NED Team Only]')
     client_priority = EncryptedField('_client_priority_encrypted', 'ned_team', '[NED Team Only]')
     client_status = EncryptedField('_client_status_encrypted', 'ned_team', '[NED Team Only]')
+    client_tier = EncryptedField('_client_tier_encrypted', 'ned_team', '[NED Team Only]')
 
     # Plain text fields (contact tracking)
     last_contact_date = Column(Date)

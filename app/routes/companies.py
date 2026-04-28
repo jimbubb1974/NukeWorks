@@ -74,6 +74,7 @@ def create_company():
                 client_profile = ClientProfile(
                     company_id=company.company_id,
                     client_priority=form.client_priority.data or None,
+                    client_tier=form.client_tier.data or None,
                     client_status=form.client_status.data or None,
                     relationship_strength=form.relationship_strength.data or None,
                     relationship_notes=form.relationship_notes.data or None,
@@ -256,6 +257,7 @@ def edit_company(company_id):
     # Populate MPR client fields from ClientProfile if it exists
     if company.client_profile:
         form.client_priority.data = company.client_profile.client_priority
+        form.client_tier.data = company.client_profile.client_tier
         form.client_status.data = company.client_profile.client_status
         form.relationship_strength.data = company.client_profile.relationship_strength
         form.relationship_notes.data = company.client_profile.relationship_notes
@@ -288,6 +290,7 @@ def edit_company(company_id):
                 
                 # Update CRM fields
                 client_profile.client_priority = form.client_priority.data or None
+                client_profile.client_tier = form.client_tier.data or None
                 client_profile.client_status = form.client_status.data or None
                 client_profile.relationship_strength = form.relationship_strength.data or None
                 client_profile.relationship_notes = form.relationship_notes.data or None

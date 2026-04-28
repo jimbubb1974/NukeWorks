@@ -44,10 +44,13 @@ endblock %} {% block content %}
                       >
                       {% endif %} {% if profile and profile.client_priority %}
                       <span
-                        class="badge bg-{% if profile.client_priority in ['Strategic', 'High'] %}danger{% elif profile.client_priority == 'Medium' %}warning{% else %}secondary{% endif %} ms-1"
+                        class="badge bg-{% if profile.client_priority == 'High' %}danger{% elif profile.client_priority == 'Medium' %}warning{% else %}secondary{% endif %} ms-1"
                       >
                         {{ profile.client_priority }}
                       </span>
+                      {% endif %}
+                      {% if profile and profile.client_tier %}
+                      <span class="badge bg-info text-dark ms-1">{{ profile.client_tier }}</span>
                       {% endif %}
                     </div>
                     <div class="text-end">
@@ -84,6 +87,11 @@ endblock %} {% block content %}
                         <dt class="col-sm-4">Priority:</dt>
                         <dd class="col-sm-8">
                           {{ profile.client_priority if profile else '—' }}
+                        </dd>
+
+                        <dt class="col-sm-4">Tier:</dt>
+                        <dd class="col-sm-8">
+                          {{ profile.client_tier if profile else '—' }}
                         </dd>
 
                         <dt class="col-sm-4">Status:</dt>

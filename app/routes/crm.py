@@ -86,11 +86,9 @@ def dashboard():
     if sort_by == 'priority' or priority_filter:
         # Define priority order mapping
         priority_order = {
-            'Strategic': 1,
-            'High': 2,
-            'Medium': 3,
-            'Low': 4,
-            'Opportunistic': 5,
+            'High': 1,
+            'Medium': 2,
+            'Low': 3,
         }
 
         if sort_by == 'priority':
@@ -192,7 +190,7 @@ def dashboard():
     stats = {
         'total_clients': len(mpr_companies),
         'mpr_companies': len(mpr_companies),
-        'high_priority': len([p for p in all_profiles if p.client_priority in ['High', 'Strategic']]),
+        'high_priority': len([p for p in all_profiles if p.client_priority == 'High']),
         'active': len([p for p in all_profiles if p.client_status == 'Active']),
     }
 
@@ -228,14 +226,11 @@ def roundtable_meeting():
     companies = db_session.query(Company).filter(
         Company.is_mpr_client == True
     ).outerjoin(ClientProfile).order_by(
-        # Custom priority order: Strategic > High > Medium > Low > Opportunistic
         case(
-            (ClientProfile.client_priority == 'Strategic', 1),
-            (ClientProfile.client_priority == 'High', 2),
-            (ClientProfile.client_priority == 'Medium', 3),
-            (ClientProfile.client_priority == 'Low', 4),
-            (ClientProfile.client_priority == 'Opportunistic', 5),
-            else_=6
+            (ClientProfile.client_priority == 'High', 1),
+            (ClientProfile.client_priority == 'Medium', 2),
+            (ClientProfile.client_priority == 'Low', 3),
+            else_=4
         ).asc(),
         Company.company_name
     ).all()
