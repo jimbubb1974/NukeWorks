@@ -92,11 +92,8 @@ class CreateUserForm(FlaskForm):
 
     password = PasswordField(
         'Password',
-        validators=[
-            DataRequired(),
-            Length(min=8, message='Password must be at least 8 characters long')
-        ],
-        render_kw={'placeholder': 'Enter password (min 8 characters)'}
+        validators=[DataRequired()],
+        render_kw={'placeholder': 'Enter password'}
     )
 
     confirm_password = PasswordField(
@@ -166,11 +163,8 @@ class AdminChangePasswordForm(FlaskForm):
 
     new_password = PasswordField(
         'New Password',
-        validators=[
-            DataRequired(),
-            Length(min=8, message='Password must be at least 8 characters long')
-        ],
-        render_kw={'placeholder': 'Enter new password (min 8 characters)'}
+        validators=[DataRequired()],
+        render_kw={'placeholder': 'Enter new password'}
     )
 
     confirm_password = PasswordField(
