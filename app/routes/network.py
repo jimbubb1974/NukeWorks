@@ -11,7 +11,7 @@ from app.models import (
     CompanyRoleAssignment,
     # Product,  # Removed in Phase 4 cleanup - technology data consolidated into companies
 )
-from app import db_session
+from app import db_session, csrf
 from app.utils.permissions import can_view_relationship
 
 bp = Blueprint("network", __name__)
@@ -37,6 +37,7 @@ def network_diagram():
 
 @bp.route("/api/network-diagram", methods=["GET", "POST"])
 @login_required
+@csrf.exempt
 def network_data():
     """Return serialized network data for Vis.js."""
     if request.method == "POST":
