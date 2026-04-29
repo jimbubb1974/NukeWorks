@@ -172,6 +172,7 @@ class ConfidentialDataReport:
         # ── Tier 1 sections ───────────────────────────────────────────────────
         if self.include_tier1:
             story += self._project_financials(s, usable)
+            story += self._confidential_relationships(s, usable)
             story += self._confidential_contacts(s, usable)
 
         # ── Tier 2 sections ───────────────────────────────────────────────────
@@ -224,6 +225,66 @@ class ConfidentialDataReport:
                 _p(p.opex,         s['cell']),
                 _p(p.fuel_cost,    s['cell']),
                 _p(p.lcoe,         s['cell']),
+            ])
+
+        story.append(_tbl(rows, cw, header_bg=CONF_RED))
+        return story
+
+    # ── Tier 1: confidential company-role relationships ───────────────────────
+
+    def _confidential_relationships(self, s, usable):
+        from app.models.company import CompanyRoleAssignment, Company, CompanyRole
+        from app.models import Project
+
+        from sqlalchemy.orm import joinedload as _jl
+        assignments = (
+            self.db_session.query(CompanyRoleAssignment)
+            .filter(CompanyRoleAssignment.is_confidential == True)   # noqa: E712
+            .options(
+                _jl(CompanyRoleAssignment.company),
+                _jl(CompanyRoleAssignment.role),
+            )
+            .order_by(CompanyRoleAssignment.context_type,
+                      CompanyRoleAssignment.context_id)
+            .all()
+        )
+
+        story = [Spacer(1, 0.15 * inch)]
+        story.append(Paragraph('Confidential Company Relationships', s['section_conf']))
+        story.append(_hr(CONF_RED))
+
+        if not assignments:
+            story.append(Paragraph('No confidential company relationships found.', s['body_italic']))
+            return story
+
+        # Build lookup for projects by id
+        projects = {p.project_id: p.project_name
+                    for p in self.db_session.query(Project).all()}
+
+        cw = [usable * f for f in [0.24, 0.16, 0.16, 0.22, 0.10, 0.12]]
+        header = [_h(t, s['cell']) for t in [
+            'Company', 'Role', 'Context', 'Related Entity', 'Primary', 'Notes'
+        ]]
+        rows = [header]
+        for a in assignments:
+            company_name = a.company.company_name if a.company else f'ID {a.company_id}'
+            role_label   = a.role.role_label if a.role else f'ID {a.role_id}'
+            context_type = a.context_type or 'Global'
+
+            if a.context_type == 'Project' and a.context_id:
+                related = projects.get(a.context_id, f'Project ID {a.context_id}')
+            elif a.context_id:
+                related = f'{a.context_type} ID {a.context_id}'
+            else:
+                related = '—'
+
+            rows.append([
+                _p(company_name, s['cell']),
+                _p(role_label,   s['cell']),
+                _p(context_type, s['cell']),
+                _p(related,      s['cell']),
+                _p('Yes' if a.is_primary else 'No', s['cell']),
+                _p(a.notes,      s['cell']),
             ])
 
         story.append(_tbl(rows, cw, header_bg=CONF_RED))
