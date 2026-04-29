@@ -33,6 +33,7 @@ endblock %} {% block content %}
             method="POST"
             action="{{ url_for('db_select.select_database_post') }}"
           >
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <!-- Scanned Databases -->
             {% if scanned_databases %}
             <div class="mb-4">

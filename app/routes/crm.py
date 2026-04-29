@@ -356,8 +356,49 @@ def add_roundtable_entry(company_id):
         previous_entries=previous_entries,
         most_recent_entry=most_recent_entry,
         external_personnel=external_personnel,
-        personnel_mpr_map=personnel_mpr_map
+        personnel_mpr_map=personnel_mpr_map,
+        client_profile=company.client_profile
     )
+
+
+@bp.route('/roundtable/<int:company_id>/update-category', methods=['POST'])
+@login_required
+@ned_team_required
+@edit_required
+def update_client_category(company_id):
+    """Save Tier and Priority fields on a client's profile from the roundtable form."""
+    company = db_session.get(Company, company_id)
+    if not company:
+        abort(404)
+
+    valid_tiers = {'Tier 1', 'Tier 2', 'Tier 3', 'Tier 4'}
+    valid_priorities = {'High', 'Medium', 'Low'}
+
+    tier = request.form.get('client_tier', '').strip() or None
+    priority = request.form.get('client_priority', '').strip() or None
+
+    if tier and tier not in valid_tiers:
+        flash('Invalid tier value.', 'danger')
+        return redirect(url_for('crm.add_roundtable_entry', company_id=company_id))
+    if priority and priority not in valid_priorities:
+        flash('Invalid priority value.', 'danger')
+        return redirect(url_for('crm.add_roundtable_entry', company_id=company_id))
+
+    try:
+        profile = company.client_profile
+        if not profile:
+            profile = ClientProfile(company_id=company_id)
+            db_session.add(profile)
+
+        profile.client_tier = tier
+        profile.client_priority = priority
+        db_session.commit()
+        flash('Client category saved.', 'success')
+    except Exception as e:
+        db_session.rollback()
+        flash(f'Error saving category: {str(e)}', 'danger')
+
+    return redirect(url_for('crm.add_roundtable_entry', company_id=company_id))
 
 
 @bp.route('/clients-by-poc/<int:personnel_id>')

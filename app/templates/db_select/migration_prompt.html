@@ -46,6 +46,7 @@
                     </div>
 
                     <form method="POST" action="{{ url_for('db_select.select_database_post') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <input type="hidden" name="db_path" value="{{ db_path }}">
                         <input type="hidden" name="custom_name" value="{{ custom_name or '' }}">
                         <input type="hidden" name="apply_migration" value="yes">

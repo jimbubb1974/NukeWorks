@@ -15,6 +15,12 @@ from dotenv import load_dotenv
 # Load environment variables
 load_dotenv()
 
+# Windows cmd/PowerShell default to cp1252; reconfigure to UTF-8 so emoji in
+# print() calls don't raise UnicodeEncodeError.
+if sys.platform == 'win32':
+    sys.stdout.reconfigure(encoding='utf-8')
+    sys.stderr.reconfigure(encoding='utf-8')
+
 # When running as a bundled executable, ensure the bundled Python libs directory
 # is on sys.path so importlib.metadata can discover package metadata (e.g., Werkzeug)
 if getattr(sys, 'frozen', False):
