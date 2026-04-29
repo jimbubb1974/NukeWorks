@@ -183,6 +183,12 @@ block extra_css %}
       <div class="card-header d-flex align-items-center">
         <span>Relationship Network</span>
         <div class="ms-auto d-flex gap-2">
+          <a
+            href="{{ url_for('network.network_table') }}"
+            class="btn btn-outline-secondary btn-sm"
+          >
+            <i class="bi bi-table"></i> Network Table
+          </a>
           <button
             type="button"
             class="btn btn-outline-secondary btn-sm"

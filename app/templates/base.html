@@ -173,32 +173,8 @@
               >
             </li>
             {% if has_endpoint('network.network_diagram') %}
-            <li class="nav-item dropdown">
-              <a
-                class="nav-link dropdown-toggle"
-                href="#"
-                id="networkDropdown"
-                role="button"
-                data-bs-toggle="dropdown"
-              >
-                Network
-              </a>
-              <ul class="dropdown-menu">
-                <li>
-                  <a
-                    class="dropdown-item"
-                    href="{{ url_for('network.network_diagram') }}"
-                    >Network Diagram</a
-                  >
-                </li>
-                <li>
-                  <a
-                    class="dropdown-item"
-                    href="{{ url_for('network.network_table') }}"
-                    >Network Table</a
-                  >
-                </li>
-              </ul>
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('network.network_diagram') }}">Network</a>
             </li>
             {% endif %}
             {% if current_user.is_ned_team or current_user.is_admin %}
