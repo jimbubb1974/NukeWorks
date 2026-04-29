@@ -267,15 +267,12 @@ class ConfidentialDataReport:
             story.append(Paragraph('No confidential company relationships found.', s['body_italic']))
             return story
 
-        # Build lookup for projects by id
         projects = {p.project_id: p.project_name
                     for p in self.db_session.query(Project).all()}
 
-        cw = [usable * f for f in [0.24, 0.16, 0.16, 0.22, 0.10, 0.12]]
-        header = [_h(t, s['cell']) for t in [
-            'Company', 'Role', 'Context', 'Related Entity', 'Primary', 'Notes'
-        ]]
-        rows = [header]
+        label_w = usable * 0.18
+        value_w = usable * 0.82
+
         for a in assignments:
             company_name = a.company.company_name if a.company else f'ID {a.company_id}'
             role_label   = a.role.role_label if a.role else f'ID {a.role_id}'
@@ -286,18 +283,36 @@ class ConfidentialDataReport:
             elif a.context_id:
                 related = f'{a.context_type} ID {a.context_id}'
             else:
-                related = '—'
+                related = None
 
-            rows.append([
-                _p(company_name, s['cell']),
-                _p(role_label,   s['cell']),
-                _p(context_type, s['cell']),
-                _p(related,      s['cell']),
-                _p('Yes' if a.is_primary else 'No', s['cell']),
-                _p(a.notes,      s['cell']),
-            ])
+            fields = [
+                ('Company',  company_name),
+                ('Role',     role_label),
+                ('Context',  context_type),
+                ('Project',  related),
+                ('Primary',  'Yes' if a.is_primary else 'No'),
+                ('Notes',    _val(a.notes)),
+            ]
+            rows = [
+                [Paragraph(f'<b>{lbl}</b>', s['cell']),
+                 Paragraph(val, s['cell'])]
+                for lbl, val in fields
+                if val and val != '—'
+            ]
+            t = Table(rows, colWidths=[label_w, value_w])
+            t.setStyle(TableStyle([
+                ('BACKGROUND',    (0, 0), (0, -1), CONF_PINK),
+                ('GRID',          (0, 0), (-1, -1), 0.25, colors.HexColor('#c0cfe0')),
+                ('VALIGN',        (0, 0), (-1, -1), 'TOP'),
+                ('TOPPADDING',    (0, 0), (-1, -1), 3),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 3),
+                ('LEFTPADDING',   (0, 0), (-1, -1), 4),
+                ('RIGHTPADDING',  (0, 0), (-1, -1), 4),
+                ('FONTSIZE',      (0, 0), (-1, -1), 7.5),
+            ]))
+            story.append(t)
+            story.append(Spacer(1, 0.06 * inch))
 
-        story.append(_tbl(rows, cw, header_bg=CONF_RED))
         return story
 
     # ── Tier 1: confidential contact logs ─────────────────────────────────────
