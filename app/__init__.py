@@ -723,6 +723,12 @@ def register_template_filters(app):
     Args:
         app: Flask application
     """
+    import os as _os
+
+    @app.template_filter('basename')
+    def basename_filter(path):
+        return _os.path.basename(path) if path else ''
+
     from app.utils.permissions import (
         can_view_field,
         get_field_display_value,

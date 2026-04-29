@@ -52,8 +52,8 @@
             </li>
             <!-- DEBUG: Database Info -->
             <li class="nav-item">
-              <span class="navbar-text text-warning small" style="padding: 0.5rem 1rem;" title="Current database file path">
-                <i class="bi bi-database"></i> {{ session.get('selected_db_path', 'No DB selected')[-60:] }}
+              <span class="navbar-text text-warning small d-inline-block text-truncate" style="padding: 0.5rem 1rem; max-width: 220px;" title="{{ session.get('selected_db_path', 'No DB selected') }}">
+                {{ session.get('selected_db_path', 'No DB selected') | basename }}
               </span>
             </li>
             <li class="nav-item dropdown">
@@ -137,7 +137,7 @@
             {% if has_endpoint('projects.map_view') %}
             <li class="nav-item">
               <a class="nav-link" href="{{ url_for('projects.map_view') }}"
-                >Project Map</a
+                >Map</a
               >
             </li>
             {% endif %} {% if current_user.is_ned_team or current_user.is_admin %}
@@ -220,7 +220,7 @@
                 href="{{ url_for('db_select.select_database') }}"
                 title="Switch Database"
               >
-                <i class="bi bi-database"></i> Database
+                Database
               </a>
             </li>
             <li class="nav-item dropdown">
