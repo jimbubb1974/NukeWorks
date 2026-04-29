@@ -19,13 +19,13 @@ block extra_css %}
           type="button"
           data-bs-toggle="collapse"
           data-bs-target="#filters-collapse"
-          aria-expanded="true"
+          aria-expanded="false"
           aria-controls="filters-collapse"
         >
-          <i class="bi bi-chevron-up" id="filters-chevron"></i>
+          <i class="bi bi-chevron-down" id="filters-chevron"></i>
         </button>
       </div>
-      <div class="collapse show" id="filters-collapse">
+      <div class="collapse" id="filters-collapse">
         <div class="card-body">
           <form id="network-filter-form" class="network-filter-form">
             <div class="mb-3">
@@ -108,43 +108,57 @@ block extra_css %}
     </div>
 
     <div class="card mb-3">
-      <div class="card-header">Focus Mode</div>
-      <div class="card-body">
-        <form id="focus-form" class="network-focus-form">
-          <div class="mb-2">
-            <label for="focus-entity" class="form-label">Select Entity</label>
-            <select id="focus-entity" class="form-select form-select-sm">
-              <option value="">-- Show Entire Network --</option>
-            </select>
-          </div>
-          <div class="mb-2">
-            <label for="focus-depth" class="form-label">Depth</label>
-            <select id="focus-depth" class="form-select form-select-sm">
-              <option value="1">Direct connections</option>
-              <option value="2" selected>Depth 2</option>
-              <option value="3">Depth 3</option>
-              <option value="all">Show all</option>
-            </select>
-          </div>
-          <div class="d-flex gap-2">
-            <button
-              type="submit"
-              class="btn btn-outline-primary btn-sm flex-grow-1"
-            >
-              Apply Focus
-            </button>
-            <button
-              type="button"
-              class="btn btn-outline-secondary btn-sm flex-grow-1"
-              id="clear-focus-btn"
-            >
-              Clear
-            </button>
-          </div>
-          <p class="form-text mt-2 mb-0">
-            Tip: Double-click a node to focus on it quickly.
-          </p>
-        </form>
+      <div class="card-header d-flex align-items-center">
+        <span>Focus Mode</span>
+        <button
+          class="btn btn-sm btn-link ms-auto p-0 text-decoration-none"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#focus-collapse"
+          aria-expanded="false"
+          aria-controls="focus-collapse"
+        >
+          <i class="bi bi-chevron-down" id="focus-chevron"></i>
+        </button>
+      </div>
+      <div class="collapse" id="focus-collapse">
+        <div class="card-body">
+          <form id="focus-form" class="network-focus-form">
+            <div class="mb-2">
+              <label for="focus-entity" class="form-label">Select Entity</label>
+              <select id="focus-entity" class="form-select form-select-sm">
+                <option value="">-- Show Entire Network --</option>
+              </select>
+            </div>
+            <div class="mb-2">
+              <label for="focus-depth" class="form-label">Depth</label>
+              <select id="focus-depth" class="form-select form-select-sm">
+                <option value="1">Direct connections</option>
+                <option value="2" selected>Depth 2</option>
+                <option value="3">Depth 3</option>
+                <option value="all">Show all</option>
+              </select>
+            </div>
+            <div class="d-flex gap-2">
+              <button
+                type="submit"
+                class="btn btn-outline-primary btn-sm flex-grow-1"
+              >
+                Apply Focus
+              </button>
+              <button
+                type="button"
+                class="btn btn-outline-secondary btn-sm flex-grow-1"
+                id="clear-focus-btn"
+              >
+                Clear
+              </button>
+            </div>
+            <p class="form-text mt-2 mb-0">
+              Tip: Double-click a node to focus on it quickly.
+            </p>
+          </form>
+        </div>
       </div>
     </div>
 
@@ -253,16 +267,19 @@ block extra_css %}
 <script src="{{ url_for('static', filename='js/network-diagram.js') }}"></script>
 <script>
   document.addEventListener("DOMContentLoaded", function () {
-    const filtersCollapse = document.getElementById("filters-collapse");
-    const filtersChevron = document.getElementById("filters-chevron");
-    if (filtersCollapse && filtersChevron) {
-      filtersCollapse.addEventListener("hide.bs.collapse", () => {
-        filtersChevron.classList.replace("bi-chevron-up", "bi-chevron-down");
+    function wireChevron(collapseId, chevronId) {
+      const el = document.getElementById(collapseId);
+      const icon = document.getElementById(chevronId);
+      if (!el || !icon) return;
+      el.addEventListener("hide.bs.collapse", () => {
+        icon.classList.replace("bi-chevron-up", "bi-chevron-down");
       });
-      filtersCollapse.addEventListener("show.bs.collapse", () => {
-        filtersChevron.classList.replace("bi-chevron-down", "bi-chevron-up");
+      el.addEventListener("show.bs.collapse", () => {
+        icon.classList.replace("bi-chevron-down", "bi-chevron-up");
       });
     }
+    wireChevron("filters-collapse", "filters-chevron");
+    wireChevron("focus-collapse", "focus-chevron");
 
     if (window.NetworkDiagram) {
       window.NetworkDiagram.init({
