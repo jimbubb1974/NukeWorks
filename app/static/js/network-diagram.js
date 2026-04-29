@@ -84,7 +84,7 @@
     currentFilters: {
       entity_types: ["company", "project"],
       relationship_types: ["project_company"],
-      hide_unconnected_companies: false,
+      show_orphan_nodes: false,
       focus_entity: null,
       depth: "all",
     },
@@ -203,8 +203,8 @@
       const relationshipInputs = this.filterForm.querySelectorAll(
         'input[name="relationship_types"]'
       );
-      const hideUnconnectedInput = this.filterForm.querySelector(
-        'input[name="hide_unconnected_companies"]'
+      const showOrphanInput = this.filterForm.querySelector(
+        'input[name="show_orphan_nodes"]'
       );
 
       const selectedEntities = Array.from(entityInputs)
@@ -220,9 +220,8 @@
       if (selectedRelationships.length > 0) {
         this.currentFilters.relationship_types = selectedRelationships;
       }
-      if (hideUnconnectedInput) {
-        this.currentFilters.hide_unconnected_companies =
-          hideUnconnectedInput.checked;
+      if (showOrphanInput) {
+        this.currentFilters.show_orphan_nodes = showOrphanInput.checked;
       }
     },
 
@@ -236,8 +235,8 @@
       const relationshipInputs = this.filterForm.querySelectorAll(
         'input[name="relationship_types"]'
       );
-      const hideUnconnectedInput = this.filterForm.querySelector(
-        'input[name="hide_unconnected_companies"]'
+      const showOrphanInput = this.filterForm.querySelector(
+        'input[name="show_orphan_nodes"]'
       );
 
       const selectedEntities = Array.from(entityInputs)
@@ -258,9 +257,8 @@
 
       this.currentFilters.entity_types = selectedEntities;
       this.currentFilters.relationship_types = selectedRelationships;
-      if (hideUnconnectedInput) {
-        this.currentFilters.hide_unconnected_companies =
-          hideUnconnectedInput.checked;
+      if (showOrphanInput) {
+        this.currentFilters.show_orphan_nodes = showOrphanInput.checked;
       }
 
       // Clear focus if it conflicts with new filters
@@ -336,11 +334,10 @@
       let filteredNodes = data.nodes;
       let filteredEdges = data.edges;
 
-      if (this.currentFilters.hide_unconnected_companies) {
-        // Build a set of company IDs that have connections to projects
+      if (!this.currentFilters.show_orphan_nodes) {
+        // Build a set of company node IDs that have at least one project edge
         const connectedCompanyIds = new Set();
         data.edges.forEach((edge) => {
-          // Extract company node IDs from edges (format: "company_123")
           if (edge.from && edge.from.startsWith("company_")) {
             connectedCompanyIds.add(edge.from);
           }
@@ -349,15 +346,11 @@
           }
         });
 
-        // Filter nodes to keep only: projects + connected companies
+        // Keep projects always; only keep companies that have a project connection
         filteredNodes = data.nodes.filter((node) => {
-          if (node.group === "project") {
-            return true; // Always keep projects
-          }
-          if (node.group === "company") {
-            return connectedCompanyIds.has(node.id); // Only keep connected companies
-          }
-          return true; // Keep other node types
+          if (node.group === "project") return true;
+          if (node.group === "company") return connectedCompanyIds.has(node.id);
+          return true;
         });
       }
 

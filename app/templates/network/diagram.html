@@ -12,84 +12,98 @@ block extra_css %}
 <div class="row g-3">
   <div class="col-lg-3">
     <div class="card mb-3">
-      <div class="card-header">Filters</div>
-      <div class="card-body">
-        <form id="network-filter-form" class="network-filter-form">
-          <div class="mb-3">
-            <h6 class="text-uppercase text-muted">Entities</h6>
-            <div class="form-check">
-              <input
-                class="form-check-input"
-                type="checkbox"
-                id="entity-company"
-                name="entity_types"
-                value="company"
-                checked
-              />
-              <label class="form-check-label" for="entity-company"
-                >Companies (all types)</label
-              >
+      <div class="card-header d-flex align-items-center">
+        <span>Filters</span>
+        <button
+          class="btn btn-sm btn-link ms-auto p-0 text-decoration-none"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#filters-collapse"
+          aria-expanded="true"
+          aria-controls="filters-collapse"
+        >
+          <i class="bi bi-chevron-up" id="filters-chevron"></i>
+        </button>
+      </div>
+      <div class="collapse show" id="filters-collapse">
+        <div class="card-body">
+          <form id="network-filter-form" class="network-filter-form">
+            <div class="mb-3">
+              <h6 class="text-uppercase text-muted">Entities</h6>
+              <div class="form-check">
+                <input
+                  class="form-check-input"
+                  type="checkbox"
+                  id="entity-company"
+                  name="entity_types"
+                  value="company"
+                  checked
+                />
+                <label class="form-check-label" for="entity-company"
+                  >Companies (all types)</label
+                >
+              </div>
+              <div class="form-check">
+                <input
+                  class="form-check-input"
+                  type="checkbox"
+                  id="entity-project"
+                  name="entity_types"
+                  value="project"
+                  checked
+                />
+                <label class="form-check-label" for="entity-project"
+                  >Projects</label
+                >
+              </div>
+              <p class="form-text small text-muted mb-0">
+                Companies include vendors, owners, developers, operators,
+                constructors, and off-takers.
+              </p>
             </div>
-            <div class="form-check">
-              <input
-                class="form-check-input"
-                type="checkbox"
-                id="entity-project"
-                name="entity_types"
-                value="project"
-                checked
-              />
-              <label class="form-check-label" for="entity-project"
-                >Projects</label
-              >
+            <div class="mb-3">
+              <h6 class="text-uppercase text-muted">Display Options</h6>
+              <div class="form-check">
+                <input
+                  class="form-check-input"
+                  type="checkbox"
+                  id="show-orphan-nodes"
+                  name="show_orphan_nodes"
+                  value="1"
+                />
+                <label class="form-check-label" for="show-orphan-nodes"
+                  >Show orphan nodes</label
+                >
+              </div>
+              <p class="form-text small text-muted mb-0">
+                When unchecked, companies with no project connections are hidden.
+              </p>
             </div>
-            <p class="form-text small text-muted mb-0">
-              Companies include vendors, owners, developers, operators,
-              constructors, and off-takers.
-            </p>
-          </div>
-          <div class="mb-3">
-            <h6 class="text-uppercase text-muted">Display Options</h6>
-            <div class="form-check">
-              <input
-                class="form-check-input"
-                type="checkbox"
-                id="hide-unconnected-companies"
-                name="hide_unconnected_companies"
-                value="1"
-              />
-              <label class="form-check-label" for="hide-unconnected-companies"
-                >Hide companies without project connections</label
-              >
+            <div class="mb-3">
+              <h6 class="text-uppercase text-muted">Relationships</h6>
+              <div class="form-check">
+                <input
+                  class="form-check-input"
+                  type="checkbox"
+                  id="rel-project-company"
+                  name="relationship_types"
+                  value="project_company"
+                  checked
+                />
+                <label class="form-check-label" for="rel-project-company"
+                  >Project ↔ Company (all roles)</label
+                >
+              </div>
+              <p class="form-text small text-muted mb-0">
+                Shows all project-company relationships including vendors, owners,
+                operators, constructors, and off-takers.
+              </p>
             </div>
-            <p class="form-text small text-muted mb-0">
-              Only show companies that are linked to at least one project.
-            </p>
-          </div>
-          <div class="mb-3">
-            <h6 class="text-uppercase text-muted">Relationships</h6>
-            <div class="form-check">
-              <input
-                class="form-check-input"
-                type="checkbox"
-                id="rel-project-company"
-                name="relationship_types"
-                value="project_company"
-                checked
-              />
-              <label class="form-check-label" for="rel-project-company"
-                >Project ↔ Company (all roles)</label
-              >
-            </div>
-            <p class="form-text small text-muted mb-0">
-              Shows all project-company relationships including vendors, owners,
-              operators, constructors, and off-takers.
-            </p>
-          </div>
-          <button type="submit" class="btn btn-primary btn-sm w-100">
-            Apply Filters
-          </button>
-        </form>
+            <button type="submit" class="btn btn-primary btn-sm w-100">
+              Apply Filters
+            </button>
+          </form>
+        </div>
       </div>
     </div>
 
@@ -239,6 +253,17 @@ block extra_css %}
 <script src="{{ url_for('static', filename='js/network-diagram.js') }}"></script>
 <script>
   document.addEventListener("DOMContentLoaded", function () {
+    const filtersCollapse = document.getElementById("filters-collapse");
+    const filtersChevron = document.getElementById("filters-chevron");
+    if (filtersCollapse && filtersChevron) {
+      filtersCollapse.addEventListener("hide.bs.collapse", () => {
+        filtersChevron.classList.replace("bi-chevron-up", "bi-chevron-down");
+      });
+      filtersCollapse.addEventListener("show.bs.collapse", () => {
+        filtersChevron.classList.replace("bi-chevron-down", "bi-chevron-up");
+      });
+    }
+
     if (window.NetworkDiagram) {
       window.NetworkDiagram.init({
         dataUrl: "{{ url_for('network.network_data') }}",
