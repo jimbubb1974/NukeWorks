@@ -244,23 +244,24 @@ CREATE INDEX IF NOT EXISTS idx_confidential_flags_record ON confidential_field_f
 
 -- Audit Log table
 CREATE TABLE IF NOT EXISTS audit_log (
-    audit_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    table_name TEXT NOT NULL,
-    record_id INTEGER NOT NULL,
-    action TEXT NOT NULL,
-    changed_fields TEXT,
-    old_values TEXT,
-    new_values TEXT,
-    user_id INTEGER,
-    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    ip_address TEXT,
+    log_id      INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id     INTEGER,
+    timestamp   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    action      TEXT NOT NULL,          -- CREATE, UPDATE, DELETE
+    table_name  TEXT NOT NULL,
+    record_id   INTEGER,                -- NULL for composite-key rows (see notes)
+    field_name  TEXT,                   -- NULL for CREATE/DELETE (whole-row snapshot)
+    old_value   TEXT,
+    new_value   TEXT,
+    notes       TEXT,                   -- composite key fallback or free-form context
     FOREIGN KEY (user_id) REFERENCES users(user_id)
 );
 
-CREATE INDEX IF NOT EXISTS idx_audit_log_table ON audit_log(table_name, record_id);
-CREATE INDEX IF NOT EXISTS idx_audit_log_user ON audit_log(user_id);
+CREATE INDEX IF NOT EXISTS idx_audit_log_user      ON audit_log(user_id);
 CREATE INDEX IF NOT EXISTS idx_audit_log_timestamp ON audit_log(timestamp);
-CREATE INDEX IF NOT EXISTS idx_audit_log_action ON audit_log(action);
+CREATE INDEX IF NOT EXISTS idx_audit_log_action    ON audit_log(action);
+CREATE INDEX IF NOT EXISTS idx_audit_log_table     ON audit_log(table_name);
+CREATE INDEX IF NOT EXISTS idx_audit_log_record    ON audit_log(table_name, record_id);
 
 -- Database Snapshots table
 CREATE TABLE IF NOT EXISTS database_snapshots (
