@@ -56,69 +56,8 @@
                 {{ session.get('selected_db_path', 'No DB selected') | basename }}
               </span>
             </li>
-            <li class="nav-item dropdown">
-              <a
-                class="nav-link dropdown-toggle"
-                href="#"
-                id="companiesDropdown"
-                role="button"
-                data-bs-toggle="dropdown"
-              >
-                Companies
-              </a>
-              <ul class="dropdown-menu">
-                <li>
-                  <a
-                    class="dropdown-item"
-                    href="{{ url_for('companies.list_companies') }}"
-                    ><i class="bi bi-building"></i> All Companies</a
-                  >
-                </li>
-                <li><hr class="dropdown-divider" /></li>
-                <li><h6 class="dropdown-header">Filter by Role</h6></li>
-                <li>
-                  <a
-                    class="dropdown-item"
-                    href="{{ url_for('companies.list_companies', role='vendor') }}"
-                    ><i class="bi bi-box-seam"></i> Technology Vendors</a
-                  >
-                </li>
-                <li>
-                  <a
-                    class="dropdown-item"
-                    href="{{ url_for('companies.list_companies', role='developer') }}"
-                    ><i class="bi bi-building-gear"></i> Owners / Developers</a
-                  >
-                </li>
-                <li>
-                  <a
-                    class="dropdown-item"
-                    href="{{ url_for('companies.list_companies', role='operator') }}"
-                    ><i class="bi bi-gear"></i> Operators</a
-                  >
-                </li>
-                <li>
-                  <a
-                    class="dropdown-item"
-                    href="{{ url_for('companies.list_companies', role='constructor') }}"
-                    ><i class="bi bi-hammer"></i> Constructors</a
-                  >
-                </li>
-                <li>
-                  <a
-                    class="dropdown-item"
-                    href="{{ url_for('companies.list_companies', role='offtaker') }}"
-                    ><i class="bi bi-lightning"></i> Off-takers</a
-                  >
-                </li>
-                <li>
-                  <a
-                    class="dropdown-item"
-                    href="{{ url_for('companies.list_companies', role='client') }}"
-                    ><i class="bi bi-briefcase"></i> Clients</a
-                  >
-                </li>
-              </ul>
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('companies.list_companies') }}">Companies</a>
             </li>
             {% if has_endpoint('technologies.list_technologies') %}
             <li class="nav-item">
