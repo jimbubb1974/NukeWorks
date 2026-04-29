@@ -22,7 +22,7 @@
                             <thead class="table-light">
                                 <tr>
                                     <th>
-                                        <a href="{{ url_for('crm.dashboard', sort_by='company_name', sort_order='asc' if sort_by != 'company_name' or sort_order == 'desc' else 'desc', priority=request.args.get('priority', ''), status=request.args.get('status', ''), poc=request.args.get('poc', '')) }}" class="text-decoration-none text-dark">
+                                        <a href="{{ url_for('crm.dashboard', sort_by='company_name', sort_order='asc' if sort_by != 'company_name' or sort_order == 'desc' else 'desc', priority=request.args.get('priority', ''), poc=request.args.get('poc', '')) }}" class="text-decoration-none text-dark">
                                             Company Name
                                             {% if sort_by == 'company_name' %}
                                                 <i class="bi bi-arrow-{% if sort_order == 'asc' %}up{% else %}down{% endif %}"></i>
@@ -30,7 +30,7 @@
                                         </a>
                                     </th>
                                     <th>
-                                        <a href="{{ url_for('crm.dashboard', sort_by='priority', sort_order='asc' if sort_by != 'priority' or sort_order == 'desc' else 'desc', priority=request.args.get('priority', ''), status=request.args.get('status', ''), poc=request.args.get('poc', '')) }}" class="text-decoration-none text-dark">
+                                        <a href="{{ url_for('crm.dashboard', sort_by='priority', sort_order='asc' if sort_by != 'priority' or sort_order == 'desc' else 'desc', priority=request.args.get('priority', ''), poc=request.args.get('poc', '')) }}" class="text-decoration-none text-dark">
                                             Priority
                                             {% if sort_by == 'priority' %}
                                                 <i class="bi bi-arrow-{% if sort_order == 'asc' %}up{% else %}down{% endif %}"></i>
@@ -129,16 +129,6 @@
                                 <option value="Medium" {% if priority_filter == 'Medium' %}selected{% endif %}>Medium</option>
                                 <option value="Low" {% if priority_filter == 'Low' %}selected{% endif %}>Low</option>
                                 <option value="Opportunistic" {% if priority_filter == 'Opportunistic' %}selected{% endif %}>Opportunistic</option>
-                            </select>
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label">Status</label>
-                            <select name="status" class="form-select" onchange="this.form.submit()">
-                                <option value="">All Statuses</option>
-                                <option value="Active" {% if status_filter == 'Active' %}selected{% endif %}>Active</option>
-                                <option value="Warm" {% if status_filter == 'Warm' %}selected{% endif %}>Warm</option>
-                                <option value="Cold" {% if status_filter == 'Cold' %}selected{% endif %}>Cold</option>
-                                <option value="Inactive" {% if status_filter == 'Inactive' %}selected{% endif %}>Inactive</option>
                             </select>
                         </div>
                         <div class="col-md-3">
@@ -271,35 +261,7 @@
                 <div class="mb-4">
                     <h6><i class="bi bi-info-circle"></i> CRM Profile</h6>
                     <div class="row">
-                        <div class="col-md-6">
-                            <dl class="row mb-0">
-                                <dt class="col-sm-4">Status:</dt>
-                                <dd class="col-sm-8">{{ profile.client_status or '—' }}</dd>
-                                <dt class="col-sm-4">Relationship:</dt>
-                                <dd class="col-sm-8">{{ profile.relationship_strength or '—' }}</dd>
-                            </dl>
-                        </div>
-                        <div class="col-md-6">
-                            <dl class="row mb-0">
-                                <dt class="col-sm-4">Last Contact:</dt>
-                                <dd class="col-sm-8">
-                                    {% if profile.last_contact_date %}
-                                        {{ profile.last_contact_date.strftime('%Y-%m-%d') }}
-                                        {% if profile.last_contact_type %}({{ profile.last_contact_type }}){% endif %}
-                                    {% else %}
-                                        Never
-                                    {% endif %}
-                                </dd>
-                                <dt class="col-sm-4">Next Contact:</dt>
-                                <dd class="col-sm-8">
-                                    {% if profile.next_planned_contact_date %}
-                                        {{ profile.next_planned_contact_date.strftime('%Y-%m-%d') }}
-                                    {% else %}
-                                        Not planned
-                                    {% endif %}
-                                </dd>
-                            </dl>
-                        </div>
+                        <div class="col-12">
                     </div>
                     {% if profile.relationship_notes %}
                     <div class="mt-2">

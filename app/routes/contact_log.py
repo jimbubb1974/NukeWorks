@@ -178,12 +178,8 @@ def _update_company_contact_metrics(company_id: int):
 
     if logs:
         latest = logs[0]
-        client_profile.last_contact_date = latest.contact_date
-        client_profile.last_contact_type = latest.contact_type
         client_profile.last_contact_by = latest.contacted_by
     else:
-        client_profile.last_contact_date = None
-        client_profile.last_contact_type = None
         client_profile.last_contact_by = None
 
     # Determine next planned contact (earliest future follow-up)
@@ -193,12 +189,8 @@ def _update_company_contact_metrics(company_id: int):
     if upcoming:
         upcoming.sort(key=lambda l: (l.follow_up_date, l.contact_id))
         next_contact = upcoming[0]
-        client_profile.next_planned_contact_date = next_contact.follow_up_date
-        client_profile.next_planned_contact_type = next_contact.contact_type
         client_profile.next_planned_contact_assigned_to = next_contact.follow_up_assigned_to
     else:
-        client_profile.next_planned_contact_date = None
-        client_profile.next_planned_contact_type = None
         client_profile.next_planned_contact_assigned_to = None
 
 

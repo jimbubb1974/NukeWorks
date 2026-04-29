@@ -25,7 +25,7 @@ class ValidationError(Exception):
 
 # Application version and required schema version
 APPLICATION_VERSION = "1.0.0"
-APPLICATION_REQUIRED_SCHEMA_VERSION = 17  # Updated to add client_tier to client_profiles
+APPLICATION_REQUIRED_SCHEMA_VERSION = 18  # Remove unused client_profile fields
 
 
 def get_migrations_directory():

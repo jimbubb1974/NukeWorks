@@ -36,7 +36,6 @@ def dashboard():
     """
     # Get filter and sort parameters
     priority_filter = request.args.get('priority', '')
-    status_filter = request.args.get('status', '')
     poc_filter = request.args.get('poc', '')
     sort_by = request.args.get('sort_by', 'company_name')
     sort_order = request.args.get('sort_order', 'asc')
@@ -45,12 +44,6 @@ def dashboard():
     query = db_session.query(Company).filter(
         Company.is_mpr_client == True
     )
-
-    # Apply filters using ClientProfile (left join to include companies without profiles)
-    if status_filter:
-        # Join ClientProfile for status filtering (status is not encrypted)
-        query = query.outerjoin(ClientProfile)
-        query = query.filter(ClientProfile.client_status == status_filter)
     # NOTE: priority_filter is applied in Python after fetching (since client_priority is encrypted)
 
     if poc_filter:
@@ -191,7 +184,6 @@ def dashboard():
         'total_clients': len(mpr_companies),
         'mpr_companies': len(mpr_companies),
         'high_priority': len([p for p in all_profiles if p.client_priority == 'High']),
-        'active': len([p for p in all_profiles if p.client_status == 'Active']),
     }
 
     return render_template(
@@ -203,7 +195,6 @@ def dashboard():
         roundtable_companies=roundtable_companies,
         stats=stats,
         priority_filter=priority_filter,
-        status_filter=status_filter,
         poc_filter=poc_filter,
         sort_by=sort_by,
         sort_order=sort_order

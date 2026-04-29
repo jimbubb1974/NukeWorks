@@ -158,7 +158,7 @@ class Config:
     # Migration settings
     MIGRATIONS_DIR = str(MIGRATIONS_ROOT)
     APPLICATION_VERSION = '1.0.0'
-    REQUIRED_SCHEMA_VERSION = 17  # Updated to add client_tier to client_profiles
+    REQUIRED_SCHEMA_VERSION = 18  # Remove unused client_profile fields
 
     # Report settings
     COMPANY_NAME = 'MPR Associates'

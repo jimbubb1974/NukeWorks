@@ -156,25 +156,17 @@ class ClientProfile(Base, TimestampMixin):
     company_id = Column(Integer, ForeignKey('companies.company_id'), primary_key=True)
 
     # Encrypted NED Team fields (internal relationship assessments)
-    _relationship_strength_encrypted = Column('relationship_strength_encrypted', LargeBinary)
     _relationship_notes_encrypted = Column('relationship_notes_encrypted', LargeBinary)
     _client_priority_encrypted = Column('client_priority_encrypted', LargeBinary)
-    _client_status_encrypted = Column('client_status_encrypted', LargeBinary)
     _client_tier_encrypted = Column('client_tier_encrypted', LargeBinary)
 
     # Properties with automatic encryption/decryption
-    relationship_strength = EncryptedField('_relationship_strength_encrypted', 'ned_team', '[NED Team Only]')
     relationship_notes = EncryptedField('_relationship_notes_encrypted', 'ned_team', '[NED Team Only]')
     client_priority = EncryptedField('_client_priority_encrypted', 'ned_team', '[NED Team Only]')
-    client_status = EncryptedField('_client_status_encrypted', 'ned_team', '[NED Team Only]')
     client_tier = EncryptedField('_client_tier_encrypted', 'ned_team', '[NED Team Only]')
 
     # Plain text fields (contact tracking)
-    last_contact_date = Column(Date)
-    last_contact_type = Column(Text)
     last_contact_by = Column(Integer, ForeignKey('personnel.personnel_id'))
-    next_planned_contact_date = Column(Date)
-    next_planned_contact_type = Column(Text)
     next_planned_contact_assigned_to = Column(Integer, ForeignKey('personnel.personnel_id'))
 
     company = relationship('Company', back_populates='client_profile')

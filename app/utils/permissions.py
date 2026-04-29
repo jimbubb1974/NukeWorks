@@ -288,10 +288,8 @@ def filter_ned_fields(user, entity):
         dict: Entity data with NED fields redacted if necessary
     """
     NED_FIELDS = [
-        'relationship_strength',
         'relationship_notes',
         'client_priority',
-        'client_status'
     ]
 
     if isinstance(entity, dict):

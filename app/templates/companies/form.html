@@ -113,68 +113,6 @@
                 </div>
                 {% endif %}
               </div>
-              <div class="col-md-4">
-                {{ form.client_status.label(class='form-label') }} {{
-                form.client_status(class='form-select') }} {% if
-                form.client_status.errors %}
-                <div class="text-danger small">
-                  {{ form.client_status.errors[0] }}
-                </div>
-                {% endif %}
-              </div>
-            </div>
-
-            <div class="row g-3 mt-2">
-              <div class="col-md-6">
-                {{ form.relationship_strength.label(class='form-label') }} {{
-                form.relationship_strength(class='form-select') }} {% if
-                form.relationship_strength.errors %}
-                <div class="text-danger small">
-                  {{ form.relationship_strength.errors[0] }}
-                </div>
-                {% endif %}
-              </div>
-              <div class="col-md-6">
-                {{ form.last_contact_type.label(class='form-label') }} {{
-                form.last_contact_type(class='form-select') }} {% if
-                form.last_contact_type.errors %}
-                <div class="text-danger small">
-                  {{ form.last_contact_type.errors[0] }}
-                </div>
-                {% endif %}
-              </div>
-            </div>
-
-            <div class="row g-3 mt-2">
-              <div class="col-md-6">
-                {{ form.last_contact_date.label(class='form-label') }} {{
-                form.last_contact_date(class='form-control') }} {% if
-                form.last_contact_date.errors %}
-                <div class="text-danger small">
-                  {{ form.last_contact_date.errors[0] }}
-                </div>
-                {% endif %}
-              </div>
-              <div class="col-md-6">
-                {{ form.next_planned_contact_date.label(class='form-label') }}
-                {{ form.next_planned_contact_date(class='form-control') }} {% if
-                form.next_planned_contact_date.errors %}
-                <div class="text-danger small">
-                  {{ form.next_planned_contact_date.errors[0] }}
-                </div>
-                {% endif %}
-              </div>
-            </div>
-
-            <div class="row g-3 mt-2">
-              <div class="col-md-6">
-                {{ form.next_planned_contact_type.label(class='form-label') }}
-                {{ form.next_planned_contact_type(class='form-select') }} {% if
-                form.next_planned_contact_type.errors %}
-                <div class="text-danger small">
-                  {{ form.next_planned_contact_type.errors[0] }}
-                </div>
-                {% endif %}
               </div>
             </div>
 
@@ -202,6 +140,114 @@
     </div>
   </div>
 </div>
+{% if company and company.company_id %}
+<div class="row mt-4">
+  <div class="col-lg-8 col-xl-6">
+    <div class="card">
+      <div class="card-header" data-bs-toggle="collapse" data-bs-target="#employeesCollapse" style="cursor:pointer">
+        <div class="d-flex justify-content-between align-items-center">
+          <h6 class="mb-0"><i class="bi bi-people"></i> Company Employees</h6>
+          <i class="bi bi-chevron-down"></i>
+        </div>
+      </div>
+      <div id="employeesCollapse" class="collapse show">
+        <div class="card-body">
+
+          {% if external_personnel %}
+          {% for person in external_personnel %}
+          <div class="border rounded p-3 mb-3">
+            <div class="d-flex justify-content-between align-items-start">
+              <div>
+                <strong>{{ person.full_name }}</strong>
+                {% if person.role %}<span class="text-muted small ms-2">{{ person.role }}</span>{% endif %}
+                {% if person.email %}<br><small class="text-muted"><i class="bi bi-envelope"></i> {{ person.email }}</small>{% endif %}
+                {% if person.phone %}<small class="text-muted ms-3"><i class="bi bi-telephone"></i> {{ person.phone }}</small>{% endif %}
+              </div>
+              <form method="POST" action="{{ url_for('companies.delete_employee', company_id=company.company_id, personnel_id=person.personnel_id) }}"
+                    onsubmit="return confirm('Remove {{ person.full_name }} from this company?')">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button class="btn btn-sm btn-outline-danger" title="Remove employee"><i class="bi bi-trash"></i></button>
+              </form>
+            </div>
+
+            <!-- MPR links -->
+            <div class="mt-2">
+              <small class="text-muted fw-semibold">MPR Links:</small>
+              {% if person.internal_relationships %}
+              <div class="mt-1 d-flex flex-wrap gap-2">
+                {% for rel in person.internal_relationships %}
+                <div class="d-flex align-items-center gap-1 border rounded px-2 py-1 bg-light">
+                  <span class="small fw-semibold">{{ rel.internal_personnel.full_name }}</span>
+                  {% if rel.relationship_type %}<span class="text-muted small">({{ rel.relationship_type }})</span>{% endif %}
+                  <form method="POST" action="{{ url_for('companies.delete_employee_relationship', company_id=company.company_id, personnel_id=person.personnel_id, relationship_id=rel.relationship_id) }}"
+                        onsubmit="return confirm('Remove this MPR link?')" class="d-inline">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button class="btn btn-link btn-sm text-danger p-0 ms-1" title="Remove link"><i class="bi bi-x-lg"></i></button>
+                  </form>
+                </div>
+                {% endfor %}
+              </div>
+              {% else %}
+              <span class="text-muted small ms-1">None</span>
+              {% endif %}
+
+              <!-- Add MPR link -->
+              {% if internal_personnel %}
+              <form method="POST" action="{{ url_for('companies.add_employee_relationship', company_id=company.company_id, personnel_id=person.personnel_id) }}"
+                    class="mt-2 d-flex flex-wrap gap-2 align-items-center">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <select name="internal_personnel_id" class="form-select form-select-sm" style="max-width:200px">
+                  <option value="">Link to MPR person…</option>
+                  {% for ip in internal_personnel %}
+                  <option value="{{ ip.personnel_id }}">{{ ip.full_name }}</option>
+                  {% endfor %}
+                </select>
+                <select name="relationship_type" class="form-select form-select-sm" style="max-width:175px">
+                  <option value="">Type (optional)</option>
+                  <option>Primary Contact</option>
+                  <option>Technical Contact</option>
+                  <option>Business Contact</option>
+                  <option>Account Manager</option>
+                  <option>Other</option>
+                </select>
+                <button class="btn btn-sm btn-outline-primary"><i class="bi bi-plus-lg"></i> Add Link</button>
+              </form>
+              {% endif %}
+            </div>
+          </div>
+          {% endfor %}
+          {% else %}
+          <p class="text-muted small mb-3">No employees recorded for this company.</p>
+          {% endif %}
+
+          <!-- Add employee -->
+          <hr class="my-3">
+          <h6 class="mb-2">Add Employee</h6>
+          <form method="POST" action="{{ url_for('companies.add_employee', company_id=company.company_id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="row g-2">
+              <div class="col-sm-4">
+                <input type="text" name="full_name" class="form-control form-control-sm" placeholder="Name *" required>
+              </div>
+              <div class="col-sm-4">
+                <input type="email" name="email" class="form-control form-control-sm" placeholder="Email">
+              </div>
+              <div class="col-sm-3">
+                <input type="text" name="role" class="form-control form-control-sm" placeholder="Role / Title">
+              </div>
+              <div class="col-sm-1">
+                <button class="btn btn-sm btn-primary w-100" title="Add employee"><i class="bi bi-plus-lg"></i></button>
+              </div>
+            </div>
+          </form>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
 {% endblock %} {% block extra_js %}
 <script>
   document.addEventListener("DOMContentLoaded", function () {
