@@ -15,8 +15,8 @@
   </div>
 </div>
 
-<div class="row">
-  <div class="col-lg-8 col-xl-6">
+<div class="row g-4">
+  <div class="col-lg-6">
     <div class="card">
       <div class="card-body">
         <form method="post">
@@ -113,7 +113,6 @@
                 </div>
                 {% endif %}
               </div>
-              </div>
             </div>
 
             <div class="mb-3 mt-3">
@@ -139,10 +138,9 @@
       </div>
     </div>
   </div>
-</div>
-{% if company and company.company_id %}
-<div class="row mt-4">
-  <div class="col-lg-8 col-xl-6">
+
+  {% if company and company.company_id %}
+  <div class="col-lg-6">
     <div class="card">
       <div class="card-header" data-bs-toggle="collapse" data-bs-target="#employeesCollapse" style="cursor:pointer">
         <div class="d-flex justify-content-between align-items-center">
@@ -245,9 +243,9 @@
       </div>
     </div>
   </div>
-</div>
-{% endif %}
+  {% endif %}
 
+</div>
 {% endblock %} {% block extra_js %}
 <script>
   document.addEventListener("DOMContentLoaded", function () {
