@@ -61,10 +61,6 @@ endblock %} {% block content %}
           <thead>
             <tr>
               <th>Name</th>
-              <th>Role</th>
-              <th>Email</th>
-              <th>Phone</th>
-              <th>External Contacts</th>
               <th class="text-end">Actions</th>
             </tr>
           </thead>
@@ -72,26 +68,6 @@ endblock %} {% block content %}
             {% if internal_personnel %} {% for person in internal_personnel %}
             <tr>
               <td>{{ person.full_name }}</td>
-              <td>{{ person.role or '-' }}</td>
-              <td>
-                {% if person.email %}<a href="mailto:{{ person.email }}"
-                  >{{ person.email }}</a
-                >{% else %}-{% endif %}
-              </td>
-              <td>{{ person.phone or '-' }}</td>
-              <td>
-                {% set connections =
-                internal_connections.get(person.personnel_id, []) %} {% if
-                connections %} {% for connection in connections %}
-                <a
-                  href="{{ connection.url }}"
-                  class="badge bg-light text-dark border me-1 mb-1"
-                  >{{ connection.name }}</a
-                >
-                {% endfor %} {% else %}
-                <span class="text-muted">None</span>
-                {% endif %}
-              </td>
               <td class="text-end">
                 {% if current_user.can_edit() %}
                 <a
@@ -124,7 +100,7 @@ endblock %} {% block content %}
             </tr>
             {% endfor %} {% else %}
             <tr>
-              <td colspan="5" class="text-muted text-center py-4">
+              <td colspan="2" class="text-muted text-center py-4">
                 No internal personnel found.
               </td>
             </tr>
@@ -164,8 +140,6 @@ endblock %} {% block content %}
             <tr>
               <th>Name</th>
               <th>Role</th>
-              <th>Contact Type</th>
-              <th>Email</th>
               <th>Company</th>
               <th class="text-end">Actions</th>
             </tr>
@@ -175,12 +149,6 @@ endblock %} {% block content %}
             <tr>
               <td>{{ person.full_name }}</td>
               <td>{{ person.role or '-' }}</td>
-              <td>{{ person.contact_type or '-' }}</td>
-              <td>
-                {% if person.email %}<a href="mailto:{{ person.email }}"
-                  >{{ person.email }}</a
-                >{% else %}-{% endif %}
-              </td>
               <td>
                 {% if person.company %}
                 <a
@@ -224,7 +192,7 @@ endblock %} {% block content %}
             </tr>
             {% endfor %} {% else %}
             <tr>
-              <td colspan="5" class="text-muted text-center py-4">
+              <td colspan="4" class="text-muted text-center py-4">
                 No external contacts found.
               </td>
             </tr>
