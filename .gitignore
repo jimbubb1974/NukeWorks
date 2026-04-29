@@ -72,8 +72,8 @@ backups/
 # Uploads
 uploads/
 
-# Reports (generated PDFs)
-reports/
+# Reports (generated PDFs - top-level output folder only)
+/reports/
 *.pdf
 
 # Testing

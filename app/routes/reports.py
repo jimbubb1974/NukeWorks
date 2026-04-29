@@ -41,7 +41,8 @@ def project_summary_pdf():
         user=current_user,
         include_confidential=include_confidential,
         generated_by=current_user.full_name or current_user.username,
-        generated_date=datetime.utcnow()
+        generated_date=datetime.utcnow(),
+        db_session=db_session,
     )
 
     pdf_bytes = report.build()
