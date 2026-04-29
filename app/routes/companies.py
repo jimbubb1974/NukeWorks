@@ -542,10 +542,10 @@ def unlink_personnel_from_company(company_id, personnel_id):
             flash('Person not found or not linked to this company.', 'error')
             return redirect(url_for('companies.view_company', company_id=company_id))
         
-        # Unlink the personnel from the company
-        personnel.company_id = None
+        name = personnel.full_name
+        db_session.delete(personnel)
         db_session.commit()
-        flash(f'{personnel.full_name} unlinked from {company.company_name} successfully.', 'success')
+        flash(f'{name} removed from {company.company_name}.', 'success')
         
     except Exception as exc:
         db_session.rollback()
