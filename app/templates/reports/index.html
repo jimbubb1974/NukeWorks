@@ -1,44 +1,75 @@
 {% extends 'base.html' %} {% block content %}
 <div class="container mt-4">
-  <h2>Reports</h2>
-  <form
-    class="mt-3"
-    method="get"
-    action="{{ url_for('reports.project_summary_pdf') }}"
-  >
-    <div class="mb-3">
-      <label for="project_id" class="form-label">Project</label>
-      <select class="form-select" id="project_id" name="project_id" required>
-        <option value="" disabled selected>Select a project</option>
-        {% for p in projects %}
-        <option value="{{ p.project_id }}">{{ p.project_name }}</option>
-        {% endfor %}
-      </select>
-    </div>
-    <div class="form-check mb-3">
-      <input
-        class="form-check-input"
-        type="checkbox"
-        value="1"
-        id="confidential"
-        name="confidential"
-      />
-      <label class="form-check-label" for="confidential"
-        >Include confidential data (if permitted)</label
-      >
-    </div>
-    <button type="submit" class="btn btn-primary">
-      Generate Project Summary (PDF)
-    </button>
-  </form>
-  <hr />
-  <p class="text-muted">
-    Use this page to generate PDF reports for selected projects.
-  </p>
-  {% with messages = get_flashed_messages(with_categories=true) %} {% if
-  messages %} {% for category, message in messages %}
+  <h2><i class="bi bi-file-earmark-text"></i> Reports</h2>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}{% for category, message in messages %}
   <div class="alert alert-{{ category }} mt-3">{{ message }}</div>
-  {% endfor %} {% endif %} {% endwith %}
+  {% endfor %}{% endif %}
+  {% endwith %}
+
+  <div class="row g-4 mt-1">
+
+    <!-- Project Summary Report -->
+    <div class="col-lg-6">
+      <div class="card h-100">
+        <div class="card-header">
+          <h5 class="mb-0"><i class="bi bi-diagram-3"></i> Project Summary</h5>
+        </div>
+        <div class="card-body">
+          <p class="text-muted small">Full details for a single project — overview, financials (if permitted), company roles, and notes.</p>
+          <form method="get" action="{{ url_for('reports.project_summary_pdf') }}">
+            <div class="mb-3">
+              <label for="project_id" class="form-label">Project</label>
+              <select class="form-select" id="project_id" name="project_id" required>
+                <option value="" disabled selected>Select a project…</option>
+                {% for p in projects %}
+                <option value="{{ p.project_id }}">{{ p.project_name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            {% if current_user.is_admin or current_user.has_confidential_access %}
+            <div class="form-check mb-3">
+              <input class="form-check-input" type="checkbox" value="1" id="confidential" name="confidential" />
+              <label class="form-check-label" for="confidential">Include confidential financial data</label>
+            </div>
+            {% endif %}
+            <button type="submit" class="btn btn-primary">
+              <i class="bi bi-file-earmark-pdf"></i> Generate PDF
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Confidential Data Report -->
+    {% if current_user.is_admin or current_user.has_confidential_access or current_user.is_ned_team %}
+    <div class="col-lg-6">
+      <div class="card h-100 border-danger">
+        <div class="card-header bg-danger text-white">
+          <h5 class="mb-0"><i class="bi bi-shield-lock"></i> Confidential Data Report</h5>
+        </div>
+        <div class="card-body">
+          <p class="text-muted small">
+            Full export of all confidential data you have access to — shown based on your permission level:
+          </p>
+          <ul class="small text-muted mb-3">
+            {% if current_user.is_admin or current_user.has_confidential_access %}
+            <li><strong>Tier 1:</strong> Project financials (CAPEX, OPEX, Fuel Cost, LCOE) and confidential contact log entries</li>
+            {% endif %}
+            {% if current_user.is_admin or current_user.is_ned_team %}
+            <li><strong>Tier 2:</strong> MPR client profiles, roundtable meeting history, and personnel relationship assessments</li>
+            {% endif %}
+          </ul>
+          <a href="{{ url_for('reports.confidential_data_pdf') }}" class="btn btn-danger">
+            <i class="bi bi-file-earmark-pdf"></i> Generate Confidential Report
+          </a>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+  </div>
 </div>
 {% endblock %}
 

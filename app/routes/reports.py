@@ -7,6 +7,7 @@ from flask_login import login_required, current_user
 from app import db_session
 from app.models import Project
 from app.reports import ProjectSummaryReport
+from app.reports.confidential_data import ConfidentialDataReport
 
 bp = Blueprint('reports', __name__, url_prefix='/reports')
 
@@ -49,4 +50,31 @@ def project_summary_pdf():
     response = make_response(pdf_bytes)
     response.headers['Content-Type'] = 'application/pdf'
     response.headers['Content-Disposition'] = f'inline; filename=project_summary_{project_id}.pdf'
+    return response
+
+
+@bp.route('/confidential/pdf')
+@login_required
+def confidential_data_pdf():
+    """Generate a full confidential data report. Requires Tier 1 or Tier 2 access."""
+    can_tier1 = current_user.is_admin or current_user.has_confidential_access
+    can_tier2 = current_user.is_admin or current_user.is_ned_team
+
+    if not (can_tier1 or can_tier2):
+        flash('Access denied. This report requires Confidential Access (Tier 1) or NED Team Access (Tier 2).', 'danger')
+        return redirect(url_for('reports.index'))
+
+    report = ConfidentialDataReport(
+        user=current_user,
+        db_session=db_session,
+        generated_by=current_user.full_name or current_user.username,
+        generated_date=datetime.utcnow(),
+        include_tier1=can_tier1,
+        include_tier2=can_tier2,
+    )
+
+    pdf_bytes = report.build()
+    response = make_response(pdf_bytes)
+    response.headers['Content-Type'] = 'application/pdf'
+    response.headers['Content-Disposition'] = 'inline; filename=confidential_data_report.pdf'
     return response
