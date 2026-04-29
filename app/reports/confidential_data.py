@@ -84,6 +84,16 @@ def _val(v):
     return str(v)
 
 
+def _trunc(v, n=400):
+    """Truncate long text for table cells to prevent ReportLab LayoutError."""
+    text = _val(v)
+    if text == '—':
+        return text
+    if len(text) > n:
+        return text[:n] + '…'
+    return text
+
+
 def _tbl(data, col_widths, header_bg=MID_BLUE, alt_color=ROW_ALT):
     """Build a standard grid table. data[0] is the header row."""
     t = Table(data, colWidths=col_widths, repeatRows=1)
@@ -333,12 +343,12 @@ class ConfidentialDataReport:
                 if e.contact_person_id else e.contact_person_freetext or '—'
             )
             rows.append([
-                _p(_fmt_date(e.contact_date), s['cell']),
-                _p(entity_name,               s['cell']),
-                _p(e.contact_type,            s['cell']),
-                _p(contacted_by,              s['cell']),
-                _p(contact_person,            s['cell']),
-                _p(e.summary,                 s['cell']),
+                _p(_fmt_date(e.contact_date),  s['cell']),
+                _p(entity_name,                s['cell']),
+                _p(e.contact_type,             s['cell']),
+                _p(contacted_by,               s['cell']),
+                _p(contact_person,             s['cell']),
+                Paragraph(_trunc(e.summary), s['cell']),
             ])
 
         story.append(_tbl(rows, cw, header_bg=CONF_RED))
@@ -372,10 +382,10 @@ class ConfidentialDataReport:
         for prof in profiles:
             company_name = prof.company.company_name if prof.company else f'ID {prof.company_id}'
             rows.append([
-                _p(company_name,          s['cell']),
-                _p(prof.client_priority,  s['cell']),
-                _p(prof.client_tier,      s['cell']),
-                _p(prof.relationship_notes, s['cell']),
+                _p(company_name,         s['cell']),
+                _p(prof.client_priority, s['cell']),
+                _p(prof.client_tier,     s['cell']),
+                Paragraph(_trunc(prof.relationship_notes), s['cell']),
             ])
 
         story.append(_tbl(rows, cw, header_bg=NED_PURPLE, alt_color=ROW_ALT2))
@@ -409,36 +419,56 @@ class ConfidentialDataReport:
         users = {u.user_id: (u.full_name or u.username)
                  for u in self.db_session.query(User).all()}
 
-        # Group by company
         from collections import defaultdict
         by_company = defaultdict(list)
         for e in entries:
             by_company[e.entity_id].append(e)
 
-        cw = [usable * f for f in [0.11, 0.13, 0.19, 0.19, 0.19, 0.19]]
-        header = [_h(t, s['cell']) for t in [
-            'Date', 'Recorded By', 'Next Steps', 'Client Focus', 'MPR Targets', 'Discussion'
-        ]]
+        label_w = usable * 0.15
+        value_w = usable * 0.85
 
         for company_id, company_entries in sorted(by_company.items()):
             company_name = companies.get(company_id, f'Company ID {company_id}')
-            story.append(KeepTogether([
-                Paragraph(company_name, s['subsection']),
-            ]))
-            rows = [header]
+            story.append(Paragraph(company_name, s['subsection']))
+
             for e in company_entries:
                 recorded_by = users.get(e.created_by, f'ID {e.created_by}') \
                     if e.created_by else '—'
-                rows.append([
-                    _p(_fmt_date(e.created_timestamp), s['cell']),
-                    _p(recorded_by,                    s['cell']),
-                    _p(e.next_steps,                   s['cell']),
-                    _p(e.client_near_term_focus,        s['cell']),
-                    _p(e.mpr_work_targets,              s['cell']),
-                    _p(e.discussion,                    s['cell']),
-                ])
-            story.append(_tbl(rows, cw, header_bg=NED_PURPLE, alt_color=ROW_ALT2))
-            story.append(Spacer(1, 0.1 * inch))
+
+                # Build a two-column label/value table per entry — flows across pages
+                fields = [
+                    ('Date',         _fmt_date(e.created_timestamp)),
+                    ('Recorded By',  recorded_by),
+                    ('Next Steps',   _val(e.next_steps)),
+                    ('Client Focus', _val(e.client_near_term_focus)),
+                    ('MPR Targets',  _val(e.mpr_work_targets)),
+                    ('Discussion',   _val(e.discussion)),
+                ]
+                # Only include rows with actual content
+                rows = [
+                    [Paragraph(f'<b>{label}</b>', s['cell']),
+                     Paragraph(value, s['cell'])]
+                    for label, value in fields
+                    if value and value != '—'
+                ]
+                if not rows:
+                    continue
+
+                t = Table(rows, colWidths=[label_w, value_w])
+                t.setStyle(TableStyle([
+                    ('BACKGROUND',   (0, 0), (0, -1), NED_LIGHT),
+                    ('GRID',         (0, 0), (-1, -1), 0.25, colors.HexColor('#c0cfe0')),
+                    ('VALIGN',       (0, 0), (-1, -1), 'TOP'),
+                    ('TOPPADDING',   (0, 0), (-1, -1), 3),
+                    ('BOTTOMPADDING',(0, 0), (-1, -1), 3),
+                    ('LEFTPADDING',  (0, 0), (-1, -1), 4),
+                    ('RIGHTPADDING', (0, 0), (-1, -1), 4),
+                    ('FONTSIZE',     (0, 0), (-1, -1), 7.5),
+                ]))
+                story.append(t)
+                story.append(Spacer(1, 0.06 * inch))
+
+            story.append(Spacer(1, 0.08 * inch))
 
         return story
 
@@ -483,12 +513,12 @@ class ConfidentialDataReport:
             ext_name  = personnel.get(lnk.external_person_id, f'ID {lnk.external_person_id}')
             comp_name = companies.get(lnk.company_id, '—') if lnk.company_id else '—'
             rows.append([
-                _p(int_name,              s['cell']),
-                _p(ext_name,              s['cell']),
-                _p(comp_name,             s['cell']),
-                _p(lnk.relationship_type, s['cell']),
+                _p(int_name,                  s['cell']),
+                _p(ext_name,                  s['cell']),
+                _p(comp_name,                 s['cell']),
+                _p(lnk.relationship_type,     s['cell']),
                 _p(lnk.relationship_strength, s['cell']),
-                _p(lnk.notes,            s['cell']),
+                Paragraph(_trunc(lnk.notes),  s['cell']),
             ])
 
         story.append(_tbl(rows, cw, header_bg=NED_PURPLE, alt_color=ROW_ALT2))
