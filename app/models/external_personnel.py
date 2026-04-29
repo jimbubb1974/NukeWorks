@@ -27,6 +27,7 @@ class ExternalPersonnel(Base, TimestampMixin):
 
     # Contact Classification
     contact_type = Column(Text)  # Primary, Secondary, Technical, etc.
+    relationship_strength = Column(Text)  # Strong, Medium, Skeptical, Unaware
 
     # Status and Notes
     is_active = Column(Boolean, default=True, nullable=False)

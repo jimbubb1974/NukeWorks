@@ -2,7 +2,7 @@
 CRM routes (contact tracking, roundtable history)
 NED Team only - for roundtable meetings and client management
 """
-from flask import Blueprint, render_template, request, redirect, url_for, flash, abort
+from flask import Blueprint, render_template, request, redirect, url_for, flash, abort, jsonify
 from flask_login import login_required, current_user
 from sqlalchemy import func, or_, and_, case
 from sqlalchemy.orm import joinedload
@@ -390,6 +390,33 @@ def update_client_category(company_id):
         flash(f'Error saving category: {str(e)}', 'danger')
 
     return redirect(url_for('crm.add_roundtable_entry', company_id=company_id))
+
+
+@bp.route('/roundtable/<int:company_id>/update-contact-strength', methods=['POST'])
+@login_required
+@ned_team_required
+@edit_required
+def update_contact_strength(company_id):
+    """AJAX: update relationship_strength on an external personnel record."""
+    from app.models import ExternalPersonnel
+    valid = {'Strong', 'Medium', 'Skeptical', 'Unaware'}
+    personnel_id = request.form.get('personnel_id', type=int)
+    strength = request.form.get('relationship_strength', '').strip() or None
+
+    if strength and strength not in valid:
+        return jsonify({'ok': False, 'error': 'Invalid value'}), 400
+
+    person = db_session.get(ExternalPersonnel, personnel_id)
+    if not person or person.company_id != company_id:
+        return jsonify({'ok': False, 'error': 'Not found'}), 404
+
+    try:
+        person.relationship_strength = strength
+        db_session.commit()
+        return jsonify({'ok': True, 'relationship_strength': strength})
+    except Exception as e:
+        db_session.rollback()
+        return jsonify({'ok': False, 'error': str(e)}), 500
 
 
 @bp.route('/clients-by-poc/<int:personnel_id>')

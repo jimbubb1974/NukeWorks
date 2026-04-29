@@ -208,40 +208,50 @@ company.company_name }} - NukeWorks{% endblock %} {% block content %}
             <i class="bi bi-chevron-down"></i>
           </div>
         </div>
-        <div id="personnelCollapse" class="collapse">
-          <div class="card-body">
+        <div id="personnelCollapse" class="collapse show">
+          <div class="card-body p-2">
             {% if external_personnel %} {% for person in external_personnel %}
-            <div
-              class="{% if not loop.last %}border-bottom pb-2 mb-2{% endif %}"
-            >
-              <div>
-                {{ person.full_name or 'Unknown' }} {% if
-                personnel_mpr_map.get(person.personnel_id) %} {% for
-                mpr_connection in personnel_mpr_map[person.personnel_id] %} {%
-                if loop.first %}
-                <span class="badge bg-primary ms-2">
-                  {{ mpr_connection.split()[-1] }}
-                </span>
-                {% else %}
-                <span class="ms-2">{{ mpr_connection.split()[-1] }}</span>
-                {% endif %} {% endfor %} {% endif %} {% if person.role %}
-                <br />
-                <small class="text-muted">{{ person.role }}</small>
-                {% endif %}
+            {% set strength = person.relationship_strength %}
+            {% set name_class = {
+              'Strong': 'text-success fw-semibold',
+              'Medium': 'text-warning fw-semibold',
+              'Skeptical': 'text-danger fw-semibold',
+              'Unaware': 'text-dark fw-semibold'
+            }.get(strength, 'fw-semibold') %}
+            <div class="{% if not loop.last %}border-bottom pb-2 mb-2{% endif %}">
+              <div class="d-flex justify-content-between align-items-start gap-1">
+                <div>
+                  <span class="{{ name_class }}">{{ person.full_name or 'Unknown' }}</span>
+                  {% if personnel_mpr_map.get(person.personnel_id) %}
+                  {% for mpr_connection in personnel_mpr_map[person.personnel_id] %}
+                  {% if loop.first %}
+                  <span class="badge bg-primary ms-1">{{ mpr_connection.split()[-1] }}</span>
+                  {% else %}
+                  <span class="ms-1 small">{{ mpr_connection.split()[-1] }}</span>
+                  {% endif %}
+                  {% endfor %}
+                  {% endif %}
+                  {% if person.role %}
+                  <br /><small class="text-muted">{{ person.role }}</small>
+                  {% endif %}
+                </div>
+                <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                  <select
+                    class="form-select form-select-sm strength-select"
+                    style="width: 110px"
+                    data-personnel-id="{{ person.personnel_id }}"
+                    data-update-url="{{ url_for('crm.update_contact_strength', company_id=company.company_id) }}"
+                  >
+                    <option value="">— Set —</option>
+                    {% for s in ['Strong', 'Medium', 'Skeptical', 'Unaware'] %}
+                    <option value="{{ s }}" {% if strength == s %}selected{% endif %}>{{ s }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
               </div>
-              {% if person.email %}
-              <div class="small mt-1">
-                <i class="bi bi-envelope"></i>
-                <a href="mailto:{{ person.email }}">{{ person.email }}</a>
-              </div>
-              {% endif %} {% if person.phone %}
-              <div class="small">
-                <i class="bi bi-telephone"></i> {{ person.phone }}
-              </div>
-              {% endif %}
             </div>
             {% endfor %} {% else %}
-            <p class="text-muted mb-0">
+            <p class="text-muted mb-0 p-2">
               <i class="bi bi-info-circle"></i> No personnel contacts recorded
               for this company.
             </p>
@@ -474,4 +484,51 @@ company.company_name }} - NukeWorks{% endblock %} {% block content %}
     box-sizing: border-box;
   }
 </style>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const strengthColors = {
+      Strong:   'text-success',
+      Medium:   'text-warning',
+      Skeptical:'text-danger',
+      Unaware:  'text-dark',
+    };
+
+    document.querySelectorAll('.strength-select').forEach(function (sel) {
+      sel.addEventListener('change', function () {
+        const personnelId = this.dataset.personnelId;
+        const url = this.dataset.updateUrl;
+        const strength = this.value;
+        const csrfToken = document.querySelector('meta[name="csrf-token"]') ?
+          document.querySelector('meta[name="csrf-token"]').content :
+          document.querySelector('input[name="csrf_token"]').value;
+
+        const body = new URLSearchParams({
+          csrf_token: csrfToken,
+          personnel_id: personnelId,
+          relationship_strength: strength
+        });
+
+        fetch(url, { method: 'POST', body: body })
+          .then(r => r.json())
+          .then(data => {
+            if (data.ok) {
+              // The select lives in .d-flex > div.flex-shrink-0
+              // The name span lives in .d-flex > div:first-child > span.fw-semibold
+              const row = this.closest('.d-flex.justify-content-between');
+              const span = row ? row.querySelector('span.fw-semibold') : null;
+              if (span) {
+                Object.values(strengthColors).forEach(c => span.classList.remove(c));
+                if (strength && strengthColors[strength]) {
+                  span.classList.add(strengthColors[strength]);
+                }
+              }
+            } else {
+              alert('Save failed: ' + (data.error || 'unknown error'));
+            }
+          })
+          .catch(() => alert('Network error saving relationship strength.'));
+      });
+    });
+  });
+</script>
 {% endblock %}
