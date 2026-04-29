@@ -1,383 +1,255 @@
 # NukeWorks - Nuclear Project Management Database
 
-A multi-user web-based database application for managing nuclear project data, technology vendors, stakeholders, and client relationships with granular confidentiality controls.
+A multi-user web-based database application for managing nuclear project data, technology vendors, stakeholders, and client relationships — with granular confidentiality controls, per-field encryption, and an AI-assisted research workflow.
 
 ## Features
 
-- **Multi-User SQLite Database** on network drive with WAL mode for concurrency
-- **Two-Tier Permission System**:
-  - Tier 1: Confidential Access (business data)
-  - Tier 2: NED Team Access (internal strategy notes)
-- **Per-Field Encryption** - Financial data encrypted at rest 
-- **Unified Company Management** with role-based organization system
-- **Client Relationship Management (CRM)** for tracking interactions
-- **Network Diagram Visualization** of relationships
-- **PDF Report Generation** with confidentiality filtering
-- **Automated Backup/Snapshot System**
-- **Database Migration System** for schema evolution
-- **Granular Access Control** with field-level and relationship-level confidentiality
+- **Multi-Database Support** — select from multiple SQLite database files at runtime; no restart required
+- **Two-Tier Permission System** — Confidential Access (Tier 1) and NED Team Access (Tier 2), independent of each other
+- **Per-Field Encryption** — financial and strategy fields encrypted at rest using Fernet symmetric encryption with separate key sets per tier
+- **Unified Company Management** — single company table covering vendors, owners, operators, constructors, offtakers, and MPR clients
+- **Client Relationship Management (CRM)** — roundtable meeting history, client tiering/prioritization, and stakeholder strength tracking
+- **Personnel Directory** — internal MPR staff and external contacts, with MPR-to-client contact linking
+- **AI Research Workflow** — export company profiles for external AI processing, then stage and review results before committing to the database
+- **Network Diagram Visualization** — interactive diagram and tabular view of project relationships
+- **PDF Report Generation** — project summaries with confidentiality filtering
+- **Database Migration System** — sequential SQL migrations with automatic backup and rollback on failure
+- **Automated Backup/Snapshot System** — point-in-time backups with configurable retention
 
 ## Technology Stack
 
 - **Backend**: Python 3.9+, Flask 3.0, SQLAlchemy 2.0
-- **Database**: SQLite 3 (with WAL mode)
-- **Frontend**: HTML5, CSS3, JavaScript, Bootstrap 5
-- **Reports**: ReportLab (PDF generation), openpyxl (Excel export)
+- **Database**: SQLite 3 (WAL mode, 30-second busy timeout)
+- **Encryption**: `cryptography` library (Fernet); separate keys for Confidential and NED Team tiers
+- **Frontend**: Bootstrap 5, Bootstrap Icons, Vanilla JS
+- **Reports**: ReportLab (PDF), openpyxl (Excel export)
 - **Authentication**: Flask-Login, bcrypt
 
 ## Project Structure
 
 ```
-nukeworks/
-├── app.py                      # Main application entry point
-├── config.py                   # Configuration management
-├── requirements.txt            # Python dependencies
-├── .env.example               # Environment variable template
+NukeWorks/
+├── app.py                        # Entry point
+├── config.py                     # DevelopmentConfig / ProductionConfig / TestingConfig
+├── requirements.txt
+├── .env.example                  # Environment variable template
 │
-├── app/                       # Application package
-│   ├── __init__.py           # Flask app factory
-│   ├── exceptions.py         # Custom exceptions
+├── app/
+│   ├── __init__.py               # App factory, blueprint registration, Jinja filters
+│   ├── models/
+│   │   ├── base.py               # Base + TimestampMixin
+│   │   ├── user.py               # User authentication and permission flags
+│   │   ├── company.py            # Company, CompanyRole, CompanyRoleAssignment,
+│   │   │                         #   ClientProfile, PersonCompanyAffiliation,
+│   │   │                         #   InternalExternalLink
+│   │   ├── project.py            # Project (with coordinates)
+│   │   ├── personnel.py          # Personnel (base), InternalPersonnel
+│   │   ├── external_personnel.py # ExternalPersonnel (incl. relationship_strength)
+│   │   ├── relationships.py      # PersonnelRelationship
+│   │   ├── contact_log.py        # ContactLog (CRM interaction records)
+│   │   ├── roundtable.py         # RoundtableHistory (encrypted NED Team notes)
+│   │   ├── research.py           # ResearchImportRun, ResearchQueueItem
+│   │   └── system.py             # ConfidentialFieldFlag, AuditLog,
+│   │                             #   DatabaseSnapshot, SystemSetting, SchemaVersion
 │   │
-│   ├── models/               # SQLAlchemy database models
-│   │   ├── __init__.py
-│   │   ├── base.py           # Base model and mixins
-│   │   ├── user.py           # User authentication
-│   │   ├── company.py        # Unified company system
-│   │   ├── project.py        # Projects
-│   │   ├── personnel.py      # Personnel
-│   │   ├── relationships.py  # Junction tables
-│   │   └── ...              # Other models
+│   ├── routes/
+│   │   ├── auth.py               # /auth — login, logout, password, profile
+│   │   ├── dashboard.py          # / — home
+│   │   ├── db_select.py          # (no prefix) — database file picker
+│   │   ├── companies.py          # /companies — CRUD, role management, employees
+│   │   ├── projects.py           # /projects — project CRUD, map view
+│   │   ├── personnel.py          # /personnel — internal/external directory
+│   │   ├── crm.py                # /crm — roundtable, client dashboard, strength tracking
+│   │   ├── contact_log.py        # /contact-log — interaction logging
+│   │   ├── network.py            # network diagram JSON API
+│   │   ├── reports.py            # /reports — PDF generation
+│   │   ├── research.py           # /research — AI workflow export/import/review
+│   │   └── admin.py              # /admin — users, snapshots, settings, audit log
 │   │
-│   ├── routes/               # Flask blueprints
-│   │   ├── __init__.py
-│   │   ├── auth.py           # Authentication routes
-│   │   ├── dashboard.py      # Dashboard
-│   │   ├── companies.py      # Company management
-│   │   ├── projects.py       # Project CRUD
-│   │   ├── personnel.py      # Personnel management
-│   │   ├── crm.py            # CRM features
-│   │   ├── reports.py        # Report generation
-│   │   └── admin.py          # Administration
-│   │
-│   ├── services/             # Business logic
-│   │   └── ...
-│   │
-│   ├── templates/            # Jinja2 templates
-│   │   ├── base.html        # Base template
-│   │   ├── dashboard.html   # Dashboard
-│   │   ├── auth/            # Authentication pages
-│   │   ├── companies/       # Company pages
-│   │   ├── projects/        # Project pages
-│   │   └── ...
-│   │
-│   ├── static/              # Static files
-│   │   ├── css/
-│   │   ├── js/
-│   │   └── images/
-│   │
-│   └── utils/               # Utility functions
-│       ├── __init__.py
-│       ├── permissions.py   # Permission checking
-│       └── db_init.py      # Database initialization
+│   ├── forms/                    # Flask-WTF form classes
+│   ├── templates/                # Jinja2 templates (mirroring routes/ structure)
+│   ├── static/                   # CSS, JS, images
+│   └── utils/
+│       ├── permissions.py        # can_view_field(), get_field_display_value(), decorators
+│       ├── migrations.py         # Migration runner
+│       └── key_management.py     # Fernet key loading
 │
-├── migrations/              # Database migrations
-├── scripts/                 # Utility and migration scripts
-├── tests/                   # Test suite
-└── docs/                    # Specification documents
+├── migrations/                   # SQL migration files (001–019)
+├── scripts/                      # Standalone utility scripts
+├── tests/                        # pytest test suite
+└── docs/                         # Specification documents
 ```
 
 ## Installation & Setup
 
-### 1. Clone the Repository
+### 1. Create Virtual Environment
 
 ```bash
-cd /path/to/NukeWorks
-```
+python -m venv venv
 
-### 2. Create Virtual Environment
-
-```bash
-# Create virtual environment
-python3 -m venv venv
-
-# Activate virtual environment
-# On Linux/Mac:
-source venv/bin/activate
-
-# On Windows:
+# Windows
 venv\Scripts\activate
+
+# Linux / Mac
+source venv/bin/activate
 ```
 
-### 3. Install Dependencies
+### 2. Install Dependencies
 
 ```bash
 pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-### 4. Configure Environment Variables
+### 3. Configure Environment Variables
 
 ```bash
-# Copy environment template
 cp .env.example .env
-
-# Edit .env file with your settings
-nano .env
+# Edit .env with your settings
 ```
 
-**Important environment variables:**
-- `FLASK_ENV`: Set to `development` or `production`
-- `SECRET_KEY`: Generate a secure random key for production
-- `NUKEWORKS_DB_PATH`: Path to SQLite database file
-- `NUKEWORKS_SNAPSHOT_DIR`: Path to snapshot backup directory
+Key variables:
 
-### 5. Initialize Database
+| Variable | Purpose |
+|---|---|
+| `FLASK_ENV` | `development` or `production` |
+| `SECRET_KEY` | Session encryption key (required in production) |
+| `NUKEWORKS_DB_PATH` | Default SQLite database path |
+| `NUKEWORKS_DATA_DIR` | Writable storage root for snapshots etc. |
+| `CONFIDENTIAL_DATA_KEY` | Fernet key for Tier 1 encrypted fields |
+| `NED_TEAM_KEY` | Fernet key for Tier 2 (NED Team) encrypted fields |
+
+### 4. Initialize a Database
 
 ```bash
-# Initialize database with default settings
 flask init-db-cmd
 ```
 
-This creates:
-- All database tables
-- Default system settings
-- Default admin user (username: `admin`, password: `admin123`)
+Creates all tables, default settings, and a default admin user (`admin` / `admin123`).
 
-**⚠️ IMPORTANT**: Change the default admin password immediately after first login!
+> **⚠️ Change the default admin password immediately after first login.**
 
-### 6. Run the Application
+### 5. Run the Application
 
 ```bash
-# Development mode
 python app.py
-
-# Or using Flask CLI
-flask run
 ```
 
-The application will start on `http://127.0.0.1:5000/`
+Open `http://127.0.0.1:5000/` — you will be prompted to select a database file before accessing any other page.
 
-## Default Credentials
-
-**Username**: `admin`
-**Password**: `admin123`
-
-**⚠️ SECURITY WARNING**: Change this password immediately after first login!
-
-## Usage
-
-### Creating Additional Users
-
-Use the Flask CLI command:
+## Common CLI Commands
 
 ```bash
-flask create-admin --username newadmin --email admin@example.com --password securepassword
+# Create an admin user
+flask create-admin --username <name> --email <email> --password <password>
+
+# Check which migrations are pending
+flask check-migrations
+
+# Apply pending migrations to the selected database
+flask apply-migrations
+
+# Show migration history
+flask migration-history
+
+# Apply migrations directly against a database file (bypasses the session)
+python scripts/run_migrations.py <path_to_database>
 ```
 
-Or create users through the Admin interface after logging in.
+## Permission Levels
 
-### Permission Levels
+| Role | Access |
+|---|---|
+| **Read-Only User** | View public data only; no edits |
+| **Standard User** | View public data; can edit non-confidential records |
+| **Confidential Access (Tier 1)** | + financial fields (CAPEX, OPEX, LCOE, fuel cost) and confidential relationships |
+| **NED Team (Tier 2)** | + internal client assessments, roundtable history, CRM strategy notes |
+| **Administrator** | Full access, user management, snapshots, system settings |
 
-#### Regular User
-- View all public data
-- Cannot see confidential fields or NED Team notes
+Tiers are independent — a user can have Confidential Access without being NED Team, or vice versa.
 
-#### User with Confidential Access (Tier 1)
-- View all public + confidential business data
-- Financial information (CAPEX, OPEX, etc.)
-- Confidential relationships
+## Database Migration System
 
-#### NED Team Member (Tier 2)
-- View internal client assessments
-- View roundtable discussion history
-- Access CRM internal notes
+Migrations are SQL files in `migrations/` named `NNN_description.sql`. They must follow this pattern:
 
-#### Administrator
-- Full access to all data
-- User management
-- System settings
-- Database snapshots
+```sql
+BEGIN TRANSACTION;
 
-## Development
+-- DDL changes here
 
-### Running Tests
+INSERT INTO schema_version (version, applied_date, applied_by, description)
+VALUES (N, datetime('now'), 'system', 'Description');
+
+COMMIT;
+```
+
+The current required schema version is **19**. The migration runner creates a backup before applying changes and rolls back on failure.
+
+Note: migrations 010 and 013 each have two files with the same number prefix — this is a known issue; the runner handles them by filename sort order.
+
+## CRM & Roundtable Features
+
+The CRM module is restricted to NED Team members and administrators.
+
+- **Client Dashboard** — filterable list of MPR clients with tier and priority
+- **Roundtable Matrix** — Tier × Priority grid for visualizing client portfolio at a glance
+- **Roundtable Entry Pages** — per-client pages with encrypted meeting notes (next steps, client focus, MPR targets, discussion), client category management (tier/priority), and company personnel with relationship strength tracking
+- **Relationship Strength** — per-contact field on external personnel: `Strong` (green), `Medium` (orange), `Skeptical` (red), `Unaware` (black); editable inline on the roundtable client page
+- **Contact Log** — timestamped interaction records linked to companies and contacts
+
+## AI Research Workflow
+
+The research module (NED Team only) supports a human-in-the-loop workflow for enriching company data with AI assistance:
+
+1. **Export** — select companies and generate a chunked JSON package for an external AI tool
+2. **Import** — upload AI-generated results into a staged review queue
+3. **Review** — accept, skip, or delete each item before it touches the live database
+4. Accepted items write directly to the appropriate company or personnel records
+
+## Running Tests
 
 ```bash
-# Run all tests
+# All tests
 pytest
 
-# Run with coverage
-pytest --cov=app --cov-report=html
-
-# Run specific test file
+# Single file
 pytest tests/test_validators.py
+
+# Coverage report
+pytest --cov=app --cov-report=html
 ```
 
-### Code Formatting
+`conftest.py` provides session-scoped `app` and `db_session` fixtures plus a `permission_dataset` fixture that creates four test users (admin, ned_user, conf_user, standard_user) with a fully-configured project for permission testing.
+
+## Code Quality
 
 ```bash
-# Format code with black
-black app/
-
-# Check code style with flake8
 flake8 app/
+black app/
 ```
-
-### Database Migrations
-
-```bash
-# Create a new migration
-# (Future: Will use Alembic)
-
-# Apply migrations
-# (Future: Will use Alembic)
-```
-
-## Deployment
-
-### For Production
-
-1. **Set environment to production**:
-   ```bash
-   export FLASK_ENV=production
-   ```
-
-2. **Generate secure secret key**:
-   ```python
-   python -c "import secrets; print(secrets.token_hex(32))"
-   ```
-   Add this to `.env` as `SECRET_KEY`
-
-3. **Configure network database path**:
-   ```
-   NUKEWORKS_DB_PATH=\\networkdrive\nuclear_projects\nukeworks_db.sqlite
-   NUKEWORKS_SNAPSHOT_DIR=\\networkdrive\nuclear_projects\snapshots
-   ```
-
-4. **Package as standalone executable** (future):
-   ```bash
-   pyinstaller nukeworks.spec
-   ```
-
-## Architecture Highlights
-
-### Unified Company System
-- **Single Company Table**: Replaces legacy role-specific tables (vendors, owners, operators, etc.)
-- **Role-Based Assignment**: Companies can have multiple roles (vendor, developer, operator, constructor, offtaker)
-- **Flexible Relationships**: CompanyRoleAssignment links companies to projects, personnel, and other entities
-- **Backward Compatible**: Legacy helper functions preserved as aliases
-
-### Database Concurrency
-- **WAL Mode**: Enabled for better concurrent access on network drives
-- **Optimistic Locking**: Detects conflicts at save time using timestamps
-- **Automatic Retry**: Up to 5 attempts for database locks
-
-### Permission System
-- **Two Independent Tiers**: Confidential Access and NED Team
-- **Field-Level Confidentiality**: Mark specific fields as confidential per record
-- **Relationship Confidentiality**: Hide sensitive business relationships
-
-### Security
-- **Password Hashing**: bcrypt with salt
-- **Session Management**: Secure session tokens, 8-hour timeout
-- **CSRF Protection**: All forms protected
-- **Input Validation**: Server-side validation for all inputs
-
-## Documentation
-
-Complete specification documents are in the `docs/` directory:
-
-- `00_MASTER_SPECIFICATION.md` - Overview and navigation
-- `01_ARCHITECTURE.md` - System architecture
-- `02_DATABASE_SCHEMA.md` - Core entity tables (with encryption documentation)
-- `03_DATABASE_RELATIONSHIPS.md` - Junction tables
-- `04_DATA_DICTIONARY.md` - Field definitions (with encrypted fields)
-- `05_PERMISSION_SYSTEM.md` - Access control and encryption integration
-- `ENCRYPTION_IMPLEMENTATION_STATUS.md` - Current encryption status by phase
-- `ENCRYPTION_IMPLEMENTATION_PLAN.md` - Detailed field analysis for encryption
-- And 12+ more detailed specification documents...
-
-See `docs/DOCUMENTATION_REFRESH_ACTION_PLAN.md` for current documentation maintenance status.
-
-## Current Project Status
-
-### Recently Completed (October 2025)
-
-✅ **Per-Field Encryption - Phase 3a**
-- Project financial fields encrypted: CAPEX, OPEX, fuel_cost, LCOE
-- Access control integrated with encryption
-- Ready for production deployment
-
-✅ **Company Unification Migration**
-- Unified company schema (Companies, CompanyRoles, CompanyRoleAssignments)
-- Backfill scripts tested in dev/staging
-- CRUD operations synced to new schema
-- Ready for production migration
-
-✅ **Documentation Refresh**
-- Clarified migration status and encryption implementation
-- Added comprehensive status documents
-- Updated master specification with current state
-- 10 obsolete phase marker files removed
-
-### Currently In Progress
-
-⏳ **Remaining Encryption Phases (3b-3e)**
-- Phase 3b: ClientProfile NED Team fields
-- Phase 3c: RoundtableHistory NED Team fields
-- Phase 3d: CompanyRoleAssignment conditional encryption
-- Phase 3e: InternalExternalLink NED Team fields
-
-⏳ **Company Unification Production Migration**
-- Staged rollout awaiting approval
-- Backfill validation scripts ready
-- Production timeline in docs/MIGRATION_PLAN.md
-
-### Known Limitations
-
-- Legacy database tables still exist during transition (planned for removal 3-6 months post-migration)
-- Database selection feature (new) not fully documented (see docs/DATABASE_SELECTION_FEATURE.md)
-- Some spec documents updated but not all Phase 1-2 features fully refreshed
-
-## Troubleshooting
-
-### Database Locked Errors
-If you see "database is locked" errors:
-1. Ensure WAL mode is enabled (automatic in this app)
-2. Check network drive connectivity
-3. Verify no other processes have the database open exclusively
-
-### Login Issues
-1. Verify username/password
-2. Check that user account is active
-3. Review logs for authentication errors
-
-### Permission Issues
-1. Verify user has correct permission flags
-2. Check confidentiality settings on specific fields
-3. Review NED Team access requirements
-
-## Contributing
-
-1. Follow Python PEP 8 style guide
-2. Write tests for new features
-3. Update documentation
-4. Use meaningful commit messages
 
 ## Windows Installer Builds
 
-To distribute NukeWorks as a self-contained Windows application, follow the packaging workflow documented in `docs/installer_guide.md`. The helper utilities in the `installer/` directory produce a PyInstaller bundle and wrap it with an Inno Setup installer so end users do not need to install Python or other prerequisites manually.
+Packaging scripts in `installer/` produce a PyInstaller bundle wrapped with an Inno Setup installer for distribution without requiring users to install Python. See `docs/installer_guide.md`.
+
+## Deployment Notes
+
+- **Production secret key**: `python -c "import secrets; print(secrets.token_hex(32))"`
+- **Network drive databases**: set `NUKEWORKS_DB_PATH` to the UNC path; WAL mode and a 30-second busy timeout are applied automatically
+- **Encryption keys**: generate with `scripts/generate_encryption_keys.py`; store in `.env` or environment — never commit to source control
+
+## Troubleshooting
+
+| Problem | Likely cause / fix |
+|---|---|
+| `database is locked` | WAL mode is automatic; check network drive connectivity or other exclusive-lock processes |
+| Schema version mismatch | Apply pending migrations via `flask apply-migrations` or the in-app migration prompt |
+| `UnicodeEncodeError` on Windows | `app.py` reconfigures stdout/stderr to UTF-8 on startup; ensure you are running via the venv `python` binary |
+| Login fails | Check the user's `is_active` flag in the Admin panel |
 
 ## License
 
-Proprietary - All rights reserved
-
-## Support
-
-For questions or issues:
-1. Check the `docs/21_TROUBLESHOOTING.md` guide
-2. Review `docs/20_GLOSSARY.md` for terminology
-3. Contact the technical lead
+Proprietary — All rights reserved
 
 ---
 
