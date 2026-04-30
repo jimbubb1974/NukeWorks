@@ -426,15 +426,28 @@ def _cleanup_personnel_references(personnel_id: int) -> None:
     db_session.commit()
 
     # Remove junction-table relationships that point at this personnel
-    # NOTE: Using explicit loop instead of bulk .delete() to ensure audit logging captures each deletion
-    affiliations = db_session.query(PersonCompanyAffiliation).filter_by(personnel_id=personnel_id).all()
+    # NOTE: Using explicit loops instead of bulk .delete() to ensure audit logging captures each deletion
+
+    affiliations = db_session.query(PersonCompanyAffiliation).filter_by(person_id=personnel_id).all()
     for affiliation in affiliations:
         db_session.delete(affiliation)
 
-    # Commit after deletions so audit listener captures them
+    rels = db_session.query(PersonnelRelationship).filter(
+        (PersonnelRelationship.internal_personnel_id == personnel_id) |
+        (PersonnelRelationship.external_personnel_id == personnel_id)
+    ).all()
+    for rel in rels:
+        db_session.delete(rel)
+
+    from app.models.company import InternalExternalLink
+    links = db_session.query(InternalExternalLink).filter(
+        (InternalExternalLink.internal_person_id == personnel_id) |
+        (InternalExternalLink.external_person_id == personnel_id)
+    ).all()
+    for link in links:
+        db_session.delete(link)
+
     db_session.commit()
-    # PersonnelEntityRelationship and EntityTeamMember removed in Phase 4 cleanup
-    # ClientPersonnelRelationship removed - use PersonCompanyAffiliation instead
 
 
 @bp.route('/<int:personnel_id>/delete', methods=['POST'])
