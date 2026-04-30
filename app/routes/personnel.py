@@ -127,6 +127,30 @@ def list_personnel():
         for person in external_personnel
     }
 
+    # Build MPR primary-contact map for external personnel grouping.
+    # Prefer 'Primary Contact' relationship type; fall back to any active link.
+    ext_ids = [p.personnel_id for p in external_personnel]
+    ext_mpr_contact = {}
+    if ext_ids:
+        rels = (
+            db_session.query(PersonnelRelationship)
+            .options(joinedload(PersonnelRelationship.internal_personnel))
+            .filter(
+                PersonnelRelationship.external_personnel_id.in_(ext_ids),
+                PersonnelRelationship.is_active == True,  # noqa: E712
+            )
+            .all()
+        )
+        # Index: ext_id → best internal name
+        for rel in rels:
+            eid = rel.external_personnel_id
+            name = rel.internal_personnel.full_name if rel.internal_personnel else None
+            if not name:
+                continue
+            # Prefer Primary Contact; keep first match otherwise
+            if eid not in ext_mpr_contact or rel.relationship_type == 'Primary Contact':
+                ext_mpr_contact[eid] = name
+
     return render_template(
         'personnel/list.html',
         search_term=search_term,
@@ -136,6 +160,7 @@ def list_personnel():
         can_delete=current_user.is_admin,
         internal_connections=internal_connections,
         external_company_links=external_company_links,
+        ext_mpr_contact=ext_mpr_contact,
     )
 
 

@@ -1,8 +1,8 @@
-{% extends 'base.html' %} {% block title %}Personnel Directory - NukeWorks{%
-endblock %} {% block content %}
+{% extends 'base.html' %} {% block title %}CRM - NukeWorks{% endblock %}
+{% block content %}
 <div class="row mb-4">
   <div class="col-12 d-flex justify-content-between align-items-center">
-    <h1 class="h3 mb-0"><i class="bi bi-people"></i> Personnel Directory</h1>
+    <h1 class="h3 mb-0"><i class="bi bi-people"></i> CRM</h1>
   </div>
 </div>
 
@@ -25,21 +25,16 @@ endblock %} {% block content %}
   </div>
   {% if search_term %}
   <div class="col-auto align-self-end">
-    <a
-      href="{{ url_for('personnel.list_personnel') }}"
-      class="btn btn-outline-secondary"
-      >Clear</a
-    >
+    <a href="{{ url_for('personnel.list_personnel') }}" class="btn btn-outline-secondary">Clear</a>
   </div>
   {% endif %}
 </form>
 
 <div class="row">
+  <!-- Internal Personnel -->
   <div class="col-xl-6">
     <div class="card mb-4">
-      <div
-        class="card-header d-flex justify-content-between align-items-center"
-      >
+      <div class="card-header d-flex justify-content-between align-items-center">
         <h2 class="h5 mb-0">
           <i class="bi bi-building"></i> Internal Personnel (MPR)
         </h2>
@@ -54,153 +49,260 @@ endblock %} {% block content %}
             <i class="bi bi-person-plus"></i>
           </a>
           {% endif %}
+          <button
+            class="btn btn-sm btn-link p-0 text-decoration-none"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#internal-collapse"
+            aria-expanded="true"
+            aria-controls="internal-collapse"
+          >
+            <i class="bi bi-chevron-up" id="internal-chevron"></i>
+          </button>
         </div>
       </div>
-      <div class="table-responsive">
-        <table class="table table-striped table-hover mb-0 align-middle">
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th class="text-end">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% if internal_personnel %} {% for person in internal_personnel %}
-            <tr>
-              <td>{{ person.full_name }}</td>
-              <td class="text-end">
-                {% if current_user.can_edit() %}
-                <a
-                  href="{{ url_for('personnel.edit_personnel', personnel_id=person.personnel_id, type='internal') }}"
-                  class="btn btn-sm btn-outline-primary me-1"
-                  title="Edit"
-                >
-                  <i class="bi bi-pencil"></i>
-                </a>
-                {% endif %}
-                {% if can_delete and current_user.can_edit() %}
-                <form
-                  method="post"
-                  action="{{ url_for('personnel.delete_personnel', personnel_id=person.personnel_id) }}"
-                  class="d-inline"
-                >
-                  {{ delete_form.hidden_tag() }}
-                  <button
-                    type="submit"
-                    class="btn btn-sm btn-outline-danger"
-                    title="Delete"
-                    data-confirm="delete"
-                    data-confirm-message="Delete {{ person.full_name }}? This cannot be undone."
-                  >
-                    <i class="bi bi-trash"></i>
-                  </button>
-                </form>
-                {% endif %}
-              </td>
-            </tr>
-            {% endfor %} {% else %}
-            <tr>
-              <td colspan="2" class="text-muted text-center py-4">
-                No internal personnel found.
-              </td>
-            </tr>
-            {% endif %}
-          </tbody>
-        </table>
+      <div class="collapse show" id="internal-collapse">
+        <div class="table-responsive">
+          <table class="table table-striped table-hover mb-0 align-middle">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th class="text-end">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% if internal_personnel %}
+                {% for person in internal_personnel %}
+                <tr>
+                  <td>{{ person.full_name }}</td>
+                  <td class="text-end">
+                    {% if current_user.can_edit() %}
+                    <a
+                      href="{{ url_for('personnel.edit_personnel', personnel_id=person.personnel_id, type='internal') }}"
+                      class="btn btn-sm btn-outline-primary me-1"
+                      title="Edit"
+                    ><i class="bi bi-pencil"></i></a>
+                    {% endif %}
+                    {% if can_delete and current_user.can_edit() %}
+                    <form
+                      method="post"
+                      action="{{ url_for('personnel.delete_personnel', personnel_id=person.personnel_id) }}"
+                      class="d-inline"
+                    >
+                      {{ delete_form.hidden_tag() }}
+                      <button
+                        type="submit"
+                        class="btn btn-sm btn-outline-danger"
+                        title="Delete"
+                        data-confirm="delete"
+                        data-confirm-message="Delete {{ person.full_name }}? This cannot be undone."
+                      ><i class="bi bi-trash"></i></button>
+                    </form>
+                    {% endif %}
+                  </td>
+                </tr>
+                {% endfor %}
+              {% else %}
+              <tr>
+                <td colspan="2" class="text-muted text-center py-4">No internal personnel found.</td>
+              </tr>
+              {% endif %}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   </div>
 
+  <!-- External Contacts -->
   <div class="col-xl-6">
     <div class="card mb-4">
-      <div
-        class="card-header d-flex justify-content-between align-items-center"
-      >
+      <div class="card-header d-flex justify-content-between align-items-center">
         <h2 class="h5 mb-0">
           <i class="bi bi-people-fill"></i> External Contacts
         </h2>
         <div class="d-flex align-items-center gap-2">
-          <span class="badge bg-secondary"
-            >{{ external_personnel|length }}</span
-          >
+          <span class="badge bg-secondary">{{ external_personnel|length }}</span>
           {% if current_user.can_edit() %}
           <a
             href="{{ url_for('personnel.create_personnel', personnel_type='Client_Contact') }}"
             class="btn btn-sm btn-outline-secondary"
             title="Add External Contact"
-          >
-            <i class="bi bi-person-plus"></i>
-          </a>
+          ><i class="bi bi-person-plus"></i></a>
           {% endif %}
+          <button
+            class="btn btn-sm btn-link p-0 text-decoration-none"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#external-collapse"
+            aria-expanded="true"
+            aria-controls="external-collapse"
+          >
+            <i class="bi bi-chevron-up" id="external-chevron"></i>
+          </button>
         </div>
       </div>
-      <div class="table-responsive">
-        <table class="table table-striped table-hover mb-0 align-middle">
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Role</th>
-              <th>Company</th>
-              <th class="text-end">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% if external_personnel %} {% for person in external_personnel %}
-            <tr>
-              <td>{{ person.full_name }}</td>
-              <td>{{ person.role or '-' }}</td>
-              <td>
-                {% if person.company %}
-                <a
-                  href="{{ url_for('companies.view_company', company_id=person.company_id) }}"
-                  class="badge bg-primary"
-                  >{{ person.company.company_name }}</a
+      <div class="collapse show" id="external-collapse">
+        <!-- Grouping controls -->
+        <div class="px-3 pt-3 pb-2 border-bottom">
+          <div class="d-flex align-items-center gap-2">
+            <small class="text-muted me-1">Group by:</small>
+            <div class="btn-group btn-group-sm" role="group" id="ext-group-btns">
+              <button type="button" class="btn btn-outline-secondary active" data-group="alpha">Alphabetical</button>
+              <button type="button" class="btn btn-outline-secondary" data-group="client">Client</button>
+              <button type="button" class="btn btn-outline-secondary" data-group="mpr">MPR Contact</button>
+            </div>
+          </div>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-hover mb-0 align-middle" id="ext-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Role</th>
+                <th>Company</th>
+                <th class="text-end">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="ext-tbody">
+              {% if external_personnel %}
+                {% for person in external_personnel %}
+                <tr
+                  class="ext-contact-row"
+                  data-name="{{ person.full_name }}"
+                  data-company="{{ person.company.company_name if person.company else '' }}"
+                  data-mpr="{{ ext_mpr_contact.get(person.personnel_id, '') }}"
                 >
-                {% else %}
-                <span class="text-muted">No company</span>
-                {% endif %}
-              </td>
-              <td class="text-end">
-                {% if current_user.can_edit() %}
-                <a
-                  href="{{ url_for('personnel.edit_personnel', personnel_id=person.personnel_id, type='external') }}"
-                  class="btn btn-sm btn-outline-primary me-1"
-                  title="Edit"
-                >
-                  <i class="bi bi-pencil"></i>
-                </a>
-                {% endif %}
-                {% if can_delete and current_user.can_edit() %}
-                <form
-                  method="post"
-                  action="{{ url_for('personnel.delete_personnel', personnel_id=person.personnel_id) }}"
-                  class="d-inline"
-                >
-                  {{ delete_form.hidden_tag() }}
-                  <button
-                    type="submit"
-                    class="btn btn-sm btn-outline-danger"
-                    title="Delete"
-                    data-confirm="delete"
-                    data-confirm-message="Delete {{ person.full_name }}?"
-                  >
-                    <i class="bi bi-trash"></i>
-                  </button>
-                </form>
-                {% endif %}
-              </td>
-            </tr>
-            {% endfor %} {% else %}
-            <tr>
-              <td colspan="4" class="text-muted text-center py-4">
-                No external contacts found.
-              </td>
-            </tr>
-            {% endif %}
-          </tbody>
-        </table>
+                  <td>{{ person.full_name }}</td>
+                  <td>{{ person.role or '-' }}</td>
+                  <td>
+                    {% if person.company %}
+                    <a href="{{ url_for('companies.view_company', company_id=person.company_id) }}" class="badge bg-primary text-decoration-none">
+                      {{ person.company.company_name }}
+                    </a>
+                    {% else %}
+                    <span class="text-muted">No company</span>
+                    {% endif %}
+                  </td>
+                  <td class="text-end">
+                    {% if current_user.can_edit() %}
+                    <a
+                      href="{{ url_for('personnel.edit_personnel', personnel_id=person.personnel_id, type='external') }}"
+                      class="btn btn-sm btn-outline-primary me-1"
+                      title="Edit"
+                    ><i class="bi bi-pencil"></i></a>
+                    {% endif %}
+                    {% if can_delete and current_user.can_edit() %}
+                    <form
+                      method="post"
+                      action="{{ url_for('personnel.delete_personnel', personnel_id=person.personnel_id) }}"
+                      class="d-inline"
+                    >
+                      {{ delete_form.hidden_tag() }}
+                      <button
+                        type="submit"
+                        class="btn btn-sm btn-outline-danger"
+                        title="Delete"
+                        data-confirm="delete"
+                        data-confirm-message="Delete {{ person.full_name }}?"
+                      ><i class="bi bi-trash"></i></button>
+                    </form>
+                    {% endif %}
+                  </td>
+                </tr>
+                {% endfor %}
+              {% else %}
+              <tr id="ext-empty-row">
+                <td colspan="4" class="text-muted text-center py-4">No external contacts found.</td>
+              </tr>
+              {% endif %}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   </div>
 </div>
+
+<script>
+(function () {
+  // Chevron helpers
+  function wireChevron(collapseId, chevronId) {
+    const el = document.getElementById(collapseId);
+    const icon = document.getElementById(chevronId);
+    if (!el || !icon) return;
+    el.addEventListener('hide.bs.collapse', () => icon.classList.replace('bi-chevron-up', 'bi-chevron-down'));
+    el.addEventListener('show.bs.collapse', () => icon.classList.replace('bi-chevron-down', 'bi-chevron-up'));
+  }
+  wireChevron('internal-collapse', 'internal-chevron');
+  wireChevron('external-collapse', 'external-chevron');
+
+  // External contacts grouping
+  const tbody = document.getElementById('ext-tbody');
+  if (!tbody) return;
+
+  // Snapshot original rows (excluding any injected group headers)
+  const originalRows = Array.from(tbody.querySelectorAll('tr.ext-contact-row'));
+  if (!originalRows.length) return;
+
+  function applyGrouping(mode) {
+    // Remove existing group header rows
+    tbody.querySelectorAll('tr.group-header-row').forEach(r => r.remove());
+
+    if (mode === 'alpha') {
+      // Restore flat sorted order
+      originalRows
+        .slice()
+        .sort((a, b) => a.dataset.name.localeCompare(b.dataset.name))
+        .forEach(r => tbody.appendChild(r));
+      return;
+    }
+
+    const key = mode === 'client' ? 'company' : 'mpr';
+    const label = mode === 'client' ? 'Client' : 'MPR Contact';
+    const none  = mode === 'client' ? 'No Company' : 'Unassigned';
+
+    // Group rows
+    const groups = new Map();
+    originalRows.forEach(row => {
+      const groupKey = row.dataset[key] || none;
+      if (!groups.has(groupKey)) groups.set(groupKey, []);
+      groups.get(groupKey).push(row);
+    });
+
+    // Sort group keys alphabetically, but put the "none" bucket last
+    const sortedKeys = Array.from(groups.keys()).sort((a, b) => {
+      if (a === none) return 1;
+      if (b === none) return -1;
+      return a.localeCompare(b);
+    });
+
+    // Render
+    sortedKeys.forEach(groupKey => {
+      const header = document.createElement('tr');
+      header.className = 'group-header-row table-secondary';
+      header.innerHTML = `<td colspan="4" class="fw-semibold py-1 px-3 small text-uppercase text-muted">
+        <i class="bi bi-${mode === 'client' ? 'building' : 'person-badge'}"></i>&nbsp;${groupKey}
+        <span class="badge bg-secondary ms-1">${groups.get(groupKey).length}</span>
+      </td>`;
+      tbody.appendChild(header);
+      groups.get(groupKey)
+        .sort((a, b) => a.dataset.name.localeCompare(b.dataset.name))
+        .forEach(r => tbody.appendChild(r));
+    });
+  }
+
+  // Button group wiring
+  document.querySelectorAll('#ext-group-btns button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('#ext-group-btns button').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      applyGrouping(btn.dataset.group);
+    });
+  });
+
+  // Default: alphabetical
+  applyGrouping('alpha');
+})();
+</script>
 {% endblock %}
