@@ -464,7 +464,18 @@ def delete_personnel(personnel_id: int):
         flash('Deletion request was not confirmed.', 'error')
         return redirect(url_for('personnel.list_personnel'))
 
-    person = db_session.get(Personnel, personnel_id)
+    person_type = request.args.get('type', '')
+    if person_type == 'internal':
+        person = db_session.get(InternalPersonnel, personnel_id)
+    elif person_type == 'external':
+        person = db_session.get(ExternalPersonnel, personnel_id)
+    else:
+        # Legacy fallback: try all tables in order
+        person = (
+            db_session.get(ExternalPersonnel, personnel_id)
+            or db_session.get(InternalPersonnel, personnel_id)
+            or db_session.get(Personnel, personnel_id)
+        )
     if not person:
         flash('Personnel record not found.', 'error')
         return redirect(url_for('personnel.list_personnel'))

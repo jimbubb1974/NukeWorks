@@ -86,7 +86,7 @@
                     {% if can_delete and current_user.can_edit() %}
                     <form
                       method="post"
-                      action="{{ url_for('personnel.delete_personnel', personnel_id=person.personnel_id) }}"
+                      action="{{ url_for('personnel.delete_personnel', personnel_id=person.personnel_id, type='internal') }}"
                       class="d-inline"
                     >
                       {{ delete_form.hidden_tag() }}
@@ -195,7 +195,7 @@
                     {% if can_delete and current_user.can_edit() %}
                     <form
                       method="post"
-                      action="{{ url_for('personnel.delete_personnel', personnel_id=person.personnel_id) }}"
+                      action="{{ url_for('personnel.delete_personnel', personnel_id=person.personnel_id, type='external') }}"
                       class="d-inline"
                     >
                       {{ delete_form.hidden_tag() }}
