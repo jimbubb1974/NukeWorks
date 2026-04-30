@@ -81,14 +81,14 @@
             </li>
             {% endif %} {% if current_user.is_ned_team or current_user.is_admin %}
             <li class="nav-item">
-              <a class="nav-link" href="{{ url_for('crm.roundtable_meeting') }}">CRM</a>
+              <a class="nav-link" href="{{ url_for('crm.roundtable_meeting') }}">Client Mgmt</a>
             </li>
             {% endif %} {% if has_endpoint('personnel.list_personnel') %}
             <li class="nav-item">
               <a
                 class="nav-link"
                 href="{{ url_for('personnel.list_personnel') }}"
-                >Personnel</a
+                >CRM</a
               >
             </li>
             {% endif %}
