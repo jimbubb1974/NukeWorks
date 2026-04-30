@@ -1,0 +1,77 @@
+- generic [ref=e1]:
+  - navigation [ref=e2]:
+    - link "NukeWorks" [ref=e4] [cursor=pointer]:
+      - /url: /dashboard
+  - main [ref=e8]:
+    - generic [ref=e12]:
+      - heading " Select Database" [level=3] [ref=e14]:
+        - generic [ref=e15]: 
+        - text: Select Database
+      - generic [ref=e16]:
+        - generic [ref=e19]:
+          - generic [ref=e20]: 
+          - generic [ref=e22]: Please select a database below to continue.
+        - generic [ref=e23]:
+          - generic [ref=e24]:
+            - heading "Available Databases" [level=5] [ref=e25]
+            - generic [ref=e26]:
+              - generic [ref=e29]:
+                - radio "Test Database C:\\Users\\jimbu\\Coding Projects\\NukeWorks\\databases\\dev_nukeworks.sqlite" [checked] [active] [ref=e30]
+                - generic [ref=e31]:
+                  - strong [ref=e32]: Test Database
+                  - text: C:\Users\jimbu\Coding Projects\NukeWorks\databases\dev_nukeworks.sqlite
+              - generic [ref=e35]:
+                - radio "backups C:\\Users\\jimbu\\Coding Projects\\NukeWorks\\databases\\backups\\dev_nukeworks_20251020_114924.sqlite" [ref=e36]
+                - generic [ref=e37]:
+                  - strong [ref=e38]: backups
+                  - text: C:\Users\jimbu\Coding Projects\NukeWorks\databases\backups\dev_nukeworks_20251020_114924.sqlite
+              - generic [ref=e41]:
+                - radio "backups C:\\Users\\jimbu\\Coding Projects\\NukeWorks\\databases\\backups\\dev_nukeworks_20251020_121615.before014.sqlite" [ref=e42]
+                - generic [ref=e43]:
+                  - strong [ref=e44]: backups
+                  - text: C:\Users\jimbu\Coding Projects\NukeWorks\databases\backups\dev_nukeworks_20251020_121615.before014.sqlite
+              - generic [ref=e47]:
+                - radio "development C:\\Users\\jimbu\\Coding Projects\\NukeWorks\\databases\\development\\dev_nukeworks.sqlite" [ref=e48]
+                - generic [ref=e49]:
+                  - strong [ref=e50]: development
+                  - text: C:\Users\jimbu\Coding Projects\NukeWorks\databases\development\dev_nukeworks.sqlite
+          - generic [ref=e51]:
+            - heading "Recent Databases" [level=5] [ref=e52]
+            - generic [ref=e53]:
+              - generic [ref=e55]:
+                - radio "Test Database C:\\Users\\jimbu\\Coding Projects\\NukeWorks\\databases\\dev_nukeworks.sqlite" [ref=e56]
+                - generic [ref=e57]:
+                  - strong [ref=e58]: Test Database
+                  - text: C:\Users\jimbu\Coding Projects\NukeWorks\databases\dev_nukeworks.sqlite
+              - generic [ref=e60]:
+                - radio "development C:\\Users\\jimbu\\Coding Projects\\NukeWorks\\databases\\development\\dev_nukeworks.sqlite" [ref=e61]
+                - generic [ref=e62]:
+                  - strong [ref=e63]: development
+                  - text: C:\Users\jimbu\Coding Projects\NukeWorks\databases\development\dev_nukeworks.sqlite
+              - generic [ref=e65]:
+                - radio "NukeWorks C:\\Users\\jimbu\\AppData\\Local\\NukeWorks\\dev_nukeworks.sqlite" [ref=e66]
+                - generic [ref=e67]:
+                  - strong [ref=e68]: NukeWorks
+                  - text: C:\Users\jimbu\AppData\Local\NukeWorks\dev_nukeworks.sqlite
+          - generic [ref=e69]:
+            - heading "Or Enter Path Manually" [level=5] [ref=e70]
+            - generic [ref=e71]:
+              - generic [ref=e73]: 
+              - textbox "C:\\path\\to\\database.sqlite or \\\\network\\path\\database.sqlite" [ref=e74]
+            - generic [ref=e75]:
+              - text: Enter absolute path to a .sqlite database file. UNC paths are supported.
+              - strong [ref=e76]: This will override any radio selection above.
+          - generic [ref=e77]:
+            - generic [ref=e78]: Custom Display Name (Optional)
+            - textbox "Custom Display Name (Optional)" [ref=e79]:
+              - /placeholder: e.g., Production Database
+            - text: Set a friendly name for this database. This will be saved in the database file.
+          - generic [ref=e80]:
+            - button " Refresh List" [ref=e81] [cursor=pointer]:
+              - generic [ref=e82]: 
+              - text: Refresh List
+            - button " Continue" [ref=e83] [cursor=pointer]:
+              - generic [ref=e84]: 
+              - text: Continue
+  - contentinfo [ref=e85]:
+    - generic [ref=e86]: NukeWorks © 2025 | Nuclear Project Management Database

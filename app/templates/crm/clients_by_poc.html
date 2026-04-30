@@ -9,7 +9,7 @@
         <div class="col-md-8">
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="{{ url_for('crm.dashboard') }}">CRM Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('crm.roundtable_meeting') }}">CRM</a></li>
                     <li class="breadcrumb-item active">{{ person.full_name }}'s Clients</li>
                 </ol>
             </nav>
@@ -17,8 +17,8 @@
             <p class="text-muted">Clients where {{ person.full_name }} is Primary or Secondary POC</p>
         </div>
         <div class="col-md-4 text-end">
-            <a href="{{ url_for('crm.dashboard') }}" class="btn btn-secondary">
-                <i class="bi bi-arrow-left"></i> Back to Dashboard
+            <a href="{{ url_for('crm.roundtable_meeting') }}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Back to CRM
             </a>
         </div>
     </div>

@@ -1,0 +1,72 @@
+- generic [active] [ref=e1]:
+  - navigation [ref=e2]:
+    - generic [ref=e3]:
+      - link "NukeWorks" [ref=e4] [cursor=pointer]:
+        - /url: /dashboard
+      - generic [ref=e5]:
+        - list [ref=e6]:
+          - listitem [ref=e7]:
+            - link "Dashboard" [ref=e8] [cursor=pointer]:
+              - /url: /dashboard
+          - listitem [ref=e9]:
+            - generic "C:\\Users\\jimbu\\Coding Projects\\NukeWorks\\databases\\dev_nukeworks.sqlite" [ref=e10]: dev_nukeworks.sqlite
+          - listitem [ref=e11]:
+            - button "Companies" [ref=e12] [cursor=pointer]
+            - text:       
+          - listitem [ref=e13]:
+            - link "Projects" [ref=e14] [cursor=pointer]:
+              - /url: /projects/
+          - listitem [ref=e15]:
+            - link "Map" [ref=e16] [cursor=pointer]:
+              - /url: /projects/map
+          - listitem [ref=e17]:
+            - button "CRM" [ref=e18] [cursor=pointer]
+            - text:  
+          - listitem [ref=e19]:
+            - link "Personnel" [ref=e20] [cursor=pointer]:
+              - /url: /personnel/
+          - listitem [ref=e21]:
+            - link "Reports" [ref=e22] [cursor=pointer]:
+              - /url: /reports/
+          - listitem [ref=e23]:
+            - button "Network" [ref=e24] [cursor=pointer]
+          - listitem [ref=e25]:
+            - link "Research" [ref=e26] [cursor=pointer]:
+              - /url: /research/
+          - listitem [ref=e27]:
+            - link "Admin" [ref=e28] [cursor=pointer]:
+              - /url: /admin/
+        - list [ref=e29]:
+          - listitem [ref=e30]:
+            - link "Database" [ref=e31] [cursor=pointer]:
+              - /url: /select-db
+          - listitem [ref=e32]:
+            - button "System Administrator" [ref=e33] [cursor=pointer]
+            - text:   
+  - main [ref=e34]:
+    - generic [ref=e35]:
+      - heading "Reports" [level=2] [ref=e36]
+      - generic [ref=e37]:
+        - generic [ref=e38]:
+          - generic [ref=e39]: Project
+          - combobox "Project" [ref=e40]:
+            - option "Select a project" [disabled] [selected]
+            - option "Clinch River SMR Project"
+            - option "Darlington New Nuclear Project Unit 1"
+            - option "Duke Project 1 (WS Lee)"
+            - option "Energy Northwest Advanced SMR Project"
+            - option "Fermi America Project 1"
+            - option "Kairos Hermes 2 Demonstration Plant"
+            - option "Long Mott Generating Station (Xe-100 Demonstration)"
+            - option "Natrium Demonstration Plant"
+            - option "Palisades SMR-300"
+            - option "Susquehanna Nuclear PPA & Data Center Campus"
+            - option "VC Summer Restart"
+        - generic [ref=e41]:
+          - checkbox "Include confidential data (if permitted)" [ref=e42]
+          - generic [ref=e43]: Include confidential data (if permitted)
+        - button "Generate Project Summary (PDF)" [ref=e44] [cursor=pointer]
+      - separator [ref=e45]
+      - paragraph [ref=e46]: Use this page to generate PDF reports for selected projects.
+  - contentinfo [ref=e47]:
+    - generic [ref=e48]: NukeWorks © 2025 | Nuclear Project Management Database

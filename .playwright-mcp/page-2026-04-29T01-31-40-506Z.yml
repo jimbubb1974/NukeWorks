@@ -1,0 +1,58 @@
+- generic [active] [ref=e1]:
+  - navigation [ref=e2]:
+    - generic [ref=e3]:
+      - link "NukeWorks" [ref=e4] [cursor=pointer]:
+        - /url: /dashboard
+      - generic [ref=e5]:
+        - list [ref=e6]:
+          - listitem [ref=e7]:
+            - link "Dashboard" [ref=e8] [cursor=pointer]:
+              - /url: /dashboard
+          - listitem [ref=e9]:
+            - generic "C:\\Users\\jimbu\\Coding Projects\\NukeWorks\\databases\\dev_nukeworks.sqlite" [ref=e10]: dev_nukeworks.sqlite
+          - listitem [ref=e11]:
+            - button "Companies" [ref=e12] [cursor=pointer]
+            - text:       
+          - listitem [ref=e13]:
+            - link "Projects" [ref=e14] [cursor=pointer]:
+              - /url: /projects/
+          - listitem [ref=e15]:
+            - link "Map" [ref=e16] [cursor=pointer]:
+              - /url: /projects/map
+          - listitem [ref=e17]:
+            - button "CRM" [ref=e18] [cursor=pointer]
+            - text:  
+          - listitem [ref=e19]:
+            - link "Personnel" [ref=e20] [cursor=pointer]:
+              - /url: /personnel/
+          - listitem [ref=e21]:
+            - link "Reports" [ref=e22] [cursor=pointer]:
+              - /url: /reports/
+          - listitem [ref=e23]:
+            - button "Network" [ref=e24] [cursor=pointer]
+          - listitem [ref=e25]:
+            - link "Research" [ref=e26] [cursor=pointer]:
+              - /url: /research/
+          - listitem [ref=e27]:
+            - link "Admin" [ref=e28] [cursor=pointer]:
+              - /url: /admin/
+        - list [ref=e29]:
+          - listitem [ref=e30]:
+            - link "Database" [ref=e31] [cursor=pointer]:
+              - /url: /select-db
+          - listitem [ref=e32]:
+            - button "System Administrator" [ref=e33] [cursor=pointer]
+            - text:   
+  - alert [ref=e35]:
+    - text: Welcome back, System Administrator!
+    - button [ref=e36] [cursor=pointer]
+  - main [ref=e37]:
+    - generic [ref=e39]:
+      - heading "Dashboard" [level=1] [ref=e40]
+      - paragraph [ref=e41]: Welcome to NukeWorks Nuclear Project Management System
+    - generic [ref=e45]:
+      - heading "Dashboard" [level=5] [ref=e46]
+      - paragraph [ref=e47]: This is a placeholder dashboard page.
+      - paragraph [ref=e48]: Use the navigation menu to access the various features of the NukeWorks system.
+  - contentinfo [ref=e49]:
+    - generic [ref=e50]: NukeWorks © 2025 | Nuclear Project Management Database

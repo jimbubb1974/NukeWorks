@@ -1,0 +1,32 @@
+- generic [ref=e1]:
+  - navigation [ref=e2]:
+    - link "NukeWorks" [ref=e4] [cursor=pointer]:
+      - /url: /dashboard
+  - alert [ref=e6]:
+    - text: Please log in to access this page.
+    - button [ref=e7] [cursor=pointer]
+  - main [ref=e8]:
+    - generic [ref=e10]:
+      - generic [ref=e12]:
+        - generic [ref=e13]:
+          - heading "NukeWorks" [level=2] [ref=e14]
+          - paragraph [ref=e15]: Nuclear Project Management System
+        - generic [ref=e16]:
+          - generic [ref=e17]:
+            - generic [ref=e18]: Username
+            - textbox "Username" [active] [ref=e19]:
+              - /placeholder: Enter your username
+          - generic [ref=e20]:
+            - generic [ref=e21]: Password
+            - textbox "Password" [ref=e22]:
+              - /placeholder: Enter your password
+          - generic [ref=e23]:
+            - checkbox "Remember Me" [ref=e24]
+            - generic [ref=e25]: Remember Me
+          - button "Sign In" [ref=e27] [cursor=pointer]
+        - generic [ref=e28]: First time? Contact your administrator to create an account.
+      - generic [ref=e30]:
+        - generic [ref=e31]: 
+        - text: Secure login with bcrypt password hashing
+  - contentinfo [ref=e32]:
+    - generic [ref=e33]: NukeWorks © 2025 | Nuclear Project Management Database

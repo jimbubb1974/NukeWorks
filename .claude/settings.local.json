@@ -44,7 +44,8 @@
       "Bash(.venvScriptspython.exe installer/build_executable.py)",
       "Bash(cmd /c:*)",
       "Bash(test:*)",
-      "Bash(\"C:\\Users\\jimbu\\Coding Projects\\NukeWorks\\venv\\Scripts\\python.exe\" installer/build_executable.py)"
+      "Bash(\"C:\\Users\\jimbu\\Coding Projects\\NukeWorks\\venv\\Scripts\\python.exe\" installer/build_executable.py)",
+      "mcp__plugin_playwright_playwright__browser_fill_form"
     ],
     "deny": [],
     "ask": []
