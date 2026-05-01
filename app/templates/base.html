@@ -59,15 +59,6 @@
             <li class="nav-item">
               <a class="nav-link" href="{{ url_for('companies.list_companies') }}">Companies</a>
             </li>
-            {% if has_endpoint('technologies.list_technologies') %}
-            <li class="nav-item">
-              <a
-                class="nav-link"
-                href="{{ url_for('technologies.list_technologies') }}"
-                >Technologies</a
-              >
-            </li>
-            {% endif %}
             <li class="nav-item">
               <a class="nav-link" href="{{ url_for('projects.list_projects') }}"
                 >Projects</a
