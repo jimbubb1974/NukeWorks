@@ -409,15 +409,46 @@ def apply_queue_item(item, db_session, applied_by_user_id: int, fields_to_apply=
 # Matching helpers
 # ---------------------------------------------------------------------------
 
+def _normalise_name(s: str) -> str:
+    """Aggressive normalisation for entity name matching and name-field diffing.
+
+    Strips parenthetical aliases, common legal suffixes, and punctuation, then
+    lowercases and collapses whitespace.  Used for both entity lookup and
+    determining whether a name field has genuinely changed.
+
+    Examples that become equal:
+      "Kairos Power LLC"        == "Kairos Power, LLC"
+      "Meta Platforms, Inc."    == "Meta Platforms (Facebook)"
+      "NuScale Power, LLC"      == "NuScale Power LLC"
+    """
+    import re
+    s = s.strip().lower()
+    s = re.sub(r'\([^)]*\)', ' ', s)   # remove parenthetical aliases
+    s = re.sub(r'[,.\[\]\-–—]', ' ', s)
+    s = re.sub(r'\s+', ' ', s).strip()
+    # Strip trailing legal-entity suffixes so "Corp" vs "Inc" doesn't matter
+    s = re.sub(
+        r'\b(inc|llc|llp|ltd|corp|corporation|co|company|group|holdings|plc|sa|ag|gmbh)\s*$',
+        '', s,
+    ).strip()
+    return s
+
+
 def _match_company(raw: dict, db_session):
     from app.models import Company
     db_id = raw.get('db_id')
     if db_id and isinstance(db_id, int):
         return db_session.query(Company).get(db_id)
-    # Fallback: case-insensitive name match
-    name = raw.get('company_name', '').strip().lower()
-    for c in db_session.query(Company).filter(Company.is_internal == False).all():
-        if c.company_name.strip().lower() == name:
+    name_raw = raw.get('company_name', '').strip()
+    companies = db_session.query(Company).filter(Company.is_internal == False).all()
+    # Pass 1: exact case-insensitive match
+    for c in companies:
+        if c.company_name.strip().lower() == name_raw.lower():
+            return c
+    # Pass 2: normalised match (ignores punctuation like "LLC" vs ", LLC")
+    norm = _normalise_name(name_raw)
+    for c in companies:
+        if _normalise_name(c.company_name) == norm:
             return c
     return None
 
@@ -427,9 +458,16 @@ def _match_project(raw: dict, db_session):
     db_id = raw.get('db_id')
     if db_id and isinstance(db_id, int):
         return db_session.query(Project).get(db_id)
-    name = raw.get('project_name', '').strip().lower()
-    for p in db_session.query(Project).all():
-        if p.project_name.strip().lower() == name:
+    name_raw = raw.get('project_name', '').strip()
+    projects = db_session.query(Project).all()
+    # Pass 1: exact case-insensitive match
+    for p in projects:
+        if p.project_name.strip().lower() == name_raw.lower():
+            return p
+    # Pass 2: normalised match
+    norm = _normalise_name(name_raw)
+    for p in projects:
+        if _normalise_name(p.project_name) == norm:
             return p
     return None
 
@@ -465,13 +503,22 @@ def _project_snapshot(p) -> dict:
     }
 
 
+_NAME_FIELDS = {'company_name', 'project_name'}
+
+
 def _diff_fields(proposed: dict, current: dict, fields: list) -> list:
     """Return list of field names where proposed differs from current."""
     changed = []
     for f in fields:
         p_val = proposed.get(f)
         c_val = current.get(f)
-        if _normalise_val(p_val) != _normalise_val(c_val):
+        if f in _NAME_FIELDS:
+            # Use aggressive normalisation so "Kairos Power LLC" == "Kairos Power, LLC"
+            p_norm = _normalise_name(p_val) if isinstance(p_val, str) else _normalise_val(p_val)
+            c_norm = _normalise_name(c_val) if isinstance(c_val, str) else _normalise_val(c_val)
+            if p_norm != c_norm:
+                changed.append(f)
+        elif _normalise_val(p_val) != _normalise_val(c_val):
             changed.append(f)
     return changed
 
