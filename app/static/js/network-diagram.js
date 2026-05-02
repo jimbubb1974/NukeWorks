@@ -96,6 +96,26 @@
     });
   }
 
+  // Level assignment for hierarchical layout — lower number = higher on screen
+  const HIERARCHICAL_LEVELS = {
+    offtaker:    0,
+    owner:       1,
+    project:     2,
+    vendor:      3,
+    constructor: 4,
+    operator:    5,
+  };
+
+  // X-axis position bands for columns layout (arbitrary units; physics settles y)
+  const COLUMN_X = {
+    offtaker:    -900,
+    owner:       -450,
+    project:        0,
+    vendor:       450,
+    constructor:  900,
+    operator:     900,
+  };
+
   const NetworkDiagram = {
     config: {},
     network: null,
@@ -110,6 +130,7 @@
       depth: "all",
     },
     physicsDisabled: false,
+    currentLayout: "organic",
 
     init(config) {
       this.config = config;
@@ -210,6 +231,18 @@
             this.network.setOptions({ physics: { enabled: true } });
             this.network.stabilize();
           }
+        });
+      }
+
+      // Layout button group
+      const layoutGroup = this.config.layoutButtonGroupId
+        ? document.getElementById(this.config.layoutButtonGroupId)
+        : null;
+      if (layoutGroup) {
+        layoutGroup.querySelectorAll("button[data-layout]").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            this.setLayout(btn.dataset.layout);
+          });
         });
       }
     },
@@ -395,10 +428,8 @@
       }
 
       if (this.network) {
-        // Re-enable physics for new layout and let stabilization disable it again
-        this.physicsDisabled = false;
-        this.network.setOptions({ physics: { enabled: true } });
-        this.network.stabilize();
+        // Re-apply the current layout mode after data changes
+        this.setLayout(this.currentLayout);
       }
 
       this.populateFocusOptions();
@@ -484,6 +515,101 @@
         options
       );
       this.registerNetworkEvents();
+    },
+
+    setLayout(mode) {
+      if (!this.network || !this.nodesDataSet) return;
+      this.currentLayout = mode;
+
+      // Update active button state
+      const layoutGroup = this.config.layoutButtonGroupId
+        ? document.getElementById(this.config.layoutButtonGroupId)
+        : null;
+      if (layoutGroup) {
+        layoutGroup.querySelectorAll("button[data-layout]").forEach((btn) => {
+          btn.classList.toggle("active", btn.dataset.layout === mode);
+        });
+      }
+
+      if (mode === "organic") {
+        // Remove any level/x/y overrides, re-enable physics
+        const updates = Array.from(this.nodeIndex.keys()).map((id) => ({
+          id,
+          level: undefined,
+          x: undefined,
+          y: undefined,
+          fixed: false,
+        }));
+        this.nodesDataSet.update(updates);
+        this.physicsDisabled = false;
+        this.network.setOptions({
+          layout: { hierarchical: { enabled: false } },
+          physics: {
+            enabled: true,
+            barnesHut: {
+              gravitationalConstant: -2000,
+              centralGravity: 0.3,
+              springLength: 95,
+              springConstant: 0.04,
+              damping: 0.09,
+            },
+            stabilization: { iterations: 200 },
+          },
+        });
+        this.network.stabilize();
+
+      } else if (mode === "hierarchical") {
+        // Assign levels by group; vis.js hierarchical engine positions nodes
+        const updates = Array.from(this.nodeIndex.values()).map((node) => ({
+          id: node.id,
+          level: HIERARCHICAL_LEVELS[node.group] ?? 2,
+        }));
+        this.nodesDataSet.update(updates);
+        this.physicsDisabled = true;
+        this.network.setOptions({
+          layout: {
+            hierarchical: {
+              enabled: true,
+              direction: "UD",
+              sortMethod: "directed",
+              levelSeparation: 130,
+              nodeSpacing: 160,
+              treeSpacing: 200,
+            },
+          },
+          physics: { enabled: false },
+        });
+        this.network.fit({
+          animation: { duration: 600, easingFunction: "easeInOutQuad" },
+        });
+
+      } else if (mode === "columns") {
+        // Pre-position nodes in x-bands by group, then let physics settle y
+        const updates = Array.from(this.nodeIndex.values()).map((node) => ({
+          id: node.id,
+          x: COLUMN_X[node.group] ?? 0,
+          y: null,
+          level: undefined,
+          fixed: { x: true, y: false },
+        }));
+        this.nodesDataSet.update(updates);
+        this.physicsDisabled = false;
+        this.network.setOptions({
+          layout: { hierarchical: { enabled: false } },
+          physics: {
+            enabled: true,
+            barnesHut: {
+              gravitationalConstant: -3000,
+              centralGravity: 0.05,
+              springLength: 120,
+              springConstant: 0.04,
+              damping: 0.12,
+            },
+            stabilization: { iterations: 300 },
+          },
+        });
+        this.network.stabilize();
+      }
     },
 
     registerNetworkEvents() {

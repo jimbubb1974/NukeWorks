@@ -180,8 +180,13 @@ block extra_css %}
 
   <div class="col-lg-9">
     <div class="card h-100">
-      <div class="card-header d-flex align-items-center">
+      <div class="card-header d-flex align-items-center gap-2 flex-wrap">
         <span>Relationship Network</span>
+        <div class="btn-group btn-group-sm ms-2" role="group" id="layout-btn-group">
+          <button type="button" class="btn btn-outline-secondary active" data-layout="organic">Organic</button>
+          <button type="button" class="btn btn-outline-secondary" data-layout="hierarchical">Hierarchical</button>
+          <button type="button" class="btn btn-outline-secondary" data-layout="columns">Columns</button>
+        </div>
         <div class="ms-auto d-flex gap-2">
           <a
             href="{{ url_for('network.network_table') }}"
@@ -277,6 +282,7 @@ block extra_css %}
         clearFocusButtonId: "clear-focus-btn",
         resetViewButtonId: "reset-view-btn",
         resetPhysicsButtonId: "reset-physics-btn",
+        layoutButtonGroupId: "layout-btn-group",
         statsSelectors: {
           totalNodes: "#total-nodes",
           totalEdges: "#total-edges",
