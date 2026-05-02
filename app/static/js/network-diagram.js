@@ -151,6 +151,9 @@
       this.resetPhysicsBtn = document.getElementById(
         config.resetPhysicsButtonId
       );
+      this.projectSpineSpacingControl = config.projectSpineSpacingControlId
+        ? document.getElementById(config.projectSpineSpacingControlId)
+        : null;
       this.projectSpineSpacingInput = config.projectSpineSpacingInputId
         ? document.getElementById(config.projectSpineSpacingInputId)
         : null;
@@ -246,6 +249,7 @@
 
       if (this.projectSpineSpacingInput) {
         this.updateProjectSpineSpacing();
+        this.updateProjectSpineControlsVisibility();
         this.projectSpineSpacingInput.addEventListener("input", () => {
           this.updateProjectSpineSpacing();
           if (this.currentLayout === "project-spine") {
@@ -265,6 +269,17 @@
           });
         });
       }
+      this.updateProjectSpineControlsVisibility();
+    },
+
+    updateProjectSpineControlsVisibility() {
+      if (!this.projectSpineSpacingControl) {
+        return;
+      }
+      this.projectSpineSpacingControl.classList.toggle(
+        "d-none",
+        this.currentLayout !== "project-spine"
+      );
     },
 
     readFiltersFromForm() {
@@ -545,6 +560,7 @@
           btn.classList.toggle("active", btn.dataset.layout === mode);
         });
       }
+      this.updateProjectSpineControlsVisibility();
 
       if (mode === "organic") {
         // Remove any level/x/y overrides, re-enable physics
@@ -575,9 +591,9 @@
         this.network.stabilize();
 
       } else if (mode === "hierarchical") {
-        // Bypass vis.js hierarchical engine (unreliable when switching modes dynamically).
-        // Domain hierarchy: projects sit between role-specific company bands. Large bands
-        // are wrapped into lanes so fit() does not flatten the diagram into one wide row.
+        // Custom hierarchical layout. Nodes are freely draggable after initial
+        // placement. Horizontal order within each row uses iterative barycenter
+        // passes so nodes sharing the same neighbours cluster together.
         const byGroup = Object.create(null);
         const edges = this.edgesDataSet ? this.edgesDataSet.get() : [];
         const roleGroupsByNode = new Map();
@@ -604,9 +620,57 @@
           if (!byGroup[group]) byGroup[group] = [];
           byGroup[group].push(node);
         }
+
+        // Build adjacency for barycenter ordering
+        const adjacency = new Map();
+        for (const nodeId of this.nodeIndex.keys()) {
+          adjacency.set(nodeId, new Set());
+        }
+        edges.forEach((edge) => {
+          if (this.nodeIndex.has(edge.from) && this.nodeIndex.has(edge.to)) {
+            adjacency.get(edge.from).add(edge.to);
+            adjacency.get(edge.to).add(edge.from);
+          }
+        });
+
+        // Seed with alphabetical order
         Object.values(byGroup).forEach((nodes) => {
           nodes.sort((a, b) => String(a.label).localeCompare(String(b.label)));
         });
+
+        // Iterative barycenter passes: each row's nodes are sorted by the average
+        // normalised position of their cross-row neighbours, pulling nodes that
+        // share connections toward the same horizontal region.
+        for (let pass = 0; pass < 5; pass++) {
+          const posIdx = new Map();
+          HIERARCHICAL_GROUP_ORDER.forEach((group) => {
+            const nodes = byGroup[group] || [];
+            nodes.forEach((node, i) => {
+              posIdx.set(node.id, nodes.length > 1 ? i / (nodes.length - 1) : 0.5);
+            });
+          });
+
+          HIERARCHICAL_GROUP_ORDER.forEach((group) => {
+            const nodes = byGroup[group];
+            if (!nodes || nodes.length < 2) return;
+            const inGroup = new Set(nodes.map((n) => n.id));
+            nodes.sort((a, b) => {
+              const aExt = Array.from(adjacency.get(a.id) || []).filter(
+                (id) => !inGroup.has(id) && posIdx.has(id)
+              );
+              const bExt = Array.from(adjacency.get(b.id) || []).filter(
+                (id) => !inGroup.has(id) && posIdx.has(id)
+              );
+              const avgA = aExt.length
+                ? aExt.reduce((s, id) => s + posIdx.get(id), 0) / aExt.length
+                : 0.5;
+              const avgB = bExt.length
+                ? bExt.reduce((s, id) => s + posIdx.get(id), 0) / bExt.length
+                : 0.5;
+              return avgA - avgB || String(a.label).localeCompare(String(b.label));
+            });
+          });
+        }
 
         const X_SPACING = 260;
         const Y_SPACING = 120;
@@ -641,7 +705,7 @@
               id: node.id,
               x: -totalWidth / 2 + indexInLane * X_SPACING,
               y: layout.startY + lane * Y_SPACING - yOffset,
-              fixed: true,
+              fixed: false,
               level: undefined,
             });
           });
@@ -662,7 +726,7 @@
         const updates = Array.from(this.nodeIndex.values()).map((node) => ({
           id: node.id,
           x: COLUMN_X[node.group] ?? 0,
-          y: null,
+          y: undefined,
           level: undefined,
           fixed: { x: true, y: false },
         }));

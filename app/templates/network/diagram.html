@@ -190,7 +190,7 @@ block extra_css %}
           <button type="button" class="btn btn-outline-secondary" data-layout="columns">Columns</button>
           <button type="button" class="btn btn-outline-secondary active" data-layout="project-spine">Project Spine</button>
         </div>
-        <div class="project-spine-spacing-control ms-2">
+        <div class="project-spine-spacing-control ms-2" id="project-spine-spacing-control">
           <label for="project-spine-spacing" class="small text-muted mb-0">
             Spine spacing <span id="project-spine-spacing-value">100%</span>
           </label>
@@ -297,6 +297,7 @@ block extra_css %}
         resetViewButtonId: "reset-view-btn",
         resetPhysicsButtonId: "reset-physics-btn",
         layoutButtonGroupId: "layout-btn-group",
+        projectSpineSpacingControlId: "project-spine-spacing-control",
         projectSpineSpacingInputId: "project-spine-spacing",
         projectSpineSpacingValueId: "project-spine-spacing-value",
         statsSelectors: {
