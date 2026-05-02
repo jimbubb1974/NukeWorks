@@ -137,6 +137,7 @@
                     style="display: inline"
                     onsubmit="return confirm('Delete this relationship?')"
                   >
+                    {{ relationship_form.hidden_tag() }}
                     <button
                       type="submit"
                       class="btn btn-sm btn-outline-danger"
