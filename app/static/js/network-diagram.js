@@ -769,6 +769,17 @@
         this.network.fit({
           animation: { duration: 600, easingFunction: "easeInOutQuad" },
         });
+        // After fit, enforce a minimum scale so node dots stay large enough
+        // to grab — fit() on a tall graph can zoom out to where nodes are
+        // only ~16px wide, making drag feel broken.
+        setTimeout(() => {
+          if (this.network && this.currentLayout === "hierarchical" && this.network.getScale() < 0.5) {
+            this.network.moveTo({
+              scale: 0.5,
+              animation: { duration: 300, easingFunction: "easeInOutQuad" },
+            });
+          }
+        }, 700);
 
       } else if (mode === "columns") {
         // Pre-position nodes in x-bands by group, then let physics settle y
