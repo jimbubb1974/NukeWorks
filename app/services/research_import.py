@@ -434,6 +434,39 @@ def _normalise_name(s: str) -> str:
     return s
 
 
+def _acronym_match(name_a: str, name_b: str) -> bool:
+    """True if name_a has a parenthetical acronym whose initials spell out name_b's words.
+
+    Example: "Amazon (AWS)" matches "Amazon Web Services, Inc."
+      - acronym "AWS" → initials of ["amazon","web","services"] = "aws" ✓
+    """
+    import re
+    m = re.search(r'\(([A-Z]{2,8})\)', name_a)
+    if not m:
+        return False
+    acronym = m.group(1).lower()
+    _skip = {'inc', 'llc', 'llp', 'ltd', 'corp', 'corporation', 'co',
+             'the', 'and', 'of', 'for', 'a', 'an'}
+    words = re.sub(r'[,.()\[\]\-–—]', ' ', name_b).lower().split()
+    significant = [w for w in words if w not in _skip]
+    if not significant:
+        return False
+    return ''.join(w[0] for w in significant) == acronym
+
+
+def _names_equivalent(a: str, b: str) -> bool:
+    """True if two entity names should be treated as the same for conflict detection."""
+    if not a and not b:
+        return True
+    if not a or not b:
+        return False
+    return (
+        _normalise_name(a) == _normalise_name(b)
+        or _acronym_match(a, b)
+        or _acronym_match(b, a)
+    )
+
+
 def _match_company(raw: dict, db_session):
     from app.models import Company
     db_id = raw.get('db_id')
@@ -445,10 +478,14 @@ def _match_company(raw: dict, db_session):
     for c in companies:
         if c.company_name.strip().lower() == name_raw.lower():
             return c
-    # Pass 2: normalised match (ignores punctuation like "LLC" vs ", LLC")
+    # Pass 2: normalised match (strips punctuation/legal suffixes)
     norm = _normalise_name(name_raw)
     for c in companies:
         if _normalise_name(c.company_name) == norm:
+            return c
+    # Pass 3: acronym match e.g. "Amazon (AWS)" == "Amazon Web Services, Inc."
+    for c in companies:
+        if _acronym_match(name_raw, c.company_name) or _acronym_match(c.company_name, name_raw):
             return c
     return None
 
@@ -468,6 +505,10 @@ def _match_project(raw: dict, db_session):
     norm = _normalise_name(name_raw)
     for p in projects:
         if _normalise_name(p.project_name) == norm:
+            return p
+    # Pass 3: acronym match
+    for p in projects:
+        if _acronym_match(name_raw, p.project_name) or _acronym_match(p.project_name, name_raw):
             return p
     return None
 
@@ -513,10 +554,8 @@ def _diff_fields(proposed: dict, current: dict, fields: list) -> list:
         p_val = proposed.get(f)
         c_val = current.get(f)
         if f in _NAME_FIELDS:
-            # Use aggressive normalisation so "Kairos Power LLC" == "Kairos Power, LLC"
-            p_norm = _normalise_name(p_val) if isinstance(p_val, str) else _normalise_val(p_val)
-            c_norm = _normalise_name(c_val) if isinstance(c_val, str) else _normalise_val(c_val)
-            if p_norm != c_norm:
+            # Use full equivalence check: normalised names + acronym matching
+            if not _names_equivalent(p_val or '', c_val or ''):
                 changed.append(f)
         elif _normalise_val(p_val) != _normalise_val(c_val):
             changed.append(f)
