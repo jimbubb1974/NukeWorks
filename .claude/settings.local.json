@@ -45,7 +45,11 @@
       "Bash(cmd /c:*)",
       "Bash(test:*)",
       "Bash(\"C:\\Users\\jimbu\\Coding Projects\\NukeWorks\\venv\\Scripts\\python.exe\" installer/build_executable.py)",
-      "mcp__plugin_playwright_playwright__browser_fill_form"
+      "mcp__plugin_playwright_playwright__browser_fill_form",
+      "Bash(sqlite3 *)",
+      "Bash(python3 *)",
+      "Bash(git fetch *)",
+      "Bash(git log *)"
     ],
     "deny": [],
     "ask": []

@@ -3,21 +3,169 @@
 {% block title %}Dashboard - NukeWorks{% endblock %}
 
 {% block content %}
-<div class="row">
+<style>
+    .dashboard-section {
+        border-width: 1px;
+    }
+
+    .dashboard-section-header {
+        font-weight: 600;
+    }
+
+    .dashboard-metric-card {
+        min-height: 170px;
+    }
+
+    .dashboard-metric-label {
+        min-height: 2.75rem;
+        line-height: 1.2;
+    }
+</style>
+<div class="row mb-4">
     <div class="col-12">
-        <h1>Dashboard</h1>
-        <p class="lead">Welcome to NukeWorks Nuclear Project Management System</p>
+        <h1 class="h3 mb-1">Dashboard</h1>
+        <p class="text-muted mb-0">System summary and database status</p>
     </div>
 </div>
 
-<!-- Placeholder Content -->
-<div class="row mt-4">
+<div class="row g-4">
     <div class="col-12">
-        <div class="card">
-            <div class="card-body text-center">
-                <h5 class="card-title">Dashboard</h5>
-                <p class="card-text text-muted">This is a placeholder dashboard page.</p>
-                <p class="card-text">Use the navigation menu to access the various features of the NukeWorks system.</p>
+        <div class="card dashboard-section border-primary-subtle bg-primary-subtle">
+            <div class="card-header bg-transparent border-primary-subtle">
+                <h5 class="mb-0 dashboard-section-header text-primary-emphasis">Coverage</h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-sm-6 col-xl-3 d-flex">
+                        <div class="card dashboard-metric-card h-100 w-100">
+                            <div class="card-body">
+                                <div class="text-muted small text-uppercase dashboard-metric-label">Companies</div>
+                                <div class="display-6 fw-semibold">{{ metrics.company_count }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-xl-3 d-flex">
+                        <div class="card dashboard-metric-card h-100 w-100">
+                            <div class="card-body">
+                                <div class="text-muted small text-uppercase dashboard-metric-label">Projects</div>
+                                <div class="display-6 fw-semibold">{{ metrics.project_count }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-xl-3 d-flex">
+                        <div class="card dashboard-metric-card h-100 w-100">
+                            <div class="card-body">
+                                <div class="text-muted small text-uppercase dashboard-metric-label">External Contacts</div>
+                                <div class="display-6 fw-semibold">{{ metrics.external_contact_count }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-xl-3 d-flex">
+                        <div class="card dashboard-metric-card h-100 w-100">
+                            <div class="card-body">
+                                <div class="text-muted small text-uppercase dashboard-metric-label">MPR Clients</div>
+                                <div class="display-6 fw-semibold">{{ metrics.mpr_client_count }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card dashboard-section border-success-subtle bg-success-subtle">
+            <div class="card-header bg-transparent border-success-subtle">
+                <h5 class="mb-0 dashboard-section-header text-success-emphasis">Relationships</h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-sm-6 d-flex">
+                        <div class="card dashboard-metric-card h-100 w-100">
+                            <div class="card-body">
+                                <div class="text-muted small text-uppercase dashboard-metric-label">Project-Company Connections</div>
+                                <div class="display-6 fw-semibold">{{ metrics.project_relationship_count }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 d-flex">
+                        <div class="card dashboard-metric-card h-100 w-100">
+                            <div class="card-body">
+                                <div class="text-muted small text-uppercase dashboard-metric-label">Projects Without Connections</div>
+                                <div class="display-6 fw-semibold">{{ metrics.projects_without_connections }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card dashboard-section border-warning-subtle bg-warning-subtle">
+            <div class="card-header bg-transparent border-warning-subtle">
+                <h5 class="mb-0 dashboard-section-header text-warning-emphasis">Confidentiality</h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-sm-6 col-xl-4 d-flex">
+                        <div class="card dashboard-metric-card h-100 w-100">
+                            <div class="card-body">
+                                <div class="text-muted small text-uppercase dashboard-metric-label">Confidential Relationships</div>
+                                <div class="display-6 fw-semibold">{{ metrics.confidential_relationship_count }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-xl-4 d-flex">
+                        <div class="card dashboard-metric-card h-100 w-100">
+                            <div class="card-body">
+                                <div class="text-muted small text-uppercase dashboard-metric-label">Confidential Contact Logs</div>
+                                <div class="display-6 fw-semibold">{{ metrics.confidential_contact_log_count }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-xl-4 d-flex">
+                        <div class="card dashboard-metric-card h-100 w-100">
+                            <div class="card-body">
+                                <div class="text-muted small text-uppercase dashboard-metric-label">Confidential Flagged Fields</div>
+                                <div class="display-6 fw-semibold">{{ metrics.confidential_flagged_field_count }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12">
+        <div class="card dashboard-section border-secondary-subtle bg-body-secondary">
+            <div class="card-header bg-transparent border-secondary-subtle">
+                <h5 class="mb-0 dashboard-section-header text-secondary-emphasis">Database Status</h5>
+            </div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-2">Database</dt>
+                    <dd class="col-sm-10">
+                        {% if metrics.active_db_name %}
+                        <div class="fw-semibold">{{ metrics.active_db_name }}</div>
+                        <div class="small text-muted text-break">{{ metrics.active_db_path }}</div>
+                        {% else %}
+                        <span class="text-muted">No database selected</span>
+                        {% endif %}
+                    </dd>
+
+                    <dt class="col-sm-2">Environment</dt>
+                    <dd class="col-sm-10">{{ metrics.environment_name }}</dd>
+
+                    <dt class="col-sm-2">Last Edit</dt>
+                    <dd class="col-sm-10">
+                        {% if metrics.last_edit_timestamp %}
+                        {{ metrics.last_edit_timestamp.strftime('%Y-%m-%d %I:%M %p') }}
+                        {% else %}
+                        <span class="text-muted">No edits recorded</span>
+                        {% endif %}
+                    </dd>
+                </dl>
             </div>
         </div>
     </div>

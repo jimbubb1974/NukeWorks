@@ -96,16 +96,6 @@
     });
   }
 
-  // Level assignment for hierarchical layout — lower number = higher on screen
-  const HIERARCHICAL_LEVELS = {
-    offtaker:    0,
-    owner:       1,
-    project:     2,
-    vendor:      3,
-    constructor: 4,
-    operator:    5,
-  };
-
   // X-axis position bands for columns layout (arbitrary units; physics settles y)
   const COLUMN_X = {
     offtaker:    -900,
@@ -559,26 +549,44 @@
         this.network.stabilize();
 
       } else if (mode === "hierarchical") {
-        // Assign levels by group; vis.js hierarchical engine positions nodes
-        const updates = Array.from(this.nodeIndex.values()).map((node) => ({
-          id: node.id,
-          level: HIERARCHICAL_LEVELS[node.group] ?? 2,
-        }));
-        this.nodesDataSet.update(updates);
+        // Bypass vis.js hierarchical engine (unreliable when switching modes dynamically).
+        // Instead, manually fix each node's x/y position: groups get a fixed Y row and
+        // nodes within each group are spread evenly along X.
+        const GROUP_Y = {
+          offtaker:    -300,
+          owner:       -150,
+          project:        0,
+          vendor:        150,
+          constructor:   280,
+          operator:      280,
+        };
+        const byGroup = {};
+        for (const node of this.nodeIndex.values()) {
+          const g = node.group || "project";
+          if (!byGroup[g]) byGroup[g] = [];
+          byGroup[g].push(node);
+        }
+        const SPACING = 220;
+        const updates = [];
+        for (const [group, nodes] of Object.entries(byGroup)) {
+          const y = GROUP_Y[group] ?? 0;
+          const totalWidth = (nodes.length - 1) * SPACING;
+          nodes.forEach((node, i) => {
+            updates.push({
+              id: node.id,
+              x: -totalWidth / 2 + i * SPACING,
+              y,
+              fixed: true,
+              level: undefined,
+            });
+          });
+        }
         this.physicsDisabled = true;
         this.network.setOptions({
-          layout: {
-            hierarchical: {
-              enabled: true,
-              direction: "UD",
-              sortMethod: "directed",
-              levelSeparation: 130,
-              nodeSpacing: 160,
-              treeSpacing: 200,
-            },
-          },
+          layout: { hierarchical: { enabled: false } },
           physics: { enabled: false },
         });
+        this.nodesDataSet.update(updates);
         this.network.fit({
           animation: { duration: 600, easingFunction: "easeInOutQuad" },
         });
@@ -617,30 +625,6 @@
         return;
       }
 
-      // Single click → focus mode. Double-click → navigate to detail page.
-      // vis.js fires "click" then "doubleClick" on a double-click, so we debounce
-      // the click action and cancel it if a doubleClick arrives first.
-      let _clickTimer = null;
-
-      this.network.on("click", (params) => {
-        if (params.nodes.length > 0) {
-          const nodeId = params.nodes[0];
-          clearTimeout(_clickTimer);
-          _clickTimer = setTimeout(() => {
-            const node = this.nodeIndex.get(nodeId);
-            if (node) {
-              if (this.focusSelect) {
-                this.focusSelect.value = nodeId;
-              }
-              this.applyFocus(
-                nodeId,
-                this.focusDepth ? this.focusDepth.value : "2"
-              );
-            }
-          }, 250);
-        }
-      });
-
       this.network.on("hoverNode", (params) => {
         const node = this.nodeIndex.get(params.node);
         if (node) {
@@ -653,7 +637,6 @@
       });
 
       this.network.on("doubleClick", (params) => {
-        clearTimeout(_clickTimer); // cancel pending focus action
         if (params.nodes.length > 0) {
           const nodeId = params.nodes[0];
           const node = this.nodeIndex.get(nodeId);
