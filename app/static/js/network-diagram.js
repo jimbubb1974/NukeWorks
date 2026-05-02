@@ -135,6 +135,7 @@
     physicsDisabled: false,
     currentLayout: "project-spine",
     projectSpineSpacingScale: 1,
+    projectSpineCompactRows: false,
 
     init(config) {
       this.config = config;
@@ -159,6 +160,9 @@
         : null;
       this.projectSpineSpacingValue = config.projectSpineSpacingValueId
         ? document.getElementById(config.projectSpineSpacingValueId)
+        : null;
+      this.projectSpineCompactInput = config.projectSpineCompactInputId
+        ? document.getElementById(config.projectSpineCompactInputId)
         : null;
       this.statsDom = config.statsSelectors;
       this.detailPanel = config.detailPanel;
@@ -252,6 +256,15 @@
         this.updateProjectSpineControlsVisibility();
         this.projectSpineSpacingInput.addEventListener("input", () => {
           this.updateProjectSpineSpacing();
+          if (this.currentLayout === "project-spine") {
+            this.setLayout("project-spine");
+          }
+        });
+      }
+      if (this.projectSpineCompactInput) {
+        this.updateProjectSpineCompactRows();
+        this.projectSpineCompactInput.addEventListener("change", () => {
+          this.updateProjectSpineCompactRows();
           if (this.currentLayout === "project-spine") {
             this.setLayout("project-spine");
           }
@@ -879,6 +892,7 @@
         const SHARED_LANE_X = 210 * horizontalScale;
         const SINGLE_Y_SPACING = 78;
         const SHARED_Y_SPACING = 82;
+        const PROJECT_ONLY_Y_SPACING = 112;
         const singleCompaniesByProject = new Map();
         const projectRightRows = new Map();
 
@@ -895,24 +909,34 @@
           (sum, id) => sum + projectRightRows.get(id),
           0
         );
-        const totalProjectSpan = Math.max(0, totalRightRows - 1) * SINGLE_Y_SPACING;
+        const totalProjectSpan = this.projectSpineCompactRows
+          ? Math.max(0, projectOrder.length - 1) * SINGLE_Y_SPACING
+          : Math.max(0, totalRightRows - 1) * SINGLE_Y_SPACING;
         let yCursor = -totalProjectSpan / 2;
         const projectY = new Map();
         const singleCompanyY = new Map();
         const updates = [];
 
-        projectOrder.forEach((id) => {
+        projectOrder.forEach((id, projectIndex) => {
           const singleCompanies = singleCompaniesByProject.get(id) || [];
           const rows = projectRightRows.get(id);
-          const firstY = yCursor;
-          const lastY = firstY + (rows - 1) * SINGLE_Y_SPACING;
-          const y = (firstY + lastY) / 2;
+          let y, companyFirstY;
+          if (this.projectSpineCompactRows) {
+            // Compact: spine is evenly spaced; companies are centered on project Y.
+            y = -totalProjectSpan / 2 + projectIndex * SINGLE_Y_SPACING;
+            companyFirstY = y - ((rows - 1) / 2) * SINGLE_Y_SPACING;
+          } else {
+            const firstY = yCursor;
+            const lastY = firstY + (rows - 1) * SINGLE_Y_SPACING;
+            y = (firstY + lastY) / 2;
+            companyFirstY = firstY;
+            yCursor = lastY + SINGLE_Y_SPACING;
+          }
           singleCompanies.forEach((companyId, index) => {
-            singleCompanyY.set(companyId, firstY + index * SINGLE_Y_SPACING);
+            singleCompanyY.set(companyId, companyFirstY + index * SINGLE_Y_SPACING);
           });
           projectY.set(id, y);
           updates.push({ id, x: PROJECT_X, y, fixed: false, level: undefined });
-          yCursor = lastY + SINGLE_Y_SPACING;
         });
 
         projectOrder.forEach((projectId) => {
@@ -987,6 +1011,12 @@
       if (this.projectSpineSpacingValue) {
         this.projectSpineSpacingValue.textContent = `${clamped}%`;
       }
+    },
+
+    updateProjectSpineCompactRows() {
+      this.projectSpineCompactRows = !!(
+        this.projectSpineCompactInput && this.projectSpineCompactInput.checked
+      );
     },
 
     registerNetworkEvents() {
