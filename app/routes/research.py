@@ -256,7 +256,9 @@ def accept_item(run_id, item_id):
         _db().rollback()
         flash(f'Failed to apply change: {e}', 'danger')
 
-    return redirect(url_for('research.run_detail', run_id=run_id, _anchor=f'item-{item_id}'))
+    anchor = _next_pending_anchor(run_id, item_id)
+    return redirect(url_for('research.run_detail', run_id=run_id, _anchor=anchor) if anchor
+                    else url_for('research.run_detail', run_id=run_id))
 
 
 @bp.route('/runs/<int:run_id>/items/<int:item_id>/skip', methods=['POST'])
@@ -279,7 +281,9 @@ def skip_item(run_id, item_id):
     _update_run_counts(run_id)
     _db().commit()
 
-    return redirect(url_for('research.run_detail', run_id=run_id, _anchor=f'item-{item_id}'))
+    anchor = _next_pending_anchor(run_id, item_id)
+    return redirect(url_for('research.run_detail', run_id=run_id, _anchor=anchor) if anchor
+                    else url_for('research.run_detail', run_id=run_id))
 
 
 @bp.route('/runs/<int:run_id>/delete', methods=['POST'])
@@ -370,6 +374,30 @@ def _update_run_counts(run_id):
     pending = sum(1 for i in items if i.status == 'pending')
     if pending == 0:
         run.status = 'complete'
+
+
+def _next_pending_anchor(run_id: int, acted_item_id: int) -> str:
+    """Return anchor fragment for the next pending item after acted_item_id.
+
+    Looks forward in the sorted list; wraps to the first pending item if none
+    follow the acted item. Returns '' when no pending items remain.
+    """
+    from app.models import ResearchQueueItem
+    items = (
+        _db().query(ResearchQueueItem)
+        .filter(ResearchQueueItem.run_id == run_id)
+        .order_by(ResearchQueueItem.change_type, ResearchQueueItem.entity_type, ResearchQueueItem.entity_name)
+        .all()
+    )
+    ids = [i.item_id for i in items]
+    pos = ids.index(acted_item_id) if acted_item_id in ids else -1
+    for item in items[pos + 1:]:
+        if item.status == 'pending':
+            return f'item-{item.item_id}'
+    for item in items:
+        if item.status == 'pending':
+            return f'item-{item.item_id}'
+    return ''
 
 
 def _extract_json(raw: str) -> dict:
