@@ -672,6 +672,55 @@
           });
         }
 
+        // Swap refinement: measure actual edge crossings and try adjacent swaps.
+        // Barycenter can settle in a local minimum; this pass makes exact
+        // crossing-count decisions so it always improves or terminates.
+        const countRowPairCrossings = (rowA, rowB) => {
+          const posB = new Map(rowB.map((n, i) => [n.id, i]));
+          const edges = [];
+          rowA.forEach((n, i) => {
+            for (const nbId of (adjacency.get(n.id) || new Set())) {
+              if (posB.has(nbId)) edges.push([i, posB.get(nbId)]);
+            }
+          });
+          let count = 0;
+          for (let i = 0; i < edges.length - 1; i++) {
+            for (let j = i + 1; j < edges.length; j++) {
+              if ((edges[i][0] - edges[j][0]) * (edges[i][1] - edges[j][1]) < 0) count++;
+            }
+          }
+          return count;
+        };
+
+        const totalCrossingsForGroup = (group) => {
+          const row = byGroup[group] || [];
+          let total = 0;
+          HIERARCHICAL_GROUP_ORDER.forEach((other) => {
+            if (other === group) return;
+            const otherRow = byGroup[other] || [];
+            if (otherRow.length) total += countRowPairCrossings(row, otherRow);
+          });
+          return total;
+        };
+
+        for (let iter = 0; iter < 20; iter++) {
+          let improved = false;
+          HIERARCHICAL_GROUP_ORDER.forEach((group) => {
+            const nodes = byGroup[group];
+            if (!nodes || nodes.length < 2) return;
+            for (let i = 0; i < nodes.length - 1; i++) {
+              const before = totalCrossingsForGroup(group);
+              [nodes[i], nodes[i + 1]] = [nodes[i + 1], nodes[i]];
+              if (totalCrossingsForGroup(group) < before) {
+                improved = true;
+              } else {
+                [nodes[i], nodes[i + 1]] = [nodes[i + 1], nodes[i]];
+              }
+            }
+          });
+          if (!improved) break;
+        }
+
         const X_SPACING = 260;
         const Y_SPACING = 120;
         const GROUP_GAP = 190;
