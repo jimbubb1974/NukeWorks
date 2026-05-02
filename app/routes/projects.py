@@ -42,6 +42,29 @@ def _get_company_choices():
     return [(company.company_id, company.company_name) for company in companies]
 
 
+def _normalize_project_role_code(role_code: str | None) -> str | None:
+    """Normalize aliases used by project-company relationship forms."""
+    if role_code in ('owner', 'developer'):
+        return 'developer'
+    return role_code
+
+
+def _get_or_create_company_role(role_code: str) -> CompanyRole:
+    """Fetch a company role by code, creating it when missing."""
+    role = db_session.query(CompanyRole).filter_by(role_code=role_code).first()
+    if role:
+        return role
+
+    role = CompanyRole(
+        role_code=role_code,
+        role_label=role_code.title(),
+        description=f"Role for {role_code} relationships"
+    )
+    db_session.add(role)
+    db_session.flush()
+    return role
+
+
 def _process_relationship_assignments(project: Project, form_data, user_id: int):
     """Process relationship assignments from the project form.
 
@@ -394,6 +417,7 @@ def edit_project(project_id):
             {
                 'assignment_id': a.assignment_id,
                 'company_id': a.company_id,
+                'role_code': a.role.role_code if a.role else None,
                 'is_confidential': bool(getattr(a, 'is_confidential', False)),
                 'notes': a.notes or ''
             }
@@ -495,18 +519,18 @@ def delete_project(project_id):
 def add_project_company_relationship(project_id):
     """Add a company relationship to a project"""
     project = _get_project_or_404(project_id)
+    next_url = request.form.get('next') or url_for('projects.view_project', project_id=project_id)
     
     if not _can_manage_relationships(current_user):
         flash('You do not have permission to manage project relationships.', 'danger')
-        return redirect(url_for('projects.view_project', project_id=project_id))
+        return redirect(next_url)
 
     form = ProjectCompanyRelationshipForm()
     form.company_id.choices = _get_company_choices()
     
     if form.validate_on_submit():
         try:
-            # Normalize owner/developer alias
-            normalized_role_code = 'developer' if form.role_type.data in ('owner', 'developer') else form.role_type.data
+            normalized_role_code = _normalize_project_role_code(form.role_type.data)
 
             # Check if this company already has this role for this project
             existing_relationship = db_session.query(CompanyRoleAssignment).filter_by(
@@ -522,18 +546,10 @@ def add_project_company_relationship(project_id):
                 # Clarify that the existing role may be confidential and not visible in the list
                 visibility_note = ' (may be confidential and hidden)' if not existing_relationship or getattr(existing_relationship, 'is_confidential', False) else ''
                 flash(f'{company_name} already has a {normalized_role_code} role for this project{visibility_note}.', 'warning')
-                return redirect(url_for('projects.view_project', project_id=project_id))
+                return redirect(next_url)
             
             # Get or create the role
-            role = db_session.query(CompanyRole).filter_by(role_code=normalized_role_code).first()
-            if not role:
-                role = CompanyRole(
-                    role_code=normalized_role_code,
-                    role_label=normalized_role_code.title(),
-                    description=f"Role for {normalized_role_code} relationships"
-                )
-                db_session.add(role)
-                db_session.flush()  # Get the role_id
+            role = _get_or_create_company_role(normalized_role_code)
             
             # Create the relationship
             relationship = CompanyRoleAssignment(
@@ -557,7 +573,75 @@ def add_project_company_relationship(project_id):
     else:
         flash('Please correct the form errors.', 'warning')
     
-    return redirect(url_for('projects.view_project', project_id=project_id))
+    return redirect(next_url)
+
+
+@bp.route('/<int:project_id>/relationships/companies/<int:assignment_id>/edit', methods=['POST'])
+@login_required
+@edit_required
+def update_project_company_relationship(project_id, assignment_id):
+    """Update an existing company relationship for a project."""
+    project = _get_project_or_404(project_id)
+    next_url = request.form.get('next') or url_for('projects.view_project', project_id=project_id)
+
+    if not _can_manage_relationships(current_user):
+        flash('You do not have permission to manage project relationships.', 'danger')
+        return redirect(next_url)
+
+    relationship = db_session.query(CompanyRoleAssignment).filter_by(
+        assignment_id=assignment_id,
+        context_type='Project',
+        context_id=project.project_id
+    ).options(
+        joinedload(CompanyRoleAssignment.company),
+        joinedload(CompanyRoleAssignment.role)
+    ).first()
+
+    if not relationship:
+        flash('Company relationship not found.', 'error')
+        return redirect(next_url)
+
+    form = ProjectCompanyRelationshipForm()
+    form.company_id.choices = _get_company_choices()
+
+    if not form.validate_on_submit():
+        flash('Please correct the relationship form errors.', 'warning')
+        return redirect(next_url)
+
+    try:
+        normalized_role_code = _normalize_project_role_code(form.role_type.data)
+
+        duplicate_relationship = (
+            db_session.query(CompanyRoleAssignment)
+            .join(CompanyRole)
+            .filter(
+                CompanyRoleAssignment.assignment_id != relationship.assignment_id,
+                CompanyRoleAssignment.company_id == relationship.company_id,
+                CompanyRoleAssignment.context_type == 'Project',
+                CompanyRoleAssignment.context_id == project.project_id,
+                CompanyRole.role_code == normalized_role_code,
+            )
+            .first()
+        )
+        if duplicate_relationship:
+            company_name = relationship.company.company_name if relationship.company else 'This company'
+            flash(f'{company_name} already has a {normalized_role_code} role for this project.', 'warning')
+            return redirect(next_url)
+
+        role = _get_or_create_company_role(normalized_role_code)
+        relationship.role_id = role.role_id
+        relationship.notes = form.notes.data or None
+        relationship.is_confidential = bool(form.is_confidential.data)
+        relationship.modified_by = current_user.user_id
+        relationship.modified_date = datetime.utcnow()
+
+        db_session.commit()
+        flash('Company relationship updated successfully.', 'success')
+    except Exception as exc:
+        db_session.rollback()
+        flash(f'Error updating company relationship: {exc}', 'danger')
+
+    return redirect(next_url)
 
 
 @bp.route('/<int:project_id>/relationships/companies/<int:assignment_id>/delete', methods=['POST'])
@@ -566,15 +650,16 @@ def add_project_company_relationship(project_id):
 def delete_project_company_relationship(project_id, assignment_id):
     """Delete a company relationship from a project"""
     project = _get_project_or_404(project_id)
+    next_url = request.form.get('next') or url_for('projects.view_project', project_id=project_id)
     
     if not _can_manage_relationships(current_user):
         flash('You do not have permission to manage project relationships.', 'danger')
-        return redirect(url_for('projects.view_project', project_id=project_id))
+        return redirect(next_url)
 
     form = ConfirmActionForm()
     if not form.validate_on_submit():
         flash('Action not confirmed.', 'warning')
-        return redirect(url_for('projects.view_project', project_id=project_id))
+        return redirect(next_url)
 
     try:
         # Find the relationship
@@ -586,7 +671,7 @@ def delete_project_company_relationship(project_id, assignment_id):
         
         if not relationship:
             flash('Company relationship not found.', 'error')
-            return redirect(url_for('projects.view_project', project_id=project_id))
+            return redirect(next_url)
         
         db_session.delete(relationship)
         db_session.commit()
@@ -595,4 +680,4 @@ def delete_project_company_relationship(project_id, assignment_id):
         db_session.rollback()
         flash(f'Error removing company relationship: {exc}', 'danger')
     
-    return redirect(url_for('projects.view_project', project_id=project_id))
+    return redirect(next_url)

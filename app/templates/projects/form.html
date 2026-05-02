@@ -246,20 +246,71 @@
                     '—' }} {% endif %}
                   </td>
                   <td class="text-end">
+                    <div class="d-flex justify-content-end gap-2">
+                      <button
+                        class="btn btn-sm btn-outline-primary"
+                        type="button"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#editCompanyRelationship{{ assignment.assignment_id }}"
+                        aria-expanded="false"
+                        aria-controls="editCompanyRelationship{{ assignment.assignment_id }}"
+                        title="Edit"
+                      >
+                        <i class="bi bi-pencil"></i>
+                      </button>
+                      <form
+                        method="post"
+                        action="{{ url_for('projects.delete_project_company_relationship', project_id=project.project_id, assignment_id=assignment.assignment_id) }}"
+                        class="d-inline"
+                      >
+                        {{ delete_form.hidden_tag() }}
+                        <input type="hidden" name="next" value="{{ url_for('projects.edit_project', project_id=project.project_id) }}">
+                        <button
+                          type="submit"
+                          class="btn btn-sm btn-outline-danger"
+                          title="Remove"
+                          onclick="return confirm('Remove this company relationship?')"
+                        >
+                          <i class="bi bi-x"></i>
+                        </button>
+                      </form>
+                    </div>
+                  </td>
+                </tr>
+                <tr class="collapse" id="editCompanyRelationship{{ assignment.assignment_id }}">
+                  <td colspan="5" class="bg-light">
                     <form
                       method="post"
-                      action="{{ url_for('projects.delete_project_company_relationship', project_id=project.project_id, assignment_id=assignment.assignment_id) }}"
-                      class="d-inline"
+                      action="{{ url_for('projects.update_project_company_relationship', project_id=project.project_id, assignment_id=assignment.assignment_id) }}"
                     >
-                      {{ delete_form.hidden_tag() }}
-                      <button
-                        type="submit"
-                        class="btn btn-sm btn-outline-danger"
-                        title="Remove"
-                        onclick="return confirm('Remove this company relationship?')"
-                      >
-                        <i class="bi bi-x"></i>
-                      </button>
+                      {{ company_form.csrf_token }}
+                      <input type="hidden" name="company_id" value="{{ assignment.company_id }}">
+                      <input type="hidden" name="next" value="{{ url_for('projects.edit_project', project_id=project.project_id) }}">
+                      <div class="row g-2">
+                        <div class="col-md-4">
+                          <label class="form-label">Role</label>
+                          <select name="role_type" class="form-select form-select-sm">
+                            {% for value, label in company_form.role_type.choices %}
+                            <option value="{{ value }}" {% if value == assignment.role_code %}selected{% endif %}>
+                              {{ label }}
+                            </option>
+                            {% endfor %}
+                          </select>
+                        </div>
+                        <div class="col-md-3 d-flex align-items-end">
+                          <div class="form-check mb-2">
+                            <input type="checkbox" class="form-check-input" id="edit-project-confidential-{{ assignment.assignment_id }}" name="is_confidential" {% if assignment.is_confidential %}checked{% endif %}>
+                            <label class="form-check-label" for="edit-project-confidential-{{ assignment.assignment_id }}">Confidential</label>
+                          </div>
+                        </div>
+                        <div class="col-md-5">
+                          <label class="form-label">Notes</label>
+                          <textarea name="notes" class="form-control form-control-sm" rows="2">{% if assignment.is_confidential and not can_view_confidential %}{% else %}{{ assignment.notes or '' }}{% endif %}</textarea>
+                        </div>
+                      </div>
+                      <div class="mt-2 text-end">
+                        <button type="submit" class="btn btn-sm btn-primary">Save Changes</button>
+                      </div>
                     </form>
                   </td>
                 </tr>
@@ -279,6 +330,7 @@
               action="{{ url_for('projects.add_project_company_relationship', project_id=project.project_id) }}"
             >
               {{ company_form.hidden_tag() }}
+              <input type="hidden" name="next" value="{{ url_for('projects.edit_project', project_id=project.project_id) }}">
               <div class="row g-2">
                 <div class="col-md-4">
                   {{ company_form.company_id.label(class="form-label") }} {{

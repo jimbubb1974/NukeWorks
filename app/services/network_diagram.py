@@ -19,6 +19,9 @@ DEFAULT_RELATIONSHIP_TYPES: Tuple[str, ...] = (
     "project_company",  # Unified project-company relationships
 )
 
+CONFIDENTIAL_EDGE_COLOR = "#f39c12"
+CONFIDENTIAL_EDGE_HIGHLIGHT = "#d68910"
+
 
 def _build_project_node(project: Project) -> Dict[str, Any]:
     details = []
@@ -152,14 +155,27 @@ def _project_company_edges(
         project = db_session.get(Project, assignment.context_id)
         project_name = project.project_name if project else f"Project {assignment.context_id}"
         title = f"{company_name} ({role_label}) ↔ {project_name}"
-        
-        edges.append({
+
+        edge = {
             "id": f"project_company_{assignment.assignment_id}",
             "from": company_node,
             "to": project_node,
             "label": role_label,
             "title": title,
-        })
+            "is_confidential": bool(getattr(assignment, "is_confidential", False)),
+        }
+        if edge["is_confidential"]:
+            edge["color"] = {
+                "color": CONFIDENTIAL_EDGE_COLOR,
+                "highlight": CONFIDENTIAL_EDGE_HIGHLIGHT,
+                "hover": CONFIDENTIAL_EDGE_HIGHLIGHT,
+            }
+            edge["font"] = {
+                "color": CONFIDENTIAL_EDGE_COLOR,
+                "strokeWidth": 0,
+            }
+
+        edges.append(edge)
     
     return edges, hidden
 

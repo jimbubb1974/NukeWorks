@@ -8,6 +8,9 @@
     offtaker: "Off-taker",
   };
 
+  const CONFIDENTIAL_EDGE_COLOR = "#f39c12";
+  const CONFIDENTIAL_EDGE_HIGHLIGHT = "#d68910";
+
   const GROUP_STYLES = {
     vendor: {
       shape: "dot",
@@ -73,6 +76,24 @@
   function formatNodeLabel(node) {
     const groupLabel = GROUP_LABELS[node.group] || node.group;
     return groupLabel + " • " + node.label;
+  }
+
+  function normalizeEdge(edge) {
+    if (!edge || !edge.is_confidential) {
+      return edge;
+    }
+
+    return Object.assign({}, edge, {
+      color: Object.assign({}, edge.color || {}, {
+        color: CONFIDENTIAL_EDGE_COLOR,
+        highlight: CONFIDENTIAL_EDGE_HIGHLIGHT,
+        hover: CONFIDENTIAL_EDGE_HIGHLIGHT,
+      }),
+      font: Object.assign({}, edge.font || {}, {
+        color: CONFIDENTIAL_EDGE_COLOR,
+        strokeWidth: 0,
+      }),
+    });
   }
 
   const NetworkDiagram = {
@@ -330,28 +351,28 @@
     updateData(data) {
       this.nodeIndex.clear();
 
-      // Filter out unconnected companies if the option is enabled
+      // Filter out orphaned nodes if the option is enabled
       let filteredNodes = data.nodes;
-      let filteredEdges = data.edges;
+      let filteredEdges = (data.edges || []).map((edge) => normalizeEdge(edge));
 
       if (!this.currentFilters.show_orphan_nodes) {
-        // Build a set of company node IDs that have at least one project edge
-        const connectedCompanyIds = new Set();
-        data.edges.forEach((edge) => {
-          if (edge.from && edge.from.startsWith("company_")) {
-            connectedCompanyIds.add(edge.from);
+        const connectedNodeIds = new Set();
+        filteredEdges.forEach((edge) => {
+          if (edge.from) {
+            connectedNodeIds.add(edge.from);
           }
-          if (edge.to && edge.to.startsWith("company_")) {
-            connectedCompanyIds.add(edge.to);
+          if (edge.to) {
+            connectedNodeIds.add(edge.to);
           }
         });
 
-        // Keep projects always; only keep companies that have a project connection
         filteredNodes = data.nodes.filter((node) => {
-          if (node.group === "project") return true;
-          if (node.group === "company") return connectedCompanyIds.has(node.id);
-          return true;
+          return connectedNodeIds.has(node.id);
         });
+        filteredEdges = filteredEdges.filter(
+          (edge) =>
+            connectedNodeIds.has(edge.from) && connectedNodeIds.has(edge.to)
+        );
       }
 
       filteredNodes.forEach((node) => {

@@ -9,11 +9,11 @@ from datetime import datetime
 
 from app import db_session
 from app.models import (
-    Company, CompanyRole, CompanyRoleAssignment,
+    Company, CompanyRole, CompanyRoleAssignment, Project,
     ExternalPersonnel, InternalPersonnel, PersonnelRelationship,
 )
 from app.forms.companies import CompanyForm
-from app.forms.relationships import ConfirmActionForm
+from app.forms.relationships import ConfirmActionForm, ProjectCompanyRelationshipForm
 from app.utils.permissions import edit_required
 
 bp = Blueprint('companies', __name__, url_prefix='/companies')
@@ -178,6 +178,29 @@ def _can_manage_companies(user) -> bool:
     return bool(user and (user.is_admin or getattr(user, 'is_ned_team', False)) and user.can_edit())
 
 
+def _normalize_project_role_code(role_code: str | None) -> str | None:
+    """Normalize aliases used by project-company relationship forms."""
+    if role_code in ('owner', 'developer'):
+        return 'developer'
+    return role_code
+
+
+def _get_or_create_company_role(role_code: str) -> CompanyRole:
+    """Fetch a company role by code, creating it when missing."""
+    role = db_session.query(CompanyRole).filter_by(role_code=role_code).first()
+    if role:
+        return role
+
+    role = CompanyRole(
+        role_code=role_code,
+        role_label=role_code.title(),
+        description=f"Role for {role_code} relationships"
+    )
+    db_session.add(role)
+    db_session.flush()
+    return role
+
+
 @bp.route('/<int:company_id>')
 @login_required
 def view_company(company_id):
@@ -330,6 +353,22 @@ def edit_company(company_id):
         .order_by(InternalPersonnel.full_name)
         .all()
     )
+    project_relationships = (
+        db_session.query(CompanyRoleAssignment)
+        .filter_by(company_id=company_id, context_type='Project')
+        .options(
+            joinedload(CompanyRoleAssignment.role),
+            joinedload(CompanyRoleAssignment.company)
+        )
+        .order_by(CompanyRoleAssignment.context_id, CompanyRoleAssignment.assignment_id)
+        .all()
+    )
+    projects_by_id = {
+        project.project_id: project
+        for project in db_session.query(Project).order_by(Project.project_name).all()
+    }
+    project_company_form = ProjectCompanyRelationshipForm()
+    project_company_form.company_id.choices = [(company.company_id, company.company_name)]
 
     return render_template(
         'companies/form.html',
@@ -338,7 +377,77 @@ def edit_company(company_id):
         title=f'Edit Company: {company.company_name}',
         external_personnel=external_personnel,
         internal_personnel=internal_personnel,
+        project_relationships=project_relationships,
+        projects_by_id=projects_by_id,
+        project_company_form=project_company_form,
     )
+
+
+@bp.route('/<int:company_id>/relationships/projects/<int:assignment_id>/edit', methods=['POST'])
+@login_required
+@edit_required
+def update_project_relationship(company_id, assignment_id):
+    """Update a project-company relationship from the company edit page."""
+    _get_company_or_404(company_id)
+    next_url = request.form.get('next') or url_for('companies.edit_company', company_id=company_id)
+
+    if not _can_manage_companies(current_user):
+        flash('You do not have permission to manage company relationships.', 'danger')
+        return redirect(next_url)
+
+    relationship = (
+        db_session.query(CompanyRoleAssignment)
+        .filter_by(
+            assignment_id=assignment_id,
+            company_id=company_id,
+            context_type='Project',
+        )
+        .options(joinedload(CompanyRoleAssignment.company))
+        .first()
+    )
+    if not relationship:
+        flash('Project relationship not found.', 'error')
+        return redirect(next_url)
+
+    form = ProjectCompanyRelationshipForm()
+    form.company_id.choices = [(company_id, relationship.company.company_name if relationship.company else 'Company')]
+
+    if not form.validate_on_submit():
+        flash('Please correct the relationship form errors.', 'warning')
+        return redirect(next_url)
+
+    try:
+        normalized_role_code = _normalize_project_role_code(form.role_type.data)
+        duplicate_relationship = (
+            db_session.query(CompanyRoleAssignment)
+            .join(CompanyRole)
+            .filter(
+                CompanyRoleAssignment.assignment_id != relationship.assignment_id,
+                CompanyRoleAssignment.company_id == company_id,
+                CompanyRoleAssignment.context_type == 'Project',
+                CompanyRoleAssignment.context_id == relationship.context_id,
+                CompanyRole.role_code == normalized_role_code,
+            )
+            .first()
+        )
+        if duplicate_relationship:
+            flash(f'This company already has a {normalized_role_code} role for that project.', 'warning')
+            return redirect(next_url)
+
+        role = _get_or_create_company_role(normalized_role_code)
+        relationship.role_id = role.role_id
+        relationship.notes = form.notes.data or None
+        relationship.is_confidential = bool(form.is_confidential.data)
+        relationship.modified_by = current_user.user_id
+        relationship.modified_date = datetime.utcnow()
+
+        db_session.commit()
+        flash('Project relationship updated successfully.', 'success')
+    except Exception as exc:
+        db_session.rollback()
+        flash(f'Error updating project relationship: {exc}', 'danger')
+
+    return redirect(next_url)
 
 
 @bp.route('/<int:company_id>/employees/add', methods=['POST'])
@@ -347,28 +456,31 @@ def edit_company(company_id):
 def add_employee(company_id):
     """Add an external personnel record linked to this company."""
     _get_company_or_404(company_id)
+    next_url = request.form.get('next') or url_for('companies.edit_company', company_id=company_id)
     full_name = request.form.get('full_name', '').strip()
     if not full_name:
-        flash('Employee name is required.', 'danger')
-        return redirect(url_for('companies.edit_company', company_id=company_id))
+        flash('External contact name is required.', 'danger')
+        return redirect(next_url)
     try:
         person = ExternalPersonnel(
             full_name=full_name,
             email=request.form.get('email', '').strip() or None,
             phone=request.form.get('phone', '').strip() or None,
             role=request.form.get('role', '').strip() or None,
+            contact_type=request.form.get('contact_type', '').strip() or None,
             company_id=company_id,
             is_active=True,
+            notes=request.form.get('notes', '').strip() or None,
             created_by=current_user.user_id,
             modified_by=current_user.user_id,
         )
         db_session.add(person)
         db_session.commit()
-        flash(f'{full_name} added.', 'success')
+        flash(f'{full_name} added as an external contact.', 'success')
     except Exception as exc:
         db_session.rollback()
-        flash(f'Error adding employee: {exc}', 'danger')
-    return redirect(url_for('companies.edit_company', company_id=company_id))
+        flash(f'Error adding external contact: {exc}', 'danger')
+    return redirect(next_url)
 
 
 @bp.route('/<int:company_id>/employees/<int:personnel_id>/delete', methods=['POST'])

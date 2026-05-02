@@ -161,16 +161,69 @@ NukeWorks{% endblock %} {% block content %}
         <p class="text-muted mb-0">No personnel linked to this company.</p>
         {% endif %} {% if can_manage %}
         <div class="mt-3">
-          <button
-            class="btn btn-sm btn-outline-primary"
-            type="button"
-            data-bs-toggle="collapse"
-            data-bs-target="#linkPersonnelForm"
-            aria-expanded="false"
-            aria-controls="linkPersonnelForm"
+          <div class="d-flex flex-wrap gap-2">
+            <button
+              class="btn btn-sm btn-outline-primary"
+              type="button"
+              data-bs-toggle="collapse"
+              data-bs-target="#addExternalContactForm"
+              aria-expanded="false"
+              aria-controls="addExternalContactForm"
+            >
+              <i class="bi bi-person-plus"></i> Add External Contact
+            </button>
+            <button
+              class="btn btn-sm btn-outline-secondary"
+              type="button"
+              data-bs-toggle="collapse"
+              data-bs-target="#linkPersonnelForm"
+              aria-expanded="false"
+              aria-controls="linkPersonnelForm"
+            >
+              <i class="bi bi-link-45deg"></i> Link Existing Contact
+            </button>
+          </div>
+        </div>
+        <div class="collapse mt-3" id="addExternalContactForm">
+          <form
+            method="post"
+            action="{{ url_for('companies.add_employee', company_id=company.company_id) }}"
           >
-            <i class="bi bi-plus-circle"></i> Link Personnel
-          </button>
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="next" value="{{ url_for('companies.view_company', company_id=company.company_id) }}">
+            <div class="row g-2">
+              <div class="col-md-6">
+                <input name="full_name" class="form-control" placeholder="Full name *" required>
+              </div>
+              <div class="col-md-6">
+                <input name="role" class="form-control" placeholder="Role / Title">
+              </div>
+              <div class="col-md-6">
+                <input type="email" name="email" class="form-control" placeholder="Email">
+              </div>
+              <div class="col-md-6">
+                <input name="phone" class="form-control" placeholder="Phone">
+              </div>
+              <div class="col-md-6">
+                <select name="contact_type" class="form-select">
+                  <option value="">Contact Type</option>
+                  <option value="Primary">Primary</option>
+                  <option value="Secondary">Secondary</option>
+                  <option value="Technical">Technical</option>
+                  <option value="Business">Business</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+              <div class="col-12">
+                <textarea name="notes" class="form-control" rows="2" placeholder="Notes"></textarea>
+              </div>
+              <div class="col-12 d-flex justify-content-end">
+                <button type="submit" class="btn btn-primary btn-sm">
+                  Add Contact
+                </button>
+              </div>
+            </div>
+          </form>
         </div>
         <div class="collapse mt-3" id="linkPersonnelForm">
           <form
