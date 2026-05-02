@@ -94,7 +94,7 @@
   display: flex;
   flex-direction: column;
   gap: 0.1rem;
-  min-width: 170px;
+  min-width: 190px;
 }
 
 .project-spine-spacing-control .form-range {
