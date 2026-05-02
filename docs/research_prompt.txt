@@ -36,6 +36,13 @@ Your job:
 DO NOT invent db_id values. If you are uncertain whether an entity matches an
 existing record, set db_id to null and let the human reviewer decide.
 
+Pay particular attention to the "target_cod" field on projects. Many projects
+have publicly stated target commercial operation dates in NRC filings, DOE
+announcements, company press releases, or earnings calls. Report the year or
+full date (e.g. "2032" or "2032-06-01") if you can cite at least one source,
+even if the date is approximate or has slipped. Only return null if you
+genuinely cannot find any public reference to a target date.
+
 -----------------------------------------------------------------
 SECTION 2 — MATCHING EXISTING ENTITIES
 -----------------------------------------------------------------
