@@ -6,6 +6,15 @@
 
   const CONFIDENTIAL_EDGE_COLOR = "#f39c12";
   const CONFIDENTIAL_EDGE_HIGHLIGHT = "#d68910";
+  const INTERACTION_OPTIONS = {
+    hover: true,
+    tooltipDelay: 200,
+    navigationButtons: true,
+    keyboard: true,
+    dragView: true,
+    zoomView: true,
+    dragNodes: true,
+  };
   const ROLE_GROUP_ALIASES = Object.assign(Object.create(null), {
     developer: "owner",
     owner_developer: "owner",
@@ -462,10 +471,6 @@
               animation: { duration: 600, easingFunction: "easeInOutQuad" },
             });
           }
-        } else {
-          this.network.fit({
-            animation: { duration: 600, easingFunction: "easeInOutQuad" },
-          });
         }
       }
     },
@@ -516,12 +521,7 @@
           },
           stabilization: { iterations: 200 },
         },
-        interaction: {
-          hover: true,
-          tooltipDelay: 200,
-          navigationButtons: true,
-          keyboard: true,
-        },
+        interaction: INTERACTION_OPTIONS,
       };
 
       this.network = new vis.Network(
@@ -559,6 +559,7 @@
         this.physicsDisabled = false;
         this.network.setOptions({
           layout: { hierarchical: { enabled: false } },
+          interaction: INTERACTION_OPTIONS,
           physics: {
             enabled: true,
             barnesHut: {
@@ -648,6 +649,7 @@
         this.physicsDisabled = true;
         this.network.setOptions({
           layout: { hierarchical: { enabled: false } },
+          interaction: INTERACTION_OPTIONS,
           physics: { enabled: false },
         });
         this.nodesDataSet.update(updates);
@@ -668,6 +670,7 @@
         this.physicsDisabled = false;
         this.network.setOptions({
           layout: { hierarchical: { enabled: false } },
+          interaction: INTERACTION_OPTIONS,
           physics: {
             enabled: true,
             barnesHut: {
@@ -839,6 +842,7 @@
         this.physicsDisabled = true;
         this.network.setOptions({
           layout: { hierarchical: { enabled: false } },
+          interaction: INTERACTION_OPTIONS,
           physics: { enabled: false },
         });
         this.nodesDataSet.update(updates);
