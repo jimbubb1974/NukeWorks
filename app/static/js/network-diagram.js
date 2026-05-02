@@ -470,13 +470,27 @@
         return;
       }
 
+      // Single click → focus mode. Double-click → navigate to detail page.
+      // vis.js fires "click" then "doubleClick" on a double-click, so we debounce
+      // the click action and cancel it if a doubleClick arrives first.
+      let _clickTimer = null;
+
       this.network.on("click", (params) => {
         if (params.nodes.length > 0) {
           const nodeId = params.nodes[0];
-          const node = this.nodeIndex.get(nodeId);
-          if (node && node.url) {
-            window.location.href = node.url;
-          }
+          clearTimeout(_clickTimer);
+          _clickTimer = setTimeout(() => {
+            const node = this.nodeIndex.get(nodeId);
+            if (node) {
+              if (this.focusSelect) {
+                this.focusSelect.value = nodeId;
+              }
+              this.applyFocus(
+                nodeId,
+                this.focusDepth ? this.focusDepth.value : "2"
+              );
+            }
+          }, 250);
         }
       });
 
@@ -492,17 +506,12 @@
       });
 
       this.network.on("doubleClick", (params) => {
+        clearTimeout(_clickTimer); // cancel pending focus action
         if (params.nodes.length > 0) {
           const nodeId = params.nodes[0];
           const node = this.nodeIndex.get(nodeId);
-          if (node) {
-            if (this.focusSelect) {
-              this.focusSelect.value = nodeId;
-            }
-            this.applyFocus(
-              nodeId,
-              this.focusDepth ? this.focusDepth.value : "2"
-            );
+          if (node && node.url) {
+            window.location.href = node.url;
           }
         }
       });
