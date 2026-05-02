@@ -124,7 +124,7 @@
       depth: "all",
     },
     physicsDisabled: false,
-    currentLayout: "organic",
+    currentLayout: "project-spine",
     projectSpineSpacingScale: 1,
 
     init(config) {
@@ -750,30 +750,51 @@
         const SINGLE_X = 560 * horizontalScale;
         const SHARED_BASE_X = -560 * horizontalScale;
         const SHARED_LANE_X = 210 * horizontalScale;
-        const PROJECT_Y_SPACING = 145;
         const SINGLE_Y_SPACING = 78;
         const SHARED_Y_SPACING = 82;
-        const startY = -((projectOrder.length - 1) * PROJECT_Y_SPACING) / 2;
+        const singleCompaniesByProject = new Map();
+        const projectRightRows = new Map();
+
+        projectOrder.forEach((projectId) => {
+          const connectedCompanies = Array.from(projectCompanies.get(projectId) || []);
+          const singleCompanies = connectedCompanies
+            .filter((companyId) => (companyProjects.get(companyId) || new Set()).size === 1)
+            .sort((a, b) => String(this.nodeIndex.get(a).label).localeCompare(String(this.nodeIndex.get(b).label)));
+          singleCompaniesByProject.set(projectId, singleCompanies);
+          projectRightRows.set(projectId, Math.max(1, singleCompanies.length));
+        });
+
+        const totalRightRows = projectOrder.reduce(
+          (sum, id) => sum + projectRightRows.get(id),
+          0
+        );
+        const totalProjectSpan = Math.max(0, totalRightRows - 1) * SINGLE_Y_SPACING;
+        let yCursor = -totalProjectSpan / 2;
         const projectY = new Map();
+        const singleCompanyY = new Map();
         const updates = [];
 
-        projectOrder.forEach((id, index) => {
-          const y = startY + index * PROJECT_Y_SPACING;
+        projectOrder.forEach((id) => {
+          const singleCompanies = singleCompaniesByProject.get(id) || [];
+          const rows = projectRightRows.get(id);
+          const firstY = yCursor;
+          const lastY = firstY + (rows - 1) * SINGLE_Y_SPACING;
+          const y = (firstY + lastY) / 2;
+          singleCompanies.forEach((companyId, index) => {
+            singleCompanyY.set(companyId, firstY + index * SINGLE_Y_SPACING);
+          });
           projectY.set(id, y);
           updates.push({ id, x: PROJECT_X, y, fixed: false, level: undefined });
+          yCursor = lastY + SINGLE_Y_SPACING;
         });
 
         projectOrder.forEach((projectId) => {
-          const singleCompanies = Array.from(projectCompanies.get(projectId) || [])
-            .filter((companyId) => (companyProjects.get(companyId) || new Set()).size === 1)
-            .sort((a, b) => String(this.nodeIndex.get(a).label).localeCompare(String(this.nodeIndex.get(b).label)));
-          const centerY = projectY.get(projectId);
-          const offset = -((singleCompanies.length - 1) * SINGLE_Y_SPACING) / 2;
-          singleCompanies.forEach((companyId, index) => {
+          const singleCompanies = singleCompaniesByProject.get(projectId) || [];
+          singleCompanies.forEach((companyId) => {
             updates.push({
               id: companyId,
               x: SINGLE_X,
-              y: centerY + offset + index * SINGLE_Y_SPACING,
+              y: singleCompanyY.get(companyId),
               fixed: false,
               level: undefined,
             });
