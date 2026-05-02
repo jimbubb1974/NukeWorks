@@ -480,7 +480,7 @@ def register_error_handlers(app):
     Args:
         app: Flask application
     """
-    from flask import render_template
+    from flask import render_template, request
 
     @app.errorhandler(403)
     def forbidden(e):
@@ -488,11 +488,14 @@ def register_error_handlers(app):
 
     @app.errorhandler(404)
     def page_not_found(e):
+        if request.path.startswith('/static/'):
+            return '', 404
         return render_template('errors/404.html'), 404
 
     @app.errorhandler(500)
     def internal_server_error(e):
-        db_session.rollback()
+        if db_session is not None:
+            db_session.rollback()
         return render_template('errors/500.html'), 500
 
 

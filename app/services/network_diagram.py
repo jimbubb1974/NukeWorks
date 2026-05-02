@@ -23,6 +23,23 @@ CONFIDENTIAL_EDGE_COLOR = "#f39c12"
 CONFIDENTIAL_EDGE_HIGHLIGHT = "#d68910"
 
 
+ROLE_GROUP_ALIASES = {
+    "developer": "owner",
+    "owner": "owner",
+    "owner_developer": "owner",
+    "owner-developer": "owner",
+    "technology_vendor": "vendor",
+    "technology-vendor": "vendor",
+}
+
+
+def _normalize_role_group(role_code: Optional[str]) -> str:
+    if not role_code:
+        return "company"
+    normalized = role_code.strip().lower().replace(" ", "_")
+    return ROLE_GROUP_ALIASES.get(normalized, normalized)
+
+
 def _build_project_node(project: Project) -> Dict[str, Any]:
     details = []
     if project.project_status:
@@ -149,6 +166,8 @@ def _project_company_edges(
         
         # Get role label for edge
         role_label = assignment.role.role_label if assignment.role else "Company"
+        role_code = assignment.role.role_code if assignment.role else None
+        role_group = _normalize_role_group(role_code)
         
         # Build title
         company_name = assignment.company.company_name if assignment.company else "Company"
@@ -161,6 +180,8 @@ def _project_company_edges(
             "from": company_node,
             "to": project_node,
             "label": role_label,
+            "role_code": role_code,
+            "role_group": role_group,
             "title": title,
             "is_confidential": bool(getattr(assignment, "is_confidential", False)),
         }
@@ -176,6 +197,11 @@ def _project_company_edges(
             }
 
         edges.append(edge)
+
+        company_data = nodes[company_node]
+        role_groups = company_data.setdefault("role_groups", [])
+        if role_group not in role_groups:
+            role_groups.append(role_group)
     
     return edges, hidden
 

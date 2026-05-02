@@ -1,29 +1,39 @@
 (function (global) {
-  const GROUP_LABELS = {
-    vendor: "Vendor",
-    owner: "Owner",
+  const GROUP_LABELS = Object.assign(Object.create(null), {
+    company: "Company",
     project: "Project",
-    constructor: "Constructor",
-    operator: "Operator",
-    offtaker: "Off-taker",
-  };
+  });
 
   const CONFIDENTIAL_EDGE_COLOR = "#f39c12";
   const CONFIDENTIAL_EDGE_HIGHLIGHT = "#d68910";
+  const ROLE_GROUP_ALIASES = Object.assign(Object.create(null), {
+    developer: "owner",
+    owner_developer: "owner",
+    "owner-developer": "owner",
+    technology_vendor: "vendor",
+    "technology-vendor": "vendor",
+  });
+  const HIERARCHICAL_GROUP_ORDER = [
+    "offtaker",
+    "owner",
+    "project",
+    "vendor",
+    "constructor",
+    "operator",
+    "company",
+  ];
+  const HIERARCHICAL_GROUP_RANK = HIERARCHICAL_GROUP_ORDER.reduce(
+    (rank, group, index) => {
+      rank[group] = index;
+      return rank;
+    },
+    Object.create(null)
+  );
 
   const GROUP_STYLES = {
-    vendor: {
+    company: {
       shape: "dot",
       size: 25,
-      color: {
-        background: "#e74c3c",
-        border: "#c0392b",
-        highlight: { background: "#c0392b", border: "#a93226" },
-      },
-      font: { color: "#2c3e50", size: 14 },
-    },
-    owner: {
-      shape: "box",
       color: {
         background: "#3498db",
         border: "#2980b9",
@@ -41,41 +51,34 @@
       },
       font: { color: "#2c3e50", size: 14 },
     },
-    constructor: {
-      shape: "triangle",
-      size: 25,
-      color: {
-        background: "#f39c12",
-        border: "#d68910",
-        highlight: { background: "#d68910", border: "#b9770e" },
-      },
-      font: { color: "#2c3e50", size: 14 },
-    },
-    operator: {
-      shape: "triangleDown",
-      size: 25,
-      color: {
-        background: "#9b59b6",
-        border: "#8e44ad",
-        highlight: { background: "#8e44ad", border: "#76448a" },
-      },
-      font: { color: "#2c3e50", size: 14 },
-    },
-    offtaker: {
-      shape: "hexagon",
-      size: 26,
-      color: {
-        background: "#16a085",
-        border: "#13856d",
-        highlight: { background: "#13856d", border: "#0e5f4a" },
-      },
-      font: { color: "#2c3e50", size: 14 },
-    },
   };
 
   function formatNodeLabel(node) {
     const groupLabel = GROUP_LABELS[node.group] || node.group;
     return groupLabel + " • " + node.label;
+  }
+
+  function normalizeRoleGroup(value) {
+    if (!value) return null;
+    const normalized = String(value).trim().toLowerCase().replace(/\s+/g, "_");
+    return ROLE_GROUP_ALIASES[normalized] || normalized;
+  }
+
+  function chooseRoleGroup(candidates) {
+    let selected = null;
+    let selectedCount = -1;
+    candidates.forEach((count, group) => {
+      const rank = HIERARCHICAL_GROUP_RANK[group] ?? HIERARCHICAL_GROUP_ORDER.length;
+      const selectedRank =
+        selected == null
+          ? HIERARCHICAL_GROUP_ORDER.length + 1
+          : HIERARCHICAL_GROUP_RANK[selected] ?? HIERARCHICAL_GROUP_ORDER.length;
+      if (count > selectedCount || (count === selectedCount && rank < selectedRank)) {
+        selected = group;
+        selectedCount = count;
+      }
+    });
+    return selected;
   }
 
   function normalizeEdge(edge) {
@@ -104,6 +107,7 @@
     vendor:       450,
     constructor:  900,
     operator:     900,
+    company:      450,
   };
 
   const NetworkDiagram = {
@@ -121,6 +125,7 @@
     },
     physicsDisabled: false,
     currentLayout: "organic",
+    projectSpineSpacingScale: 1,
 
     init(config) {
       this.config = config;
@@ -137,6 +142,12 @@
       this.resetPhysicsBtn = document.getElementById(
         config.resetPhysicsButtonId
       );
+      this.projectSpineSpacingInput = config.projectSpineSpacingInputId
+        ? document.getElementById(config.projectSpineSpacingInputId)
+        : null;
+      this.projectSpineSpacingValue = config.projectSpineSpacingValueId
+        ? document.getElementById(config.projectSpineSpacingValueId)
+        : null;
       this.statsDom = config.statsSelectors;
       this.detailPanel = config.detailPanel;
 
@@ -220,6 +231,16 @@
             this.physicsDisabled = false;
             this.network.setOptions({ physics: { enabled: true } });
             this.network.stabilize();
+          }
+        });
+      }
+
+      if (this.projectSpineSpacingInput) {
+        this.updateProjectSpineSpacing();
+        this.projectSpineSpacingInput.addEventListener("input", () => {
+          this.updateProjectSpineSpacing();
+          if (this.currentLayout === "project-spine") {
+            this.setLayout("project-spine");
           }
         });
       }
@@ -375,7 +396,11 @@
       this.nodeIndex.clear();
 
       // Filter out orphaned nodes if the option is enabled
-      let filteredNodes = data.nodes;
+      let filteredNodes = data.nodes.map((node) =>
+        Object.assign({}, node, {
+          group: node.group === "project" ? "project" : "company",
+        })
+      );
       let filteredEdges = (data.edges || []).map((edge) => normalizeEdge(edge));
 
       if (!this.currentFilters.show_orphan_nodes) {
@@ -389,7 +414,7 @@
           }
         });
 
-        filteredNodes = data.nodes.filter((node) => {
+        filteredNodes = filteredNodes.filter((node) => {
           return connectedNodeIds.has(node.id);
         });
         filteredEdges = filteredEdges.filter(
@@ -550,37 +575,76 @@
 
       } else if (mode === "hierarchical") {
         // Bypass vis.js hierarchical engine (unreliable when switching modes dynamically).
-        // Instead, manually fix each node's x/y position: groups get a fixed Y row and
-        // nodes within each group are spread evenly along X.
-        const GROUP_Y = {
-          offtaker:    -300,
-          owner:       -150,
-          project:        0,
-          vendor:        150,
-          constructor:   280,
-          operator:      280,
-        };
-        const byGroup = {};
+        // Domain hierarchy: projects sit between role-specific company bands. Large bands
+        // are wrapped into lanes so fit() does not flatten the diagram into one wide row.
+        const byGroup = Object.create(null);
+        const edges = this.edgesDataSet ? this.edgesDataSet.get() : [];
+        const roleGroupsByNode = new Map();
+
+        edges.forEach((edge) => {
+          const roleGroup = normalizeRoleGroup(edge.role_group || edge.role_code);
+          if (!roleGroup) return;
+          [edge.from, edge.to].forEach((nodeId) => {
+            const node = this.nodeIndex.get(nodeId);
+            if (!node || node.group === "project") return;
+            if (!roleGroupsByNode.has(nodeId)) {
+              roleGroupsByNode.set(nodeId, new Map());
+            }
+            const counts = roleGroupsByNode.get(nodeId);
+            counts.set(roleGroup, (counts.get(roleGroup) || 0) + 1);
+          });
+        });
+
         for (const node of this.nodeIndex.values()) {
-          const g = node.group || "project";
-          if (!byGroup[g]) byGroup[g] = [];
-          byGroup[g].push(node);
+          let group = node.group === "project"
+            ? "project"
+            : chooseRoleGroup(roleGroupsByNode.get(node.id) || new Map());
+          group = normalizeRoleGroup(group || node.group) || "company";
+          if (!byGroup[group]) byGroup[group] = [];
+          byGroup[group].push(node);
         }
-        const SPACING = 220;
+        Object.values(byGroup).forEach((nodes) => {
+          nodes.sort((a, b) => String(a.label).localeCompare(String(b.label)));
+        });
+
+        const X_SPACING = 260;
+        const Y_SPACING = 120;
+        const GROUP_GAP = 190;
+        const MAX_PER_LANE = 8;
+        const groupLayout = Object.create(null);
+        let yCursor = 0;
+
+        HIERARCHICAL_GROUP_ORDER.forEach((group) => {
+          const nodes = byGroup[group] || [];
+          if (!nodes.length) return;
+          const laneCount = Math.ceil(nodes.length / MAX_PER_LANE);
+          groupLayout[group] = {
+            startY: yCursor,
+            height: (laneCount - 1) * Y_SPACING,
+          };
+          yCursor += groupLayout[group].height + GROUP_GAP;
+        });
+
+        const yOffset = yCursor > 0 ? (yCursor - GROUP_GAP) / 2 : 0;
         const updates = [];
-        for (const [group, nodes] of Object.entries(byGroup)) {
-          const y = GROUP_Y[group] ?? 0;
-          const totalWidth = (nodes.length - 1) * SPACING;
+        HIERARCHICAL_GROUP_ORDER.forEach((group) => {
+          const nodes = byGroup[group] || [];
+          const layout = groupLayout[group];
+          if (!layout) return;
           nodes.forEach((node, i) => {
+            const lane = Math.floor(i / MAX_PER_LANE);
+            const indexInLane = i % MAX_PER_LANE;
+            const laneSize = Math.min(MAX_PER_LANE, nodes.length - lane * MAX_PER_LANE);
+            const totalWidth = (laneSize - 1) * X_SPACING;
             updates.push({
               id: node.id,
-              x: -totalWidth / 2 + i * SPACING,
-              y,
+              x: -totalWidth / 2 + indexInLane * X_SPACING,
+              y: layout.startY + lane * Y_SPACING - yOffset,
               fixed: true,
               level: undefined,
             });
           });
-        }
+        });
         this.physicsDisabled = true;
         this.network.setOptions({
           layout: { hierarchical: { enabled: false } },
@@ -617,6 +681,162 @@
           },
         });
         this.network.stabilize();
+
+      } else if (mode === "project-spine") {
+        const edges = this.edgesDataSet ? this.edgesDataSet.get() : [];
+        const projects = [];
+        const companies = [];
+        const projectCompanies = new Map();
+        const companyProjects = new Map();
+
+        for (const node of this.nodeIndex.values()) {
+          if (node.group === "project") {
+            projects.push(node);
+            projectCompanies.set(node.id, new Set());
+          } else {
+            companies.push(node);
+            companyProjects.set(node.id, new Set());
+          }
+        }
+
+        edges.forEach((edge) => {
+          const from = this.nodeIndex.get(edge.from);
+          const to = this.nodeIndex.get(edge.to);
+          if (!from || !to || from.group === to.group) return;
+          const projectId = from.group === "project" ? from.id : to.id;
+          const companyId = from.group === "project" ? to.id : from.id;
+          if (projectCompanies.has(projectId) && companyProjects.has(companyId)) {
+            projectCompanies.get(projectId).add(companyId);
+            companyProjects.get(companyId).add(projectId);
+          }
+        });
+
+        projects.sort((a, b) => String(a.label).localeCompare(String(b.label)));
+        let projectOrder = projects.map((node) => node.id);
+        const sharedCompanies = companies
+          .filter((node) => (companyProjects.get(node.id) || new Set()).size > 1)
+          .map((node) => node.id);
+
+        // Repeated barycenter passes: order projects near the shared companies
+        // they have in common, then order shared companies near their projects.
+        let sharedOrder = sharedCompanies.slice();
+        for (let pass = 0; pass < 6; pass += 1) {
+          const projectIndex = new Map(projectOrder.map((id, index) => [id, index]));
+          sharedOrder.sort((a, b) => {
+            const aProjects = Array.from(companyProjects.get(a) || []);
+            const bProjects = Array.from(companyProjects.get(b) || []);
+            const avgA = aProjects.reduce((sum, id) => sum + projectIndex.get(id), 0) / aProjects.length;
+            const avgB = bProjects.reduce((sum, id) => sum + projectIndex.get(id), 0) / bProjects.length;
+            const degreeDiff = bProjects.length - aProjects.length;
+            return avgA - avgB || degreeDiff || String(this.nodeIndex.get(a).label).localeCompare(String(this.nodeIndex.get(b).label));
+          });
+
+          const sharedIndex = new Map(sharedOrder.map((id, index) => [id, index]));
+          projectOrder.sort((a, b) => {
+            const aShared = Array.from(projectCompanies.get(a) || []).filter((id) => sharedIndex.has(id));
+            const bShared = Array.from(projectCompanies.get(b) || []).filter((id) => sharedIndex.has(id));
+            const avgA = aShared.length
+              ? aShared.reduce((sum, id) => sum + sharedIndex.get(id), 0) / aShared.length
+              : Number.MAX_SAFE_INTEGER;
+            const avgB = bShared.length
+              ? bShared.reduce((sum, id) => sum + sharedIndex.get(id), 0) / bShared.length
+              : Number.MAX_SAFE_INTEGER;
+            return avgA - avgB || String(this.nodeIndex.get(a).label).localeCompare(String(this.nodeIndex.get(b).label));
+          });
+        }
+
+        const horizontalScale = this.projectSpineSpacingScale || 1;
+        const PROJECT_X = 0;
+        const SINGLE_X = 560 * horizontalScale;
+        const SHARED_BASE_X = -560 * horizontalScale;
+        const SHARED_LANE_X = 210 * horizontalScale;
+        const PROJECT_Y_SPACING = 145;
+        const SINGLE_Y_SPACING = 78;
+        const SHARED_Y_SPACING = 82;
+        const startY = -((projectOrder.length - 1) * PROJECT_Y_SPACING) / 2;
+        const projectY = new Map();
+        const updates = [];
+
+        projectOrder.forEach((id, index) => {
+          const y = startY + index * PROJECT_Y_SPACING;
+          projectY.set(id, y);
+          updates.push({ id, x: PROJECT_X, y, fixed: false, level: undefined });
+        });
+
+        projectOrder.forEach((projectId) => {
+          const singleCompanies = Array.from(projectCompanies.get(projectId) || [])
+            .filter((companyId) => (companyProjects.get(companyId) || new Set()).size === 1)
+            .sort((a, b) => String(this.nodeIndex.get(a).label).localeCompare(String(this.nodeIndex.get(b).label)));
+          const centerY = projectY.get(projectId);
+          const offset = -((singleCompanies.length - 1) * SINGLE_Y_SPACING) / 2;
+          singleCompanies.forEach((companyId, index) => {
+            updates.push({
+              id: companyId,
+              x: SINGLE_X,
+              y: centerY + offset + index * SINGLE_Y_SPACING,
+              fixed: false,
+              level: undefined,
+            });
+          });
+        });
+
+        const sharedUpdates = sharedOrder.map((companyId) => {
+          const connectedProjects = Array.from(companyProjects.get(companyId) || []);
+          const degree = connectedProjects.length;
+          const avgY = connectedProjects.reduce((sum, id) => sum + projectY.get(id), 0) / degree;
+          return {
+            id: companyId,
+            degree,
+            x: SHARED_BASE_X - Math.max(0, degree - 2) * SHARED_LANE_X,
+            y: avgY,
+            idealY: avgY,
+            label: this.nodeIndex.get(companyId).label,
+          };
+        });
+
+        sharedUpdates.sort((a, b) => a.idealY - b.idealY || b.degree - a.degree || String(a.label).localeCompare(String(b.label)));
+        for (let i = 1; i < sharedUpdates.length; i += 1) {
+          if (sharedUpdates[i].y - sharedUpdates[i - 1].y < SHARED_Y_SPACING) {
+            sharedUpdates[i].y = sharedUpdates[i - 1].y + SHARED_Y_SPACING;
+          }
+        }
+        for (let i = sharedUpdates.length - 2; i >= 0; i -= 1) {
+          if (sharedUpdates[i + 1].y - sharedUpdates[i].y < SHARED_Y_SPACING) {
+            sharedUpdates[i].y = sharedUpdates[i + 1].y - SHARED_Y_SPACING;
+          }
+        }
+        sharedUpdates.forEach((item) => {
+          updates.push({
+            id: item.id,
+            x: item.x,
+            y: item.y,
+            fixed: false,
+            level: undefined,
+          });
+        });
+
+        this.physicsDisabled = true;
+        this.network.setOptions({
+          layout: { hierarchical: { enabled: false } },
+          physics: { enabled: false },
+        });
+        this.nodesDataSet.update(updates);
+        this.network.fit({
+          animation: { duration: 600, easingFunction: "easeInOutQuad" },
+        });
+      }
+    },
+
+    updateProjectSpineSpacing() {
+      if (!this.projectSpineSpacingInput) {
+        this.projectSpineSpacingScale = 1;
+        return;
+      }
+      const value = Number(this.projectSpineSpacingInput.value) || 100;
+      const clamped = Math.min(200, Math.max(25, value));
+      this.projectSpineSpacingScale = clamped / 100;
+      if (this.projectSpineSpacingValue) {
+        this.projectSpineSpacingValue.textContent = `${clamped}%`;
       }
     },
 
@@ -645,6 +865,74 @@
           }
         }
       });
+
+      // Hold-to-open context menu (fires after ~600ms press on a node)
+      const ctxMenu = document.getElementById("network-context-menu");
+      const ctxFocus = document.getElementById("ctx-focus");
+      const ctxOpen  = document.getElementById("ctx-open");
+      let _ctxNodeId = null;
+
+      const hideCtxMenu = () => {
+        if (ctxMenu) ctxMenu.style.display = "none";
+        _ctxNodeId = null;
+      };
+
+      if (ctxMenu) {
+        // Manual hold detection on the canvas element directly (vis.js hold event unreliable)
+        const canvas = this.container.querySelector("canvas");
+        let _holdTimer = null;
+
+        const startHold = (e) => {
+          if (e.button !== 0) return;
+          const rect = this.container.getBoundingClientRect();
+          const nodeId = this.network.getNodeAt({
+            x: e.clientX - rect.left,
+            y: e.clientY - rect.top,
+          });
+          if (!nodeId) return;
+          _holdTimer = setTimeout(() => {
+            _ctxNodeId = nodeId;
+            ctxMenu.style.left    = e.clientX + "px";
+            ctxMenu.style.top     = e.clientY + "px";
+            ctxMenu.style.display = "block";
+            const node = this.nodeIndex.get(nodeId);
+            if (ctxOpen) ctxOpen.style.display = (node && node.url) ? "flex" : "none";
+          }, 600);
+        };
+
+        const cancelHold = () => { clearTimeout(_holdTimer); _holdTimer = null; };
+
+        if (canvas) {
+          canvas.addEventListener("mousedown", startHold);
+          canvas.addEventListener("mouseup",   cancelHold);
+          canvas.addEventListener("mousemove", cancelHold);
+        }
+
+        document.addEventListener("click", hideCtxMenu);
+        document.addEventListener("keydown", (e) => {
+          if (e.key === "Escape") hideCtxMenu();
+        });
+
+        if (ctxFocus) {
+          ctxFocus.addEventListener("click", () => {
+            if (_ctxNodeId) {
+              if (this.focusSelect) this.focusSelect.value = _ctxNodeId;
+              this.applyFocus(_ctxNodeId, this.focusDepth ? this.focusDepth.value : "2");
+            }
+            hideCtxMenu();
+          });
+        }
+
+        if (ctxOpen) {
+          ctxOpen.addEventListener("click", () => {
+            if (_ctxNodeId) {
+              const node = this.nodeIndex.get(_ctxNodeId);
+              if (node && node.url) window.location.href = node.url;
+            }
+            hideCtxMenu();
+          });
+        }
+      }
 
       this.network.on("stabilizationIterationsDone", () => {
         if (!this.physicsDisabled) {

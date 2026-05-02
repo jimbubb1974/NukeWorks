@@ -2,7 +2,9 @@
 block extra_css %}
 <link
   rel="stylesheet"
-  href="{{ url_for('static', filename='lib/vis/vis.min.css') }}"
+  href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.css"
+  crossorigin="anonymous"
+  referrerpolicy="no-referrer"
 />
 <link
   rel="stylesheet"
@@ -186,6 +188,22 @@ block extra_css %}
           <button type="button" class="btn btn-outline-secondary active" data-layout="organic">Organic</button>
           <button type="button" class="btn btn-outline-secondary" data-layout="hierarchical">Hierarchical</button>
           <button type="button" class="btn btn-outline-secondary" data-layout="columns">Columns</button>
+          <button type="button" class="btn btn-outline-secondary" data-layout="project-spine">Project Spine</button>
+        </div>
+        <div class="project-spine-spacing-control ms-2">
+          <label for="project-spine-spacing" class="small text-muted mb-0">
+            Spine spacing <span id="project-spine-spacing-value">100%</span>
+          </label>
+          <input
+            type="range"
+            class="form-range"
+            id="project-spine-spacing"
+            min="25"
+            max="160"
+            step="5"
+            value="100"
+            aria-label="Project Spine horizontal spacing"
+          />
         </div>
         <div class="ms-auto d-flex gap-2">
           <a
@@ -212,6 +230,14 @@ block extra_css %}
       </div>
       <div class="card-body p-0">
         <div id="network-container" class="network-container">
+          <div id="network-context-menu">
+            <div class="ctx-item" id="ctx-focus">
+              <i class="bi bi-bullseye"></i> Focus on this node
+            </div>
+            <div class="ctx-item" id="ctx-open">
+              <i class="bi bi-box-arrow-up-right"></i> Open details
+            </div>
+          </div>
           <div class="network-loading" id="network-loading">
             <div class="spinner-border text-primary" role="status">
               <span class="visually-hidden">Loading...</span>
@@ -225,7 +251,7 @@ block extra_css %}
       <div class="card-header">Node Details</div>
       <div class="card-body" id="node-detail-panel">
         <p class="text-muted mb-0" id="node-detail-placeholder">
-          Hover to preview &middot; double-click to open.
+          Hover to preview &middot; hold to focus/open &middot; double-click to open.
         </p>
         <div id="node-detail-content" class="d-none">
           <h6 id="node-detail-label" class="mb-1"></h6>
@@ -236,23 +262,11 @@ block extra_css %}
   </div>
 </div>
 {% endblock %} {% block extra_js %}
-<script src="{{ url_for('static', filename='lib/vis/vis.min.js') }}"></script>
-<script>
-  if (typeof vis === "undefined") {
-    const script = document.createElement("script");
-    script.src = "https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.js";
-    script.crossOrigin = "anonymous";
-    script.referrerPolicy = "no-referrer";
-    window.__visLibraryLoading = true;
-    script.onload = function () {
-      window.__visLibraryLoading = false;
-    };
-    script.onerror = function () {
-      window.__visLibraryLoading = false;
-    };
-    document.head.appendChild(script);
-  }
-</script>
+<script
+  src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.js"
+  crossorigin="anonymous"
+  referrerpolicy="no-referrer"
+></script>
 <script src="{{ url_for('static', filename='js/network-diagram.js') }}"></script>
 <script>
   document.addEventListener("DOMContentLoaded", function () {
@@ -283,6 +297,8 @@ block extra_css %}
         resetViewButtonId: "reset-view-btn",
         resetPhysicsButtonId: "reset-physics-btn",
         layoutButtonGroupId: "layout-btn-group",
+        projectSpineSpacingInputId: "project-spine-spacing",
+        projectSpineSpacingValueId: "project-spine-spacing-value",
         statsSelectors: {
           totalNodes: "#total-nodes",
           totalEdges: "#total-edges",
