@@ -256,7 +256,7 @@ def accept_item(run_id, item_id):
         _db().rollback()
         flash(f'Failed to apply change: {e}', 'danger')
 
-    return redirect(url_for('research.run_detail', run_id=run_id))
+    return redirect(url_for('research.run_detail', run_id=run_id, _anchor=f'item-{item_id}'))
 
 
 @bp.route('/runs/<int:run_id>/items/<int:item_id>/skip', methods=['POST'])
@@ -279,7 +279,7 @@ def skip_item(run_id, item_id):
     _update_run_counts(run_id)
     _db().commit()
 
-    return redirect(url_for('research.run_detail', run_id=run_id))
+    return redirect(url_for('research.run_detail', run_id=run_id, _anchor=f'item-{item_id}'))
 
 
 @bp.route('/runs/<int:run_id>/delete', methods=['POST'])
