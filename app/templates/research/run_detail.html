@@ -210,7 +210,7 @@
   {% set sources  = item.get_source_urls() %}
 
   <div class="card mb-1 {% if item.status == 'accepted' %}border-success{% else %}border-secondary{% endif %}"
-       style="opacity:0.75">
+       id="item-{{ item.item_id }}" style="opacity:0.75">
     <div class="card-header py-1 d-flex justify-content-between align-items-center small"
          role="button"
          data-bs-toggle="collapse"
