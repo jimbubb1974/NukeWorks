@@ -468,6 +468,68 @@ def update_project_relationship(company_id, assignment_id):
     return redirect(next_url)
 
 
+@bp.route('/<int:company_id>/relationships/projects/add', methods=['POST'])
+@login_required
+@edit_required
+def add_project_relationship(company_id):
+    """Add a new project-company relationship from the company edit page."""
+    company = _get_company_or_404(company_id)
+    next_url = request.form.get('next') or url_for('companies.edit_company', company_id=company_id)
+
+    if not _can_manage_companies(current_user):
+        flash('You do not have permission to manage company relationships.', 'danger')
+        return redirect(next_url)
+
+    project_id = request.form.get('project_id', type=int)
+    role_code_raw = request.form.get('role_type', '').strip()
+    notes = request.form.get('notes', '').strip() or None
+    is_confidential = bool(request.form.get('is_confidential'))
+
+    if not project_id or not role_code_raw:
+        flash('Project and role are required.', 'warning')
+        return redirect(next_url)
+
+    project = db_session.query(Project).filter_by(project_id=project_id).first()
+    if not project:
+        flash('Project not found.', 'danger')
+        return redirect(next_url)
+
+    try:
+        normalized_role_code = _normalize_project_role_code(role_code_raw)
+        duplicate = (
+            db_session.query(CompanyRoleAssignment)
+            .join(CompanyRole)
+            .filter(
+                CompanyRoleAssignment.company_id == company_id,
+                CompanyRoleAssignment.context_type == 'Project',
+                CompanyRoleAssignment.context_id == project_id,
+                CompanyRole.role_code == normalized_role_code,
+            )
+            .first()
+        )
+        if duplicate:
+            flash(f'{company.company_name} already has a {normalized_role_code} role on that project.', 'warning')
+            return redirect(next_url)
+
+        role = _get_or_create_company_role(normalized_role_code)
+        assignment = CompanyRoleAssignment(
+            company_id=company_id,
+            role_id=role.role_id,
+            context_type='Project',
+            context_id=project_id,
+            notes=notes,
+            is_confidential=is_confidential,
+        )
+        db_session.add(assignment)
+        db_session.commit()
+        flash(f'Added {role.role_label} relationship with {project.project_name}.', 'success')
+    except Exception as exc:
+        db_session.rollback()
+        flash(f'Error adding project relationship: {exc}', 'danger')
+
+    return redirect(next_url)
+
+
 @bp.route('/<int:company_id>/employees/add', methods=['POST'])
 @login_required
 @edit_required

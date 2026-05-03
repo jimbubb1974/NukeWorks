@@ -16,7 +16,130 @@
 </div>
 
 <div class="row g-4">
+  {% if company and company.company_id %}
   <div class="col-lg-6">
+    <div class="card">
+      <div class="card-header" data-bs-toggle="collapse" data-bs-target="#employeesCollapse" style="cursor:pointer">
+        <div class="d-flex justify-content-between align-items-center">
+          <h6 class="mb-0"><i class="bi bi-people"></i> Company Employees</h6>
+          <i class="bi bi-chevron-down"></i>
+        </div>
+      </div>
+      <div id="employeesCollapse" class="collapse show">
+        <div class="card-body">
+
+          {% if external_personnel %}
+          {% for person in external_personnel %}
+          <div class="border rounded p-3 mb-3">
+            <div class="d-flex justify-content-between align-items-start">
+              <div>
+                <strong>{{ person.full_name }}</strong>
+                {% if person.role %}<span class="text-muted small ms-2">{{ person.role }}</span>{% endif %}
+                {% if person.email %}<br><small class="text-muted"><i class="bi bi-envelope"></i> {{ person.email }}</small>{% endif %}
+                {% if person.phone %}<small class="text-muted ms-3"><i class="bi bi-telephone"></i> {{ person.phone }}</small>{% endif %}
+              </div>
+              <form method="POST" action="{{ url_for('companies.delete_employee', company_id=company.company_id, personnel_id=person.personnel_id) }}"
+                    onsubmit="return confirm('Remove {{ person.full_name }} from this company?')">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button class="btn btn-sm btn-outline-danger" title="Remove employee"><i class="bi bi-trash"></i></button>
+              </form>
+            </div>
+
+            <!-- MPR links -->
+            <div class="mt-2">
+              <small class="text-muted fw-semibold">MPR Links:</small>
+              {% if person.internal_relationships %}
+              <div class="mt-1 d-flex flex-wrap gap-2">
+                {% for rel in person.internal_relationships %}
+                <div class="d-flex align-items-center gap-1 border rounded px-2 py-1 bg-light">
+                  <span class="small fw-semibold">{{ rel.internal_personnel.full_name }}</span>
+                  {% if rel.relationship_type %}<span class="text-muted small">({{ rel.relationship_type }})</span>{% endif %}
+                  <form method="POST" action="{{ url_for('companies.delete_employee_relationship', company_id=company.company_id, personnel_id=person.personnel_id, relationship_id=rel.relationship_id) }}"
+                        onsubmit="return confirm('Remove this MPR link?')" class="d-inline">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button class="btn btn-link btn-sm text-danger p-0 ms-1" title="Remove link"><i class="bi bi-x-lg"></i></button>
+                  </form>
+                </div>
+                {% endfor %}
+              </div>
+              {% else %}
+              <span class="text-muted small ms-1">None</span>
+              {% endif %}
+
+              <!-- Add MPR link -->
+              {% if internal_personnel %}
+              <form method="POST" action="{{ url_for('companies.add_employee_relationship', company_id=company.company_id, personnel_id=person.personnel_id) }}"
+                    class="mt-2 d-flex flex-wrap gap-2 align-items-center">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <select name="internal_personnel_id" class="form-select form-select-sm" style="max-width:200px">
+                  <option value="">Link to MPR person…</option>
+                  {% for ip in internal_personnel %}
+                  <option value="{{ ip.personnel_id }}">{{ ip.full_name }}</option>
+                  {% endfor %}
+                </select>
+                <select name="relationship_type" class="form-select form-select-sm" style="max-width:175px">
+                  <option value="">Type (optional)</option>
+                  <option>Primary Contact</option>
+                  <option>Technical Contact</option>
+                  <option>Business Contact</option>
+                  <option>Account Manager</option>
+                  <option>Other</option>
+                </select>
+                <button class="btn btn-sm btn-outline-primary"><i class="bi bi-plus-lg"></i> Add Link</button>
+              </form>
+              {% endif %}
+            </div>
+          </div>
+          {% endfor %}
+          {% else %}
+          <p class="text-muted small mb-3">No external contacts recorded for this company.</p>
+          {% endif %}
+
+          <!-- Add external contact -->
+          <hr class="my-3">
+          <h6 class="mb-2">Add External Contact</h6>
+          <form method="POST" action="{{ url_for('companies.add_employee', company_id=company.company_id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="next" value="{{ url_for('companies.edit_company', company_id=company.company_id) }}">
+            <div class="row g-2">
+              <div class="col-sm-4">
+                <input type="text" name="full_name" class="form-control form-control-sm" placeholder="Full name *" required>
+              </div>
+              <div class="col-sm-3">
+                <input type="email" name="email" class="form-control form-control-sm" placeholder="Email">
+              </div>
+              <div class="col-sm-2">
+                <input type="text" name="phone" class="form-control form-control-sm" placeholder="Phone">
+              </div>
+              <div class="col-sm-2">
+                <input type="text" name="role" class="form-control form-control-sm" placeholder="Role / Title">
+              </div>
+              <div class="col-sm-1">
+                <button class="btn btn-sm btn-primary w-100" title="Add contact"><i class="bi bi-plus-lg"></i></button>
+              </div>
+              <div class="col-sm-3">
+                <select name="contact_type" class="form-select form-select-sm">
+                  <option value="">Contact Type</option>
+                  <option value="Primary">Primary</option>
+                  <option value="Secondary">Secondary</option>
+                  <option value="Technical">Technical</option>
+                  <option value="Business">Business</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+              <div class="col-sm-8">
+                <input type="text" name="notes" class="form-control form-control-sm" placeholder="Notes">
+              </div>
+            </div>
+          </form>
+
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="{% if company and company.company_id %}col-lg-6{% else %}col-lg-6{% endif %}">
     <div class="card">
       <div class="card-body">
         <form method="post">
@@ -139,9 +262,12 @@
     </div>
   </div>
 
-  {% if company and company.company_id %}
-  <div class="col-lg-6">
-    <div class="card mb-4">
+</div>
+
+{% if company and company.company_id %}
+<div class="row g-4 mt-1">
+  <div class="col-12">
+    <div class="card">
       <div class="card-header">
         <h6 class="mb-0"><i class="bi bi-diagram-3"></i> Project Connections</h6>
       </div>
@@ -238,131 +364,52 @@
         {% else %}
         <p class="text-muted small mb-0">No project connections recorded for this company.</p>
         {% endif %}
-      </div>
-    </div>
 
-    <div class="card">
-      <div class="card-header" data-bs-toggle="collapse" data-bs-target="#employeesCollapse" style="cursor:pointer">
-        <div class="d-flex justify-content-between align-items-center">
-          <h6 class="mb-0"><i class="bi bi-people"></i> Company Employees</h6>
-          <i class="bi bi-chevron-down"></i>
-        </div>
-      </div>
-      <div id="employeesCollapse" class="collapse show">
-        <div class="card-body">
-
-          {% if external_personnel %}
-          {% for person in external_personnel %}
-          <div class="border rounded p-3 mb-3">
-            <div class="d-flex justify-content-between align-items-start">
-              <div>
-                <strong>{{ person.full_name }}</strong>
-                {% if person.role %}<span class="text-muted small ms-2">{{ person.role }}</span>{% endif %}
-                {% if person.email %}<br><small class="text-muted"><i class="bi bi-envelope"></i> {{ person.email }}</small>{% endif %}
-                {% if person.phone %}<small class="text-muted ms-3"><i class="bi bi-telephone"></i> {{ person.phone }}</small>{% endif %}
-              </div>
-              <form method="POST" action="{{ url_for('companies.delete_employee', company_id=company.company_id, personnel_id=person.personnel_id) }}"
-                    onsubmit="return confirm('Remove {{ person.full_name }} from this company?')">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <button class="btn btn-sm btn-outline-danger" title="Remove employee"><i class="bi bi-trash"></i></button>
-              </form>
-            </div>
-
-            <!-- MPR links -->
-            <div class="mt-2">
-              <small class="text-muted fw-semibold">MPR Links:</small>
-              {% if person.internal_relationships %}
-              <div class="mt-1 d-flex flex-wrap gap-2">
-                {% for rel in person.internal_relationships %}
-                <div class="d-flex align-items-center gap-1 border rounded px-2 py-1 bg-light">
-                  <span class="small fw-semibold">{{ rel.internal_personnel.full_name }}</span>
-                  {% if rel.relationship_type %}<span class="text-muted small">({{ rel.relationship_type }})</span>{% endif %}
-                  <form method="POST" action="{{ url_for('companies.delete_employee_relationship', company_id=company.company_id, personnel_id=person.personnel_id, relationship_id=rel.relationship_id) }}"
-                        onsubmit="return confirm('Remove this MPR link?')" class="d-inline">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                    <button class="btn btn-link btn-sm text-danger p-0 ms-1" title="Remove link"><i class="bi bi-x-lg"></i></button>
-                  </form>
-                </div>
+        <!-- Add New Project Connection -->
+        <hr class="my-3">
+        <h6 class="mb-2">Add Project Connection</h6>
+        <form method="POST" action="{{ url_for('companies.add_project_relationship', company_id=company.company_id) }}">
+          {{ project_company_form.csrf_token }}
+          <input type="hidden" name="next" value="{{ url_for('companies.edit_company', company_id=company.company_id) }}">
+          <div class="row g-2 align-items-end">
+            <div class="col-md-4">
+              <label class="form-label">Project</label>
+              <select name="project_id" class="form-select form-select-sm" required>
+                <option value="">— Select project —</option>
+                {% for project in projects_by_id.values()|sort(attribute='project_name') %}
+                <option value="{{ project.project_id }}">{{ project.project_name }}</option>
                 {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Role</label>
+              <select name="role_type" class="form-select form-select-sm" required>
+                {% for value, label in project_company_form.role_type.choices %}
+                <option value="{{ value }}">{{ label }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-2 d-flex align-items-end pb-1">
+              <div class="form-check">
+                <input type="checkbox" class="form-check-input" id="new-connection-confidential" name="is_confidential">
+                <label class="form-check-label" for="new-connection-confidential">Confidential</label>
               </div>
-              {% else %}
-              <span class="text-muted small ms-1">None</span>
-              {% endif %}
-
-              <!-- Add MPR link -->
-              {% if internal_personnel %}
-              <form method="POST" action="{{ url_for('companies.add_employee_relationship', company_id=company.company_id, personnel_id=person.personnel_id) }}"
-                    class="mt-2 d-flex flex-wrap gap-2 align-items-center">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <select name="internal_personnel_id" class="form-select form-select-sm" style="max-width:200px">
-                  <option value="">Link to MPR person…</option>
-                  {% for ip in internal_personnel %}
-                  <option value="{{ ip.personnel_id }}">{{ ip.full_name }}</option>
-                  {% endfor %}
-                </select>
-                <select name="relationship_type" class="form-select form-select-sm" style="max-width:175px">
-                  <option value="">Type (optional)</option>
-                  <option>Primary Contact</option>
-                  <option>Technical Contact</option>
-                  <option>Business Contact</option>
-                  <option>Account Manager</option>
-                  <option>Other</option>
-                </select>
-                <button class="btn btn-sm btn-outline-primary"><i class="bi bi-plus-lg"></i> Add Link</button>
-              </form>
-              {% endif %}
+            </div>
+            <div class="col-md-2">
+              <label class="form-label">Notes</label>
+              <input type="text" name="notes" class="form-control form-control-sm" placeholder="Optional">
+            </div>
+            <div class="col-md-1">
+              <button type="submit" class="btn btn-sm btn-primary w-100" title="Add connection"><i class="bi bi-plus-lg"></i></button>
             </div>
           </div>
-          {% endfor %}
-          {% else %}
-          <p class="text-muted small mb-3">No external contacts recorded for this company.</p>
-          {% endif %}
+        </form>
 
-          <!-- Add external contact -->
-          <hr class="my-3">
-          <h6 class="mb-2">Add External Contact</h6>
-          <form method="POST" action="{{ url_for('companies.add_employee', company_id=company.company_id) }}">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <input type="hidden" name="next" value="{{ url_for('companies.edit_company', company_id=company.company_id) }}">
-            <div class="row g-2">
-              <div class="col-sm-4">
-                <input type="text" name="full_name" class="form-control form-control-sm" placeholder="Full name *" required>
-              </div>
-              <div class="col-sm-3">
-                <input type="email" name="email" class="form-control form-control-sm" placeholder="Email">
-              </div>
-              <div class="col-sm-2">
-                <input type="text" name="phone" class="form-control form-control-sm" placeholder="Phone">
-              </div>
-              <div class="col-sm-2">
-                <input type="text" name="role" class="form-control form-control-sm" placeholder="Role / Title">
-              </div>
-              <div class="col-sm-1">
-                <button class="btn btn-sm btn-primary w-100" title="Add contact"><i class="bi bi-plus-lg"></i></button>
-              </div>
-              <div class="col-sm-3">
-                <select name="contact_type" class="form-select form-select-sm">
-                  <option value="">Contact Type</option>
-                  <option value="Primary">Primary</option>
-                  <option value="Secondary">Secondary</option>
-                  <option value="Technical">Technical</option>
-                  <option value="Business">Business</option>
-                  <option value="Other">Other</option>
-                </select>
-              </div>
-              <div class="col-sm-8">
-                <input type="text" name="notes" class="form-control form-control-sm" placeholder="Notes">
-              </div>
-            </div>
-          </form>
-
-        </div>
       </div>
     </div>
   </div>
-  {% endif %}
-
 </div>
+{% endif %}
 {% endblock %} {% block extra_js %}
 <script>
   document.addEventListener("DOMContentLoaded", function () {
