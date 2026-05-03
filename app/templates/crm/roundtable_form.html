@@ -159,7 +159,7 @@ company.company_name }} - NukeWorks{% endblock %} {% block content %}
             <i class="bi bi-chevron-down"></i>
           </div>
         </div>
-        <div id="categoryCollapse" class="collapse show">
+        <div id="categoryCollapse" class="collapse">
           <div class="card-body">
             <form method="POST" action="{{ url_for('crm.update_client_category', company_id=company.company_id) }}">
               <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
