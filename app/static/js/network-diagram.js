@@ -108,6 +108,42 @@
     });
   }
 
+  // Fan out parallel edges (same from/to pair) with alternating CW/CCW curves.
+  // Single edges between a pair remain straight (smooth: { enabled: false }).
+  function assignParallelEdgeCurves(edges) {
+    const pairGroups = new Map();
+    edges.forEach((edge) => {
+      const key = [String(edge.from), String(edge.to)].sort().join("\x00");
+      if (!pairGroups.has(key)) pairGroups.set(key, []);
+      pairGroups.get(key).push(edge.id);
+    });
+
+    const edgeInfo = new Map();
+    pairGroups.forEach((ids) => {
+      ids.forEach((id, i) => edgeInfo.set(id, { idx: i, total: ids.length }));
+    });
+
+    return edges.map((edge) => {
+      const info = edgeInfo.get(edge.id);
+      if (!info || info.total <= 1) return edge;
+
+      const { idx, total } = info;
+      const spread = idx - (total - 1) / 2;
+      const roundness = Math.abs(spread) * 0.5;
+
+      const smooth =
+        roundness < 0.01
+          ? { enabled: false }
+          : {
+              enabled: true,
+              type: spread > 0 ? "curvedCW" : "curvedCCW",
+              roundness,
+            };
+
+      return Object.assign({}, edge, { smooth });
+    });
+  }
+
   // X-axis position bands for columns layout (arbitrary units; physics settles y)
   const COLUMN_X = {
     offtaker:    -900,
@@ -438,7 +474,9 @@
           group: node.group === "project" ? "project" : "company",
         })
       );
-      let filteredEdges = (data.edges || []).map((edge) => normalizeEdge(edge));
+      let filteredEdges = assignParallelEdgeCurves(
+        (data.edges || []).map((edge) => normalizeEdge(edge))
+      );
 
       if (!this.currentFilters.show_orphan_nodes) {
         const connectedNodeIds = new Set();
@@ -535,7 +573,7 @@
         edges: {
           color: { color: "#95a5a6", highlight: "#7f8c8d" },
           width: 2,
-          smooth: { type: "continuous" },
+          smooth: { enabled: false },
           font: { size: 12, align: "horizontal" },
         },
         physics: {
