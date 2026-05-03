@@ -129,7 +129,7 @@
 
       const { idx, total } = info;
       const spread = idx - (total - 1) / 2;
-      const roundness = Math.abs(spread) * 0.5;
+      const roundness = Math.abs(spread) * 0.28;
 
       const smooth =
         roundness < 0.01
@@ -519,7 +519,9 @@
 
       if (this.network) {
         // Re-apply the current layout mode after data changes
-        this.setLayout(this.currentLayout);
+        this.setLayout(this.currentLayout, {
+          fit: !this.currentFilters.focus_entity,
+        });
       }
 
       this.populateFocusOptions();
@@ -587,7 +589,7 @@
           },
           stabilization: { iterations: 200 },
         },
-        interaction: INTERACTION_OPTIONS,
+        interaction: this.getInteractionOptions(),
       };
 
       this.network = new vis.Network(
@@ -598,9 +600,16 @@
       this.registerNetworkEvents();
     },
 
-    setLayout(mode) {
+    getInteractionOptions() {
+      return Object.assign({}, INTERACTION_OPTIONS, {
+        dragNodes: true,
+      });
+    },
+
+    setLayout(mode, options = {}) {
       if (!this.network || !this.nodesDataSet) return;
       this.currentLayout = mode;
+      const shouldFit = options.fit !== false;
 
       // Update active button state
       const layoutGroup = this.config.layoutButtonGroupId
@@ -626,7 +635,7 @@
         this.physicsDisabled = false;
         this.network.setOptions({
           layout: { hierarchical: { enabled: false } },
-          interaction: INTERACTION_OPTIONS,
+          interaction: this.getInteractionOptions(),
           physics: {
             enabled: true,
             barnesHut: {
@@ -813,18 +822,20 @@
         this.physicsDisabled = true;
         this.network.setOptions({
           layout: { hierarchical: { enabled: false } },
-          interaction: INTERACTION_OPTIONS,
+          interaction: this.getInteractionOptions(),
           physics: { enabled: false },
         });
         this.nodesDataSet.update(updates);
-        this.network.fit({
-          animation: { duration: 600, easingFunction: "easeInOutQuad" },
-        });
+        if (shouldFit) {
+          this.network.fit({
+            animation: { duration: 600, easingFunction: "easeInOutQuad" },
+          });
+        }
         // After fit, enforce a minimum scale so node dots stay large enough
         // to grab — fit() on a tall graph can zoom out to where nodes are
         // only ~16px wide, making drag feel broken.
         setTimeout(() => {
-          if (this.network && this.currentLayout === "hierarchical" && this.network.getScale() < 0.5) {
+          if (shouldFit && this.network && this.currentLayout === "hierarchical" && this.network.getScale() < 0.5) {
             this.network.moveTo({
               scale: 0.5,
               animation: { duration: 300, easingFunction: "easeInOutQuad" },
@@ -845,7 +856,7 @@
         this.physicsDisabled = false;
         this.network.setOptions({
           layout: { hierarchical: { enabled: false } },
-          interaction: INTERACTION_OPTIONS,
+          interaction: this.getInteractionOptions(),
           physics: {
             enabled: true,
             barnesHut: {
@@ -942,30 +953,48 @@
           projectRightRows.set(projectId, Math.max(1, singleCompanies.length));
         });
 
-        const totalRightRows = projectOrder.reduce(
-          (sum, id) => sum + projectRightRows.get(id),
-          0
-        );
-        const totalProjectSpan = Math.max(0, totalRightRows - 1) * SINGLE_Y_SPACING;
-        let yCursor = -totalProjectSpan / 2;
-
         const projectY = new Map();
         const singleCompanyY = new Map();
         const updates = [];
 
-        projectOrder.forEach((id) => {
-          const singleCompanies = singleCompaniesByProject.get(id) || [];
-          const rows = projectRightRows.get(id);
-          const firstY = yCursor;
-          const lastY = firstY + (rows - 1) * SINGLE_Y_SPACING;
-          const y = (firstY + lastY) / 2;
-          singleCompanies.forEach((companyId, index) => {
-            singleCompanyY.set(companyId, firstY + index * SINGLE_Y_SPACING);
+        if (this.projectSpineCompactRows) {
+          const projectSpan = Math.max(0, projectOrder.length - 1) * SINGLE_Y_SPACING;
+          projectOrder.forEach((id, index) => {
+            const y = -projectSpan / 2 + index * SINGLE_Y_SPACING;
+            projectY.set(id, y);
+            updates.push({ id, x: PROJECT_X, y, fixed: false, level: undefined });
           });
-          projectY.set(id, y);
-          updates.push({ id, x: PROJECT_X, y, fixed: false, level: undefined });
-          yCursor = lastY + SINGLE_Y_SPACING;
-        });
+
+          const singleCompanyOrder = [];
+          projectOrder.forEach((projectId) => {
+            singleCompanyOrder.push(...(singleCompaniesByProject.get(projectId) || []));
+          });
+          const singleSpan = Math.max(0, singleCompanyOrder.length - 1) * SINGLE_Y_SPACING;
+          singleCompanyOrder.forEach((companyId, index) => {
+            singleCompanyY.set(companyId, -singleSpan / 2 + index * SINGLE_Y_SPACING);
+          });
+        } else {
+          const totalRightRows = projectOrder.reduce(
+            (sum, id) => sum + projectRightRows.get(id),
+            0
+          );
+          const totalProjectSpan = Math.max(0, totalRightRows - 1) * SINGLE_Y_SPACING;
+          let yCursor = -totalProjectSpan / 2;
+
+          projectOrder.forEach((id) => {
+            const singleCompanies = singleCompaniesByProject.get(id) || [];
+            const rows = projectRightRows.get(id);
+            const firstY = yCursor;
+            const lastY = firstY + (rows - 1) * SINGLE_Y_SPACING;
+            const y = (firstY + lastY) / 2;
+            singleCompanies.forEach((companyId, index) => {
+              singleCompanyY.set(companyId, firstY + index * SINGLE_Y_SPACING);
+            });
+            projectY.set(id, y);
+            updates.push({ id, x: PROJECT_X, y, fixed: false, level: undefined });
+            yCursor = lastY + SINGLE_Y_SPACING;
+          });
+        }
 
         projectOrder.forEach((projectId) => {
           const singleCompanies = singleCompaniesByProject.get(projectId) || [];
@@ -1018,13 +1047,15 @@
         this.physicsDisabled = true;
         this.network.setOptions({
           layout: { hierarchical: { enabled: false } },
-          interaction: INTERACTION_OPTIONS,
+          interaction: this.getInteractionOptions(),
           physics: { enabled: false },
         });
         this.nodesDataSet.update(updates);
-        this.network.fit({
-          animation: { duration: 600, easingFunction: "easeInOutQuad" },
-        });
+        if (shouldFit) {
+          this.network.fit({
+            animation: { duration: 600, easingFunction: "easeInOutQuad" },
+          });
+        }
       }
     },
 
