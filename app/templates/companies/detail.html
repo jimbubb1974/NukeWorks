@@ -138,23 +138,6 @@ NukeWorks{% endblock %} {% block content %}
             >
               <i class="bi bi-pencil"></i>
             </a>
-            {% if can_manage %}
-            <form
-              method="post"
-              action="{{ url_for('companies.unlink_personnel_from_company', company_id=company.company_id, personnel_id=person.personnel_id) }}"
-              style="display: inline"
-              onsubmit="return confirm('Unlink {{ person.full_name }} from this company?')"
-            >
-              {{ delete_form.hidden_tag() }}
-              <button
-                type="submit"
-                class="btn btn-sm btn-outline-danger"
-                title="Unlink"
-              >
-                <i class="bi bi-x"></i>
-              </button>
-            </form>
-            {% endif %}
           </div>
         </div>
         {% endfor %} {% else %}
@@ -261,13 +244,40 @@ NukeWorks{% endblock %} {% block content %}
         <h5 class="mb-0">Role Assignments</h5>
       </div>
       <div class="card-body">
+        {% set project_map = projects_by_id|default({}) %}
         {% if role_assignments %} {% for assignment in role_assignments %}
-        <div class="d-flex justify-content-between align-items-center mb-2">
-          <span class="badge bg-primary"
-            >{{ assignment.role.role_label if assignment.role else 'Unknown
-            Role' }}</span
-          >
-          <small class="text-muted">{{ assignment.context_type }}</small>
+        {% set project = project_map.get(assignment.context_id) if assignment.context_type == 'Project' else none %}
+        <div class="border rounded p-2 mb-2">
+          <div class="d-flex justify-content-between align-items-start gap-2">
+            <span class="badge bg-primary"
+              >{{ assignment.role.role_label if assignment.role else 'Unknown
+              Role' }}</span
+            >
+            {% if assignment.is_primary %}
+            <span class="badge bg-success">Primary</span>
+            {% endif %}
+          </div>
+          <div class="small mt-1">
+            {% if project %}
+            <span class="text-muted">Project:</span>
+            <a href="{{ url_for('projects.view_project', project_id=project.project_id) }}">
+              {{ project.project_name }}
+            </a>
+            {% elif assignment.context_type == 'Project' %}
+            <span class="text-muted">Project:</span>
+            <span class="text-warning">Project {{ assignment.context_id or 'unknown' }} not found</span>
+            {% elif assignment.context_type %}
+            <span class="text-muted">Context:</span>
+            {% if assignment.context_type == 'Global' %}
+            <span>Company-level role, not tied to a specific project</span>
+            {% else %}
+            <span>{{ assignment.context_type }}</span>
+            {% endif %}
+            {% else %}
+            <span class="text-muted">Context:</span>
+            <span>Company-level role, not tied to a specific project</span>
+            {% endif %}
+          </div>
         </div>
         {% endfor %} {% else %}
         <p class="text-muted mb-0">No role assignments</p>
