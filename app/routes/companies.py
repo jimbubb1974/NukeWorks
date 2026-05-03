@@ -14,7 +14,7 @@ from app.models import (
 )
 from app.forms.companies import CompanyForm
 from app.forms.relationships import ConfirmActionForm, ProjectCompanyRelationshipForm
-from app.utils.permissions import edit_required
+from app.utils.permissions import edit_required, filter_relationships
 
 bp = Blueprint('companies', __name__, url_prefix='/companies')
 
@@ -207,10 +207,25 @@ def view_company(company_id):
     """View company details"""
     company = _get_company_or_404(company_id)
     
-    # Get role assignments for this company
-    role_assignments = db_session.query(CompanyRoleAssignment).filter_by(
+    # Get role assignments for this company, filtered by confidentiality access
+    all_role_assignments = db_session.query(CompanyRoleAssignment).filter_by(
         company_id=company_id
     ).options(joinedload(CompanyRoleAssignment.role)).all()
+    role_assignments = filter_relationships(current_user, all_role_assignments)
+    hidden_relationships_count = len(all_role_assignments) - len(role_assignments)
+
+    can_view_confidential = bool(getattr(current_user, 'is_admin', False) or
+                                 getattr(current_user, 'has_confidential_access', False))
+
+    project_ids = [
+        assignment.context_id
+        for assignment in role_assignments
+        if assignment.context_type == 'Project' and assignment.context_id
+    ]
+    projects_by_id = {
+        project.project_id: project
+        for project in db_session.query(Project).filter(Project.project_id.in_(project_ids)).all()
+    } if project_ids else {}
     
     # Get external personnel linked to this company
     from app.models import ExternalPersonnel, PersonnelRelationship, InternalPersonnel
@@ -252,6 +267,9 @@ def view_company(company_id):
         'companies/detail.html',
         company=company,
         role_assignments=role_assignments,
+        hidden_relationships_count=hidden_relationships_count,
+        can_view_confidential=can_view_confidential,
+        projects_by_id=projects_by_id,
         personnel=personnel,
         personnel_with_connections=personnel_with_connections,
         all_personnel=all_personnel,
