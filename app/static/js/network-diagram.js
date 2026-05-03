@@ -575,7 +575,7 @@
         edges: {
           color: { color: "#95a5a6", highlight: "#7f8c8d" },
           width: 2,
-          smooth: { enabled: false },
+          smooth: { enabled: true, type: "continuous", roundness: 0.1 },
           font: { size: 12, align: "horizontal" },
         },
         physics: {
