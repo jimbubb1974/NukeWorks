@@ -197,7 +197,6 @@ NukeWorks{% endblock %} {% block content %}
                   <th>Role</th>
                   <th>Confidential</th>
                   <th style="width: 28%">Notes</th>
-                  <th></th>
                 </tr>
               </thead>
               <tbody>
@@ -221,25 +220,6 @@ NukeWorks{% endblock %} {% block content %}
                   </td>
                   <td class="text-truncate" style="max-width: 360px">
                     {{ rel.notes or '—' }}
-                  </td>
-                  <td class="text-end">
-                    {% if can_manage_relationships %}
-                    <form
-                      method="post"
-                      action="{{ url_for('projects.delete_project_company_relationship', project_id=project.project_id, assignment_id=rel.assignment_id) }}"
-                    >
-                      {{ delete_form.hidden_tag() }}
-                      <button
-                        type="submit"
-                        class="btn btn-sm btn-outline-danger"
-                        title="Remove"
-                        data-confirm="delete"
-                        data-confirm-message="Remove this company relationship?"
-                      >
-                        <i class="bi bi-x"></i>
-                      </button>
-                    </form>
-                    {% endif %}
                   </td>
                 </tr>
                 {% endfor %}

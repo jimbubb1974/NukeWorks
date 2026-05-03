@@ -246,17 +246,35 @@
                     '—' }} {% endif %}
                   </td>
                   <td class="text-end">
-                    <button
-                      class="btn btn-sm btn-outline-primary"
-                      type="button"
-                      data-bs-toggle="collapse"
-                      data-bs-target="#editCompanyRelationship{{ assignment.assignment_id }}"
-                      aria-expanded="false"
-                      aria-controls="editCompanyRelationship{{ assignment.assignment_id }}"
-                      title="Edit relationship"
-                    >
-                      <i class="bi bi-pencil"></i>
-                    </button>
+                    <div class="d-flex justify-content-end gap-2">
+                      <button
+                        class="btn btn-sm btn-outline-primary"
+                        type="button"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#editCompanyRelationship{{ assignment.assignment_id }}"
+                        aria-expanded="false"
+                        aria-controls="editCompanyRelationship{{ assignment.assignment_id }}"
+                        title="Edit"
+                      >
+                        <i class="bi bi-pencil"></i>
+                      </button>
+                      <form
+                        method="post"
+                        action="{{ url_for('projects.delete_project_company_relationship', project_id=project.project_id, assignment_id=assignment.assignment_id) }}"
+                        class="d-inline"
+                      >
+                        {{ delete_form.hidden_tag() }}
+                        <input type="hidden" name="next" value="{{ url_for('projects.edit_project', project_id=project.project_id) }}">
+                        <button
+                          type="submit"
+                          class="btn btn-sm btn-outline-danger"
+                          title="Remove"
+                          onclick="return confirm('Remove this company relationship?')"
+                        >
+                          <i class="bi bi-x"></i>
+                        </button>
+                      </form>
+                    </div>
                   </td>
                 </tr>
                 <tr class="collapse" id="editCompanyRelationship{{ assignment.assignment_id }}">
@@ -300,9 +318,6 @@
               </tbody>
             </table>
           </div>
-          <p class="form-text small text-muted mt-1">
-            To remove a company from this project, use the company's edit page.
-          </p>
           {% else %}
           <p class="text-muted mb-0">No company relationships recorded.</p>
           {% endif %}
