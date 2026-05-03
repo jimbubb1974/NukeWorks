@@ -80,6 +80,24 @@
 
             <div class="row g-3 mt-0">
               <div class="col-md-6">
+                {{ form.target_cod.label(class="form-label") }} {{
+                form.target_cod(class="form-control" + (" is-invalid" if
+                form.target_cod.errors else "")) }} {% if form.target_cod.errors
+                %}
+                <div class="invalid-feedback">
+                  {% for error in form.target_cod.errors %} {{ error }} {%
+                  endfor %}
+                </div>
+                {% else %}
+                <div class="form-text">
+                  Optional planned commercial operation date.
+                </div>
+                {% endif %}
+              </div>
+            </div>
+
+            <div class="row g-3 mt-0">
+              <div class="col-md-6">
                 {{ form.latitude.label(class="form-label") }} {{
                 form.latitude(class="form-control" + (" is-invalid" if
                 form.latitude.errors else "")) }} {% if form.latitude.errors %}
@@ -151,21 +169,6 @@
             </div>
 
             <div class="mb-3">
-              {{ form.target_cod.label(class="form-label") }} {{
-              form.target_cod(class="form-control" + (" is-invalid" if
-              form.target_cod.errors else "")) }} {% if form.target_cod.errors
-              %}
-              <div class="invalid-feedback">
-                {% for error in form.target_cod.errors %} {{ error }} {% endfor
-                %}
-              </div>
-              {% endif %}
-              <small class="form-text text-muted"
-                >Optional planned commercial operation date.</small
-              >
-            </div>
-
-            <div class="mb-3">
               {{ form.notes.label(class="form-label") }} {{
               form.notes(class="form-control" + (" is-invalid" if
               form.notes.errors else "")) }} {% if form.notes.errors %}
@@ -199,8 +202,8 @@
         <div class="card-body">
           <!-- Current Relationships -->
           {% set all_assignments = vendor_assignments + owner_assignments +
-          operator_assignments + constructor_assignments + offtaker_assignments
-          %} {% if all_assignments %}
+          operator_assignments + constructor_assignments + engineer_assignments
+          + offtaker_assignments %} {% if all_assignments %}
           <div class="table-responsive">
             <table class="table table-sm align-middle">
               <thead>
@@ -229,6 +232,7 @@
                       assignment in owner_assignments %}Owner/Developer {% elif
                       assignment in operator_assignments %}Operator {% elif
                       assignment in constructor_assignments %}Constructor {%
+                      elif assignment in engineer_assignments %}Engineer {%
                       elif assignment in offtaker_assignments %}Offtaker {% else
                       %}Unknown Role{% endif %}
                     </span>

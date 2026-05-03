@@ -555,7 +555,6 @@ CREATE TABLE projects (
     opex_encrypted BLOB,
     fuel_cost_encrypted BLOB,
     lcoe_encrypted BLOB,
-    cod DATE,
     mpr_project_id TEXT,
     notes TEXT,
     firm_involvement TEXT,

@@ -173,8 +173,8 @@ NukeWorks{% endblock %} {% block content %}
           <h5 class="mb-0">
             <i class="bi bi-building"></i> Company Relationships ({{
             vendor_relationships|length + constructor_relationships|length +
-            operator_relationships|length + owner_relationships|length +
-            offtaker_relationships|length }})
+            engineer_relationships|length + operator_relationships|length +
+            owner_relationships|length + offtaker_relationships|length }})
           </h5>
         </div>
         <div class="card-body">
@@ -186,8 +186,9 @@ NukeWorks{% endblock %} {% block content %}
             hidden_company_relationships_count }} hidden).
           </div>
           {% endif %} {% set all_relationships = vendor_relationships +
-          constructor_relationships + operator_relationships +
-          owner_relationships + offtaker_relationships %} {% if
+          constructor_relationships + engineer_relationships +
+          operator_relationships + owner_relationships +
+          offtaker_relationships %} {% if
           all_relationships %}
           <div class="table-responsive">
             <table class="table table-sm align-middle">

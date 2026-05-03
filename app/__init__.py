@@ -212,7 +212,13 @@ def get_or_create_engine_session(db_path, app=None):
 
     # Return cached if exists
     if abs_path in _engine_cache:
-        return _engine_cache[abs_path]
+        engine, scoped_sess = _engine_cache[abs_path]
+        try:
+            from app.services.audit import init_audit_logging
+            init_audit_logging(scoped_sess)
+        except Exception as exc:
+            logger.warning(f"Failed to initialize audit logging for cached DB {abs_path}: {exc}")
+        return engine, scoped_sess
 
     # Get config from app or use defaults
     if app:
@@ -283,6 +289,14 @@ def get_or_create_engine_session(db_path, app=None):
 
     # Cache it
     _engine_cache[abs_path] = (engine, scoped_sess)
+
+    # Attach audit hooks immediately so any request using this session is
+    # instrumented even if middleware initialization is bypassed or delayed.
+    try:
+        from app.services.audit import init_audit_logging
+        init_audit_logging(scoped_sess)
+    except Exception as exc:
+        logger.warning(f"Failed to initialize audit logging for {abs_path}: {exc}")
 
     logger.info(f"Created new engine for database: {abs_path}")
 

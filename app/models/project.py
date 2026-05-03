@@ -49,8 +49,7 @@ class Project(Base, TimestampMixin):
     fuel_cost = EncryptedField('_fuel_cost_encrypted', 'confidential', '[Confidential]')
     lcoe = EncryptedField('_lcoe_encrypted', 'confidential', '[Confidential]')
 
-    # Project Dates and IDs
-    cod = Column(Date)  # Commercial operation date
+    # Project IDs
     mpr_project_id = Column(Text)  # Link to external MPR project files
     notes = Column(Text)
 
@@ -66,7 +65,6 @@ class Project(Base, TimestampMixin):
         Index('idx_projects_name', 'project_name'),
         Index('idx_projects_status', 'project_status'),
         Index('idx_projects_location', 'location'),
-        Index('idx_projects_cod', 'cod'),
         Index('idx_projects_lat_lon', 'latitude', 'longitude'),
     )
 
@@ -141,7 +139,6 @@ class Project(Base, TimestampMixin):
             'target_cod': self.target_cod.isoformat() if self.target_cod else None,
             'latitude': self.latitude,
             'longitude': self.longitude,
-            'cod': self.cod.isoformat() if self.cod else None,
             'mpr_project_id': self.mpr_project_id,
             'notes': self.notes,
             'firm_involvement': self.firm_involvement,

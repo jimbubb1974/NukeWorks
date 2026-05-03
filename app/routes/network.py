@@ -25,6 +25,7 @@ AVAILABLE_COLUMNS = {
     'operator': {'label': 'Operator', 'role_code': 'operator'},
     'offtaker': {'label': 'Offtaker', 'role_code': 'offtaker'},
     'constructor': {'label': 'Constructor', 'role_code': 'constructor'},
+    'engineer': {'label': 'Engineer', 'role_code': 'engineer'},
 }
 
 
@@ -72,7 +73,8 @@ def _get_project_relationships(user, project_id):
         'technologies': [],
         'operators': [],
         'offtakers': [],
-        'constructors': []
+        'constructors': [],
+        'engineers': []
     }
 
     # Get all company role assignments for this project
@@ -112,6 +114,8 @@ def _get_project_relationships(user, project_id):
             relationships['offtakers'].append(company_info)
         elif role.role_code == 'constructor':
             relationships['constructors'].append(company_info)
+        elif role.role_code == 'engineer':
+            relationships['engineers'].append(company_info)
 
     return relationships
 
@@ -144,6 +148,10 @@ def _build_grouped_data(group_by, selected_columns):
             groups = project_rels['operators'] if project_rels['operators'] else [{'id': None, 'name': 'No Operator'}]
         elif group_by == 'offtaker':
             groups = project_rels['offtakers'] if project_rels['offtakers'] else [{'id': None, 'name': 'No Offtaker'}]
+        elif group_by == 'constructor':
+            groups = project_rels['constructors'] if project_rels['constructors'] else [{'id': None, 'name': 'No Constructor'}]
+        elif group_by == 'engineer':
+            groups = project_rels['engineers'] if project_rels['engineers'] else [{'id': None, 'name': 'No Engineer'}]
         else:
             groups = [{'id': None, 'name': 'All'}]
 
@@ -174,11 +182,15 @@ def _build_grouped_data(group_by, selected_columns):
                     item['operators'] = [o['name'] for o in project_rels['operators']]
                 elif col == 'offtaker':
                     item['offtakers'] = [o['name'] for o in project_rels['offtakers']]
+                elif col == 'constructor':
+                    item['constructors'] = [c['name'] for c in project_rels['constructors']]
+                elif col == 'engineer':
+                    item['engineers'] = [e['name'] for e in project_rels['engineers']]
 
             grouped_data[group_key]['projects'].append(item)
 
     # Now add entities without relationships as empty groups
-    if group_by in ['owner', 'vendor', 'operator', 'offtaker', 'constructor']:
+    if group_by in ['owner', 'vendor', 'operator', 'offtaker', 'constructor', 'engineer']:
         # Get all companies with this role
         role_code = AVAILABLE_COLUMNS[group_by]['role_code']
         role = db_session.query(CompanyRole).filter_by(role_code=role_code).first()
@@ -219,12 +231,12 @@ def network_table():
     Network table view with dynamic columns and grouping
 
     Query params:
-    - group_by: Entity to group by (project, owner, vendor, operator, offtaker)
+    - group_by: Entity to group by (project, owner, vendor, operator, offtaker, constructor, engineer)
     - columns: Comma-separated list of columns to display
     """
     # Get parameters
     group_by = request.args.get('group_by', 'project')
-    columns_param = request.args.get('columns', 'project,owner,vendor,operator,offtaker,constructor')  # broader default to show public roles
+    columns_param = request.args.get('columns', 'project,owner,vendor,operator,offtaker,constructor,engineer')  # broader default to show public roles
 
     # Parse selected columns
     selected_columns = [col.strip() for col in columns_param.split(',') if col.strip()]

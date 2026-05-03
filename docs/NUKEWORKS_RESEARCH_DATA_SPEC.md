@@ -122,7 +122,6 @@ Each entity object must include a stable `slug` so the import script can upsert 
 | `configuration` | no | string | Reactor configuration if public. |
 | `project_schedule` | no | string | Summarize schedule milestones. |
 | `target_cod` | no | string | ISO date if known. |
-| `cod` | no | string | Actual COD (ISO date) if in service. |
 | `capex` | no | number | USD figures; use `null` if unknown. |
 | `opex` | no | number | |
 | `fuel_cost` | no | number | |
@@ -204,7 +203,6 @@ Then include type-specific attributes:
         "location": "Waynesboro, Georgia, United States",
         "project_status": "Operating",
         "licensing_approach": "Part 52",
-        "cod": "2023-07-31",
         "project_health": "Operating",
         "notes": "First new US reactor in decades.",
         "sources": ["https://www.southerncompany.com/newsroom/2023-07-31-vogtle-unit-3-commercial-operation.html"]

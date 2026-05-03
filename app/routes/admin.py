@@ -71,6 +71,11 @@ RELATIONSHIP_CONFIG = {
         'constructor',
         lambda rel: f"Project #{rel.context_id} ↔ {rel.company.company_name if rel and rel.company else 'Company'} (Constructor)"
     ),
+    'project_engineer': (
+        CompanyRoleAssignment,
+        'engineer',
+        lambda rel: f"Project #{rel.context_id} ↔ {rel.company.company_name if rel and rel.company else 'Company'} (Engineer)"
+    ),
     'project_operator': (
         CompanyRoleAssignment,
         'operator',
@@ -171,6 +176,117 @@ def index():
     active_users = db_session.query(User).filter_by(is_active=True).count()
     inactive_users = total_users - active_users
     return render_template('admin/index.html', user_count=total_users, active_users=active_users, inactive_users=inactive_users)
+
+
+def _has_value(value):
+    if value is None:
+        return False
+    if isinstance(value, str):
+        return bool(value.strip())
+    return True
+
+
+@bp.route('/data-overview')
+@login_required
+@admin_required
+def data_overview():
+    projects = db_session.query(Project).order_by(Project.project_name).all()
+    assignments = (
+        db_session.query(CompanyRoleAssignment)
+        .join(CompanyRole, CompanyRoleAssignment.role_id == CompanyRole.role_id)
+        .filter(CompanyRoleAssignment.context_type == 'Project')
+        .all()
+    )
+
+    assignments_by_project = {}
+    roles_by_project = {}
+    for assignment in assignments:
+        if assignment.context_id is None or not assignment.role:
+            continue
+        assignments_by_project.setdefault(assignment.context_id, []).append(assignment)
+        roles_by_project.setdefault(assignment.context_id, set()).add(assignment.role.role_code)
+
+    fields = [
+        {'key': 'name', 'label': 'Name', 'short': 'Name'},
+        {'key': 'location', 'label': 'Location', 'short': 'Loc'},
+        {'key': 'coordinates', 'label': 'Map coordinates', 'short': 'Map'},
+        {'key': 'status', 'label': 'Status', 'short': 'Stat'},
+        {'key': 'licensing', 'label': 'Licensing approach', 'short': 'Lic'},
+        {'key': 'configuration', 'label': 'Configuration', 'short': 'Cfg'},
+        {'key': 'schedule', 'label': 'Schedule narrative', 'short': 'Sched'},
+        {'key': 'target_cod', 'label': 'Target COD', 'short': 'T-COD'},
+        {'key': 'mpr_id', 'label': 'MPR project ID', 'short': 'MPR'},
+        {'key': 'health', 'label': 'Project health', 'short': 'Hlth'},
+        {'key': 'notes', 'label': 'Notes', 'short': 'Notes'},
+        {'key': 'companies', 'label': 'Company relationships', 'short': 'Co', 'type': 'count'},
+        {'key': 'developer', 'label': 'Owner/developer', 'short': 'Own'},
+        {'key': 'operator', 'label': 'Operator', 'short': 'Op'},
+        {'key': 'vendor', 'label': 'Vendor', 'short': 'Vend'},
+        {'key': 'constructor', 'label': 'Constructor', 'short': 'Const'},
+        {'key': 'engineer', 'label': 'Engineer', 'short': 'Eng'},
+        {'key': 'offtaker', 'label': 'Off-taker', 'short': 'Off'},
+        {'key': 'firm_involvement', 'label': 'Firm involvement', 'short': 'Firm'},
+        {'key': 'primary_contact', 'label': 'Primary firm contact', 'short': 'PC'},
+        {'key': 'last_interaction', 'label': 'Last interaction', 'short': 'Last'},
+    ]
+
+    rows = []
+    field_counts = {field['key']: 0 for field in fields}
+    for project in projects:
+        role_codes = roles_by_project.get(project.project_id, set())
+        project_assignments = assignments_by_project.get(project.project_id, [])
+        checks = {
+            'name': _has_value(project.project_name),
+            'location': _has_value(project.location),
+            'coordinates': project.latitude is not None and project.longitude is not None,
+            'status': _has_value(project.project_status),
+            'licensing': _has_value(project.licensing_approach),
+            'configuration': _has_value(project.configuration),
+            'schedule': _has_value(project.project_schedule),
+            'target_cod': _has_value(project.target_cod),
+            'mpr_id': _has_value(project.mpr_project_id),
+            'health': _has_value(project.project_health),
+            'notes': _has_value(project.notes),
+            'companies': len(project_assignments),
+            'developer': 'developer' in role_codes,
+            'operator': 'operator' in role_codes,
+            'vendor': 'vendor' in role_codes,
+            'constructor': 'constructor' in role_codes,
+            'engineer': 'engineer' in role_codes,
+            'offtaker': 'offtaker' in role_codes,
+            'firm_involvement': _has_value(project.firm_involvement),
+            'primary_contact': _has_value(project.primary_firm_contact),
+            'last_interaction': _has_value(project.last_project_interaction_date),
+        }
+        for key, value in checks.items():
+            if bool(value):
+                field_counts[key] += 1
+        rows.append({
+            'project': project,
+            'checks': checks,
+            'complete_count': sum(1 for value in checks.values() if value),
+            'relationship_count': len(project_assignments),
+            'role_count': len(role_codes),
+        })
+
+    total_cells = len(projects) * len(fields)
+    filled_cells = sum(field_counts.values())
+    stats = {
+        'project_count': len(projects),
+        'relationship_count': len(assignments),
+        'field_count': len(fields),
+        'filled_cells': filled_cells,
+        'total_cells': total_cells,
+        'completion_pct': round((filled_cells / total_cells) * 100) if total_cells else 0,
+    }
+
+    return render_template(
+        'admin/data_overview.html',
+        fields=fields,
+        rows=rows,
+        field_counts=field_counts,
+        stats=stats,
+    )
 
 
 @bp.route('/snapshots')

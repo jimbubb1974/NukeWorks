@@ -517,7 +517,7 @@ def list_vendors():
 - Status
 - Owner/Developer
 - Technology Vendor
-- COD (Commercial Operation Date)
+- Target COD
 
 **Personnel List - Additional Columns:**
 - Role
@@ -859,14 +859,6 @@ Forms for creating new entities or editing existing ones, with confidentiality m
     <h2>Schedule & MPR</h2>
     
     <div class="form-group">
-      <label for="cod">Commercial Operation Date</label>
-      <input type="date" 
-             id="cod" 
-             name="cod" 
-             value="{{ project.cod if project }}">
-    </div>
-    
-    <div class="form-group">
       <label for="mpr_project_id">MPR Project ID</label>
       <input type="text" 
              id="mpr_project_id" 
@@ -919,7 +911,6 @@ def edit_project(project_id=None):
             'opex': request.form.get('opex'),
             'fuel_cost': request.form.get('fuel_cost'),
             'lcoe': request.form.get('lcoe'),
-            'cod': request.form.get('cod'),
             'mpr_project_id': request.form.get('mpr_project_id'),
             'notes': request.form.get('notes'),
         }

@@ -274,7 +274,7 @@ def generate_project_summary_pdf(data):
         ['Location:', data['project'].location or 'N/A'],
         ['Project Status:', data['project'].project_status or 'N/A'],
         ['Licensing Approach:', data['project'].licensing_approach or 'N/A'],
-        ['Commercial Operation:', data['project'].cod.strftime('%B %Y') if data['project'].cod else 'TBD'],
+        ['Target COD:', data['project'].target_cod.strftime('%B %Y') if data['project'].target_cod else 'TBD'],
         ['MPR Project ID:', data['project'].mpr_project_id or 'N/A'],
     ]
     
@@ -673,7 +673,7 @@ def generate_project_summary_excel(data):
         ('Location', data['project'].location),
         ('Status', data['project'].project_status),
         ('Licensing', data['project'].licensing_approach),
-        ('COD', data['project'].cod),
+        ('Target COD', data['project'].target_cod),
     ]
     
     for field, value in fields:

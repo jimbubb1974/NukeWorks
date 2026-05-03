@@ -137,6 +137,10 @@
                                                     {{ item.operators|join(', ') }}
                                                 {% elif col == 'offtaker' and item.offtakers %}
                                                     {{ item.offtakers|join(', ') }}
+                                                {% elif col == 'constructor' and item.constructors %}
+                                                    {{ item.constructors|join(', ') }}
+                                                {% elif col == 'engineer' and item.engineers %}
+                                                    {{ item.engineers|join(', ') }}
                                                 {% else %}
                                                     <span class="text-muted">—</span>
                                                 {% endif %}

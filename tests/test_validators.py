@@ -42,7 +42,6 @@ from app.utils.validators import (
     validate_unique_vendor_name,
     validate_unique_product_name,
     check_duplicate_project_name,
-    validate_cod_for_status,
     validate_contact_person,
     # Relationships
     validate_no_self_relationship,
@@ -164,14 +163,14 @@ def test_date_validation():
 
     # Test 1: Valid date string
     try:
-        result = validate_date_field("2025-12-31", "cod")
+        result = validate_date_field("2025-12-31", "target_cod")
         print_test_result("Valid date string", result == date(2025, 12, 31))
     except ValidationError as e:
         print_test_result("Valid date string", False, str(e))
 
     # Test 2: Invalid date format
     try:
-        validate_date_field("12/31/2025", "cod")
+        validate_date_field("12/31/2025", "target_cod")
         print_test_result("Invalid date format", False, "Should have raised ValidationError")
     except ValidationError as e:
         print_test_result("Invalid date format", "YYYY-MM-DD format" in str(e), str(e))
@@ -400,23 +399,7 @@ def test_business_logic_validation(app):
     print_test_header("Business Logic Validation")
 
     with app.app_context():
-        # Test 1: COD validation for future projects
-        try:
-            past_date = date.today() - timedelta(days=30)
-            validate_cod_for_status(past_date, "Planning")
-            print_test_result("COD past for Planning project", False, "Should have raised ValidationError")
-        except ValidationError as e:
-            print_test_result("COD past for Planning project", "must be in the future" in str(e), str(e))
-
-        # Test 2: COD validation for operating projects
-        try:
-            future_date = date.today() + timedelta(days=30)
-            validate_cod_for_status(future_date, "Operating")
-            print_test_result("COD future for Operating project", False, "Should have raised ValidationError")
-        except ValidationError as e:
-            print_test_result("COD future for Operating project", "must be in the past" in str(e), str(e))
-
-        # Test 3: Contact person validation - both missing
+        # Test 1: Contact person validation - both missing
         try:
             validate_contact_person(None, None)
             print_test_result("Contact person both missing", False, "Should have raised ValidationError")

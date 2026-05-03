@@ -24,6 +24,7 @@ class ProjectCompanyRelationshipForm(FlaskForm):
         choices=[
             ('vendor', 'Vendor'),
             ('constructor', 'Constructor'),
+            ('engineer', 'Engineer'),
             ('operator', 'Operator'),
             ('developer', 'Owner/Developer'),
             ('offtaker', 'Offtaker')

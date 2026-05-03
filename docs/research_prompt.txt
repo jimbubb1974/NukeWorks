@@ -115,6 +115,7 @@ ENUM: COMPANY_TYPE — use exactly one of these values or null:
   "IPP"            (Independent power producer)
   "Vendor"         (Technology or equipment vendor)
   "Constructor"    (Engineering, procurement, construction firm)
+  "Engineer"       (Engineering, design, architect-engineer, or owner's engineer firm)
   "Operator"       (Plant operator)
   "Offtaker"       (Power purchaser / off-taker)
   "Developer"      (Project developer not fitting IPP)
@@ -125,10 +126,11 @@ ENUM: COMPANY_ROLE — each element of the roles array must be one of:
   "vendor"
   "owner_developer"
   "constructor"
+  "engineer"
   "operator"
   "offtaker"
 
-A company may have multiple roles. Example: ["vendor", "constructor"]
+A company may have multiple roles. Example: ["vendor", "engineer", "constructor"]
 
 --- 3.3 projects ---
 
@@ -150,8 +152,6 @@ project_schedule      no        string   Narrative summary of schedule milestone
 target_cod            no        string   Target commercial operation date. ISO 8601
                                          date (YYYY-MM-DD) or year only ("2031").
                                          null if unknown.
-cod                   no        string   Actual COD if plant is operating. ISO 8601.
-                                         null if not yet in service.
 project_health        no        string   See ENUM: PROJECT_HEALTH. null if unknown.
 firm_involvement      no        string   See ENUM: FIRM_INVOLVEMENT. null if unknown.
 notes                 no        string   Key facts, milestones, recent news. null if
@@ -211,12 +211,32 @@ role               yes       string   The company's role on this project.
                                       Must be one of ENUM: COMPANY_ROLE.
 is_confidential    yes       boolean  Almost always false for public relationships.
 notes              no        string   Context or qualifiers. null if none.
+relationship_type  no        string   If this role is based on a named public
+                                      agreement, use ENUM: COMPANY_RELATIONSHIP_TYPE.
+                                      Example: "Supply_Agreement" for a PPA.
+counterparty_company_db_id
+                   no        int|null Optional DB ID of the known counterparty to
+                                      the agreement, if relevant.
+counterparty_company_slug
+                   no        string|null Optional slug of the known counterparty to
+                                      the agreement, if relevant.
 sources            yes       array    Array of URL strings. At least one required.
 
 --- 3.5 relationships.company_company ---
 
-Reports direct relationships between two companies (e.g., MOUs, supply agreements,
-preferred constructor relationships).
+Reports direct corporate relationships between two companies only when the
+relationship is not naturally tied to a nuclear project, plant, site, or asset.
+
+IMPORTANT: Do not use company_company for PPAs, offtake agreements, construction
+contracts, operator agreements, owner/developer roles, technology supply,
+delivery contracts, or project-specific framework agreements when a project,
+plant, site, or asset can be identified. Represent those as project_company
+relationships instead, using relationship_type and optional counterparty fields.
+
+Use company_company only for genuinely corporate/non-project relationships such
+as parent/subsidiary, acquisition, joint venture ownership, broad strategic
+partnerships without a specific project, or corporate framework agreements where
+no project or asset can be identified.
 
 Field              Required  Type     Notes
 -----------------  --------  -------  --------------------------------------------
@@ -228,6 +248,13 @@ company_a_slug     yes       string   Slug of company A.
 company_b_db_id    no        int|null DB ID of company B if in existing_data.
 company_b_slug     yes       string   Slug of company B.
 relationship_type  yes       string   See ENUM: COMPANY_RELATIONSHIP_TYPE.
+related_project_db_id
+                  no        int|null If a project/asset is known, do not use
+                                      company_company; create project_company
+                                      entries instead. This field is only a warning
+                                      marker for unavoidable edge cases.
+related_project_slug
+                  no        string|null Same guidance as related_project_db_id.
 is_confidential    yes       boolean  Almost always false for public relationships.
 notes              no        string   Context, dates, scope of agreement. null if
                                       none.
@@ -275,7 +302,14 @@ SECTION 4 — DATA QUALITY RULES
    client priorities, or relationship strength ratings. These are not public
    information and must not appear in your response.
 
-7. RELATIONSHIP KEYS MUST BE DETERMINISTIC. Given the same two entities and
+7. PROJECT-SCOPED RELATIONSHIPS COME FIRST. If a public relationship concerns
+   a specific nuclear project, plant, site, or asset, express it as one or more
+   relationships.project_company records. Use the optional counterparty fields
+   to preserve agreement counterparties. Do not create a company_company record
+   for the same fact unless there is also a separate corporate relationship that
+   is not project-specific.
+
+8. RELATIONSHIP KEYS MUST BE DETERMINISTIC. Given the same two entities and
    relationship type, you must always generate the same relationship_key.
    Build it from slugs and type as specified above, not from names or IDs.
 
@@ -334,7 +368,6 @@ will have more entities and relationships.
         "configuration": "4x BWRX-300",
         "project_schedule": "Site preparation underway. First unit target COD 2034.",
         "target_cod": "2034",
-        "cod": null,
         "project_health": "On Track",
         "firm_involvement": null,
         "notes": "First BWRX-300 deployment. GEH selected as technology vendor 2022.",
@@ -354,6 +387,9 @@ will have more entities and relationships.
         "company_db_id": null,
         "company_slug": "ge-hitachi-nuclear-energy",
         "role": "vendor",
+        "relationship_type": "Delivery_Contract",
+        "counterparty_company_db_id": null,
+        "counterparty_company_slug": "ontario-power-generation",
         "is_confidential": false,
         "notes": "BWRX-300 technology provider. Agreement signed December 2022.",
         "sources": [
@@ -367,6 +403,9 @@ will have more entities and relationships.
         "company_db_id": null,
         "company_slug": "ontario-power-generation",
         "role": "owner_developer",
+        "relationship_type": null,
+        "counterparty_company_db_id": null,
+        "counterparty_company_slug": null,
         "is_confidential": false,
         "notes": null,
         "sources": [
@@ -374,21 +413,7 @@ will have more entities and relationships.
         ]
       }
     ],
-    "company_company": [
-      {
-        "relationship_key": "ontario-power-generation-delivery_contract-ge-hitachi-nuclear-energy",
-        "company_a_db_id": null,
-        "company_a_slug": "ontario-power-generation",
-        "company_b_db_id": null,
-        "company_b_slug": "ge-hitachi-nuclear-energy",
-        "relationship_type": "Delivery_Contract",
-        "is_confidential": false,
-        "notes": "Technology licensing and supply agreement for BWRX-300 units at Darlington.",
-        "sources": [
-          "https://www.opg.com/darlington-new-nuclear/"
-        ]
-      }
-    ]
+    "company_company": []
   }
 }
 
@@ -407,6 +432,8 @@ Before you produce your response, verify every item on this list:
 [ ] Every sources array has at least one valid URL string
 [ ] No CAPEX, OPEX, LCOE, or fuel cost figures appear anywhere
 [ ] No speculation about internal client relationship ratings or priorities
+[ ] Project/plant/site-specific agreements are represented as project_company,
+    not company_company
 [ ] All relationship_key values are deterministic slug-based strings
 [ ] The JSON is valid and complete — not truncated
 

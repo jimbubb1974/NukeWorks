@@ -64,7 +64,9 @@
               action="{{ url_for('research.accept_item', run_id=run.run_id, item_id=item.item_id) }}"
               class="d-inline">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-          <button type="submit" class="btn btn-sm btn-success">Accept</button>
+          <button type="submit" class="btn btn-sm btn-success">
+            {% if item.entity_type == 'relationship:company_company' %}Accept Audit Only{% else %}Accept{% endif %}
+          </button>
         </form>
         <form method="post"
               action="{{ url_for('research.skip_item', run_id=run.run_id, item_id=item.item_id) }}"
@@ -80,6 +82,18 @@
 
       {# New entity: grid of proposed fields #}
       {% if item.change_type == 'new' %}
+        {% if item.entity_type == 'relationship:company_company' %}
+        <div class="alert alert-warning py-2 small mb-2">
+          Direct company-to-company research relationships are audit-only in this database.
+          To create a visible connection, the relationship must be represented as a
+          project-company role assignment tied to a shared project.
+        </div>
+        {% elif item.entity_type == 'relationship:project_company' %}
+        <div class="alert alert-info py-2 small mb-2">
+          Accepting this item will create or update a project-scoped company role assignment
+          when project_db_id, company_db_id, and role are present.
+        </div>
+        {% endif %}
         <div class="row row-cols-2 row-cols-md-3 g-2 small">
           {% for key, val in proposed.items() %}
             {% if key not in ('db_id', 'slug', 'sources') and val is not none and val != '' and val != [] %}

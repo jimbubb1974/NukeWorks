@@ -1,0 +1,348 @@
+{% extends "base.html" %}
+
+{% block title %}Data Overview - Admin - NukeWorks{% endblock %}
+
+{% block content %}
+<style>
+  .overview-summary {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  }
+
+  .overview-metric {
+    border: 1px solid #dee2e6;
+    border-radius: 0.75rem;
+    padding: 1rem;
+    background: #fff;
+  }
+
+  .overview-metric .value {
+    font-size: 1.8rem;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  .data-overview-table-wrap {
+    max-height: calc(100vh - 330px);
+    min-height: 420px;
+    overflow: auto;
+    border: 1px solid #dee2e6;
+    border-radius: 0.75rem;
+    background: #fff;
+  }
+
+  .data-overview-table {
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 0.82rem;
+    margin: 0;
+  }
+
+  .data-overview-table th,
+  .data-overview-table td {
+    border-right: 1px solid #e9ecef;
+    border-bottom: 1px solid #e9ecef;
+    vertical-align: middle;
+  }
+
+  .data-overview-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 3;
+    background: #f8f9fa;
+  }
+
+  .project-sticky {
+    position: sticky;
+    left: 0;
+    z-index: 2;
+    width: 290px;
+    min-width: 290px;
+    max-width: 290px;
+    background: #fff;
+    box-shadow: 1px 0 0 #dee2e6;
+  }
+
+  thead .project-sticky {
+    z-index: 4;
+    background: #f8f9fa;
+  }
+
+  .check-col {
+    width: 42px;
+    min-width: 42px;
+    max-width: 42px;
+    text-align: center;
+  }
+
+  .field-header {
+    height: 112px;
+    padding: 0.25rem;
+    white-space: nowrap;
+  }
+
+  .field-sort {
+    appearance: none;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    height: 100%;
+    padding: 0;
+    width: 100%;
+  }
+
+  .field-sort > span {
+    display: inline-block;
+    transform: rotate(-58deg);
+    transform-origin: center;
+    width: 28px;
+    font-size: 0.72rem;
+  }
+
+  .field-sort.active > span {
+    color: #0d6efd;
+    font-weight: 700;
+  }
+
+  .check-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.45rem;
+    height: 1.45rem;
+    border-radius: 999px;
+    font-weight: 700;
+  }
+
+  .check-icon.present {
+    color: #146c43;
+    background: #d1e7dd;
+  }
+
+  .check-icon.missing {
+    color: #842029;
+    background: #f8d7da;
+  }
+
+  .count-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.75rem;
+    height: 1.45rem;
+    border-radius: 999px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .count-badge.present {
+    color: #146c43;
+    background: #d1e7dd;
+  }
+
+  .count-badge.missing {
+    color: #842029;
+    background: #f8d7da;
+  }
+
+  .completion-cell {
+    min-width: 92px;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+</style>
+
+<div class="container-fluid">
+  <div class="d-flex justify-content-between align-items-start mb-4">
+    <div>
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a href="{{ url_for('admin.index') }}">Admin</a></li>
+          <li class="breadcrumb-item active">Data Overview</li>
+        </ol>
+      </nav>
+      <h1 class="mb-1">Database Data Overview</h1>
+      <p class="text-muted mb-0">
+        Prototype completeness matrix for projects. A check means the field or relationship exists.
+      </p>
+    </div>
+    <a href="{{ url_for('admin.index') }}" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left"></i> Back to Admin
+    </a>
+  </div>
+
+  <div class="overview-summary mb-4">
+    <div class="overview-metric">
+      <div class="value">{{ stats.project_count }}</div>
+      <div class="text-muted">Projects</div>
+    </div>
+    <div class="overview-metric">
+      <div class="value">{{ stats.field_count }}</div>
+      <div class="text-muted">Tracked fields</div>
+    </div>
+    <div class="overview-metric">
+      <div class="value">{{ stats.completion_pct }}%</div>
+      <div class="text-muted">Overall completion</div>
+    </div>
+    <div class="overview-metric">
+      <div class="value">{{ stats.relationship_count }}</div>
+      <div class="text-muted">Project role assignments</div>
+    </div>
+  </div>
+
+  <div class="alert alert-info">
+    Project website is not included yet because the current project schema does not have a website field.
+    This prototype uses current schema fields plus project-scoped company roles.
+  </div>
+
+  <div class="data-overview-table-wrap">
+    <table class="table data-overview-table" id="project-data-overview-table">
+      <thead>
+        <tr>
+          <th class="project-sticky px-3">Project</th>
+          <th class="completion-cell px-2">
+            <button
+              type="button"
+              class="btn btn-sm btn-link p-0 text-decoration-none overview-sort"
+              data-sort-type="number"
+              data-sort-key="complete"
+              aria-label="Sort by filled field count"
+            >
+              Filled
+            </button>
+          </th>
+          {% for field in fields %}
+          <th class="check-col field-header" title="{{ field.label }}">
+            <button
+              type="button"
+              class="field-sort overview-sort"
+              data-sort-type="{{ field.type|default('boolean') }}"
+              data-sort-key="{{ field.key }}"
+              aria-label="Sort by {{ field.label }}"
+            >
+              <span>{{ field.short }}</span>
+            </button>
+          </th>
+          {% endfor %}
+        </tr>
+        <tr>
+          <th class="project-sticky px-3 text-muted small">Coverage by field</th>
+          <th class="completion-cell px-2 text-muted small"></th>
+          {% for field in fields %}
+          <th class="check-col text-muted small" title="{{ field.label }}">
+            {{ field_counts[field.key] }}/{{ stats.project_count }}
+          </th>
+          {% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in rows %}
+        <tr
+          data-project-name="{{ row.project.project_name|lower }}"
+          data-complete="{{ row.complete_count }}"
+          {% for field in fields %}
+          data-{{ field.key }}="{{ row.checks[field.key] if field.type|default('boolean') == 'count' else (1 if row.checks[field.key] else 0) }}"
+          {% endfor %}
+        >
+          <td class="project-sticky px-3">
+            <div class="fw-semibold">
+              <a href="{{ url_for('projects.view_project', project_id=row.project.project_id) }}">
+                {{ row.project.project_name }}
+              </a>
+            </div>
+            <div class="small text-muted">
+              {{ row.relationship_count }} relationships, {{ row.role_count }} role types
+              <a class="ms-2" href="{{ url_for('projects.edit_project', project_id=row.project.project_id) }}">Edit</a>
+            </div>
+          </td>
+          <td class="completion-cell px-2">
+            {{ row.complete_count }}/{{ fields|length }}
+          </td>
+          {% for field in fields %}
+          <td class="check-col" title="{{ field.label }}">
+            {% if field.type|default('boolean') == 'count' %}
+            {% set count_value = row.checks[field.key] %}
+            <span
+              class="count-badge {{ 'present' if count_value > 0 else 'missing' }}"
+              aria-label="{{ field.label }}: {{ count_value }}"
+            >
+              {{ count_value }}
+            </span>
+            {% elif row.checks[field.key] %}
+            <span class="check-icon present" aria-label="{{ field.label }} present">✓</span>
+            {% else %}
+            <span class="check-icon missing" aria-label="{{ field.label }} missing">×</span>
+            {% endif %}
+          </td>
+          {% endfor %}
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="{{ fields|length + 2 }}" class="text-center text-muted py-5">
+            No projects found.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+  (() => {
+    const table = document.getElementById("project-data-overview-table");
+    if (!table || !table.tBodies.length) return;
+
+    const tbody = table.tBodies[0];
+    let currentSort = { key: null, direction: "desc" };
+
+    const getValue = (row, key, type) => {
+      if (type === "number" || type === "boolean") {
+        return Number(row.dataset[key] || 0);
+      }
+      return row.dataset[key] || "";
+    };
+
+    const sortRows = (button) => {
+      const key = button.dataset.sortKey;
+      const type = button.dataset.sortType || "text";
+      const nextDirection =
+        currentSort.key === key && currentSort.direction === "desc"
+          ? "asc"
+          : "desc";
+      currentSort = { key, direction: nextDirection };
+
+      table
+        .querySelectorAll(".overview-sort")
+        .forEach((btn) => {
+          btn.classList.toggle("active", btn === button);
+          btn.removeAttribute("aria-sort");
+        });
+      button.setAttribute("aria-sort", nextDirection === "desc" ? "descending" : "ascending");
+
+      const rows = Array.from(tbody.rows);
+      rows.sort((a, b) => {
+        const aValue = getValue(a, key, type);
+        const bValue = getValue(b, key, type);
+        let result;
+        if (typeof aValue === "number" && typeof bValue === "number") {
+          result = aValue - bValue;
+        } else {
+          result = String(aValue).localeCompare(String(bValue));
+        }
+        if (result === 0) {
+          result = (a.dataset.projectName || "").localeCompare(b.dataset.projectName || "");
+        }
+        return nextDirection === "desc" ? -result : result;
+      });
+      rows.forEach((row) => tbody.appendChild(row));
+    };
+
+    table.querySelectorAll(".overview-sort").forEach((button) => {
+      button.addEventListener("click", () => sortRows(button));
+    });
+  })();
+</script>
+{% endblock %}

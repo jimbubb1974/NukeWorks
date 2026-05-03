@@ -6,6 +6,7 @@
 
   const CONFIDENTIAL_EDGE_COLOR = "#f39c12";
   const CONFIDENTIAL_EDGE_HIGHLIGHT = "#d68910";
+  const NODE_LABEL_FONT = { color: "#1f5f99", size: 14, face: "Arial", weight: "700" };
   const INTERACTION_OPTIONS = {
     hover: true,
     tooltipDelay: 200,
@@ -21,12 +22,18 @@
     "owner-developer": "owner",
     technology_vendor: "vendor",
     "technology-vendor": "vendor",
+    architect_engineer: "engineer",
+    "architect-engineer": "engineer",
+    owners_engineer: "engineer",
+    owner_engineer: "engineer",
+    "owner's_engineer": "engineer",
   });
   const HIERARCHICAL_GROUP_ORDER = [
     "offtaker",
     "owner",
     "project",
     "vendor",
+    "engineer",
     "constructor",
     "operator",
     "company",
@@ -48,7 +55,7 @@
         border: "#2980b9",
         highlight: { background: "#2980b9", border: "#21618c" },
       },
-      font: { color: "#2c3e50", size: 14 },
+      font: NODE_LABEL_FONT,
     },
     project: {
       shape: "diamond",
@@ -58,9 +65,16 @@
         border: "#27ae60",
         highlight: { background: "#27ae60", border: "#1e8449" },
       },
-      font: { color: "#2c3e50", size: 14 },
+      font: NODE_LABEL_FONT,
     },
   };
+
+  function withCanvasLabelOffset(node) {
+    return Object.assign({}, node, {
+      raw_label: node.raw_label || node.label,
+      label: "",
+    });
+  }
 
   function formatNodeLabel(node) {
     const groupLabel = GROUP_LABELS[node.group] || node.group;
@@ -150,6 +164,7 @@
     owner:       -450,
     project:        0,
     vendor:       450,
+    engineer:     900,
     constructor:  900,
     operator:     900,
     company:      450,
@@ -503,14 +518,18 @@
       });
 
       if (!this.nodesDataSet || !this.edgesDataSet) {
-        this.nodesDataSet = new vis.DataSet(filteredNodes);
+        this.nodesDataSet = new vis.DataSet(
+          filteredNodes.map((node) => withCanvasLabelOffset(node))
+        );
         this.edgesDataSet = new vis.DataSet(filteredEdges);
         this.createNetwork();
       } else {
         this.nodesDataSet.clear();
         this.edgesDataSet.clear();
         if (filteredNodes.length > 0) {
-          this.nodesDataSet.add(filteredNodes);
+          this.nodesDataSet.add(
+            filteredNodes.map((node) => withCanvasLabelOffset(node))
+          );
         }
         if (filteredEdges.length > 0) {
           this.edgesDataSet.add(filteredEdges);
@@ -569,7 +588,7 @@
         nodes: {
           borderWidth: 2,
           borderWidthSelected: 3,
-          font: { size: 14, face: "Arial" },
+          font: NODE_LABEL_FONT,
           shape: "dot",
         },
         edges: {
@@ -1178,6 +1197,41 @@
           this.physicsDisabled = true;
         }
       });
+
+      this.network.on("afterDrawing", (ctx) => {
+        this.drawNodeLabels(ctx);
+      });
+    },
+
+    drawNodeLabels(ctx) {
+      if (!this.network || !this.nodesDataSet) {
+        return;
+      }
+
+      const nodes = this.nodesDataSet.get();
+      if (!nodes.length) {
+        return;
+      }
+
+      const positions = this.network.getPositions(nodes.map((node) => node.id));
+      ctx.save();
+      ctx.font = `${NODE_LABEL_FONT.weight} ${NODE_LABEL_FONT.size}px ${NODE_LABEL_FONT.face}`;
+      ctx.fillStyle = NODE_LABEL_FONT.color;
+      ctx.textAlign = "left";
+      ctx.textBaseline = "middle";
+
+      nodes.forEach((node) => {
+        const position = positions[node.id];
+        const label = node.raw_label || node.label;
+        if (!position || !label) {
+          return;
+        }
+
+        const size = node.group === "project" ? 30 : 25;
+        ctx.fillText(label, position.x + size * 1.05, position.y + size * 0.55);
+      });
+
+      ctx.restore();
     },
 
     populateFocusOptions() {

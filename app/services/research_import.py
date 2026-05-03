@@ -23,9 +23,9 @@ REQUIRED_PROJECT_KEYS = {'db_id', 'slug', 'project_name', 'sources'}
 
 VALID_COMPANY_TYPES = {
     'IOU', 'COOP', 'Public Power', 'IPP', 'Vendor',
-    'Constructor', 'Operator', 'Offtaker', 'Developer', 'Government', 'Other',
+    'Constructor', 'Engineer', 'Operator', 'Offtaker', 'Developer', 'Government', 'Other',
 }
-VALID_COMPANY_ROLES = {'vendor', 'owner_developer', 'constructor', 'operator', 'offtaker'}
+VALID_COMPANY_ROLES = {'vendor', 'owner_developer', 'constructor', 'engineer', 'operator', 'offtaker'}
 VALID_PROJECT_STATUS = {
     'Planning', 'Design', 'Licensing', 'Construction',
     'Operating', 'On Hold', 'Cancelled', 'Decommissioned',
@@ -54,7 +54,11 @@ _COMPANY_TYPE_NORM = {
     'independent power producer': 'IPP',
     'technology vendor': 'Vendor',
     'epc': 'Constructor',
-    'engineering': 'Constructor',
+    'engineering': 'Engineer',
+    'engineer': 'Engineer',
+    'architect engineer': 'Engineer',
+    'architect-engineer': 'Engineer',
+    "owner's engineer": 'Engineer',
     'national laboratory': 'Government',
     'national lab': 'Government',
 }
@@ -284,7 +288,7 @@ def _stage_project(raw: dict, run_id: int, db_session) -> 'ResearchQueueItem | N
     changed = _diff_fields(raw_normalised, current_snap,
                            ['project_name', 'location', 'project_status',
                             'licensing_approach', 'configuration', 'project_schedule',
-                            'target_cod', 'cod', 'project_health', 'firm_involvement',
+                            'target_cod', 'project_health', 'firm_involvement',
                             'notes'])
 
     if not changed:
@@ -343,7 +347,8 @@ def apply_queue_item(item, db_session, applied_by_user_id: int, fields_to_apply=
     For 'update'/'conflict' items, fields_to_apply is a {field: value} dict
     containing only the fields the user selected (with optional custom values).
     If fields_to_apply is None for an update/conflict, all changed fields are written.
-    Relationship items are stored for audit but not auto-applied.
+    Project-company relationship items create/update company_role_assignments.
+    Company-company relationship items are stored for audit but not auto-applied.
     """
     from app.models import Company, Project
 
@@ -362,6 +367,7 @@ def apply_queue_item(item, db_session, applied_by_user_id: int, fields_to_apply=
                 else:
                     _apply_company_fields(record, proposed, applied_by_user_id)
         else:
+            now = datetime.utcnow()
             record = Company(
                 company_name=proposed.get('company_name', 'Unknown'),
                 company_type=proposed.get('company_type'),
@@ -369,7 +375,10 @@ def apply_queue_item(item, db_session, applied_by_user_id: int, fields_to_apply=
                 headquarters_country=proposed.get('headquarters_country'),
                 notes=proposed.get('notes'),
                 is_internal=False,
+                created_date=now,
+                modified_date=now,
                 created_by=applied_by_user_id,
+                modified_by=applied_by_user_id,
             )
             db_session.add(record)
 
@@ -388,6 +397,7 @@ def apply_queue_item(item, db_session, applied_by_user_id: int, fields_to_apply=
                 else:
                     _apply_project_fields(record, proposed, applied_by_user_id)
         else:
+            now = datetime.utcnow()
             record = Project(
                 project_name=proposed.get('project_name', 'Unknown'),
                 location=proposed.get('location'),
@@ -398,11 +408,18 @@ def apply_queue_item(item, db_session, applied_by_user_id: int, fields_to_apply=
                 project_health=proposed.get('project_health'),
                 firm_involvement=proposed.get('firm_involvement'),
                 notes=proposed.get('notes'),
+                created_date=now,
+                modified_date=now,
                 created_by=applied_by_user_id,
+                modified_by=applied_by_user_id,
             )
             db_session.add(record)
 
-    # Relationship items: no auto-apply in v1 — mark as accepted for audit trail only
+    elif item.entity_type == 'relationship:project_company':
+        _apply_project_company_relationship(proposed, db_session, applied_by_user_id)
+
+    # relationship:company_company stays audit-only. The database models these
+    # business facts through project-scoped company role assignments.
 
 
 # ---------------------------------------------------------------------------
@@ -467,6 +484,138 @@ def _names_equivalent(a: str, b: str) -> bool:
     )
 
 
+def _normalise_project_name(s: str) -> str:
+    """Normalise project names for matching without broad substring matching.
+
+    Research sources often alternate between a program/site name and the first
+    deployment name, e.g. "Darlington New Nuclear Project" vs
+    "Darlington New Nuclear Project Unit 1". Strip only trailing deployment
+    qualifiers so distinct base project names still remain distinct.
+    """
+    import re
+    norm = _normalise_name(s)
+    project_suffixes = [
+        r'(?:project|program|programme|site|deployment)',
+        r'(?:unit|units|reactor|reactors|module|modules|phase|phases)\s+\d+(?:\s*(?:to|through|and|&)\s*\d+)?',
+        r'(?:unit|units|reactor|reactors|module|modules|phase|phases)\s+\d+\s+\d+',
+        r'(?:first|second|third|fourth)\s+(?:unit|reactor|module|phase)',
+    ]
+    changed = True
+    while changed:
+        changed = False
+        for suffix in project_suffixes:
+            stripped = re.sub(rf'\s+{suffix}$', '', norm).strip()
+            if stripped != norm:
+                norm = stripped
+                changed = True
+    return norm
+
+
+def _project_names_equivalent(a: str, b: str) -> bool:
+    """True if two project names should be treated as the same project."""
+    if _names_equivalent(a, b):
+        return True
+    return _normalise_project_name(a) == _normalise_project_name(b)
+
+
+def _normalise_role_code(role_code: str | None) -> str | None:
+    """Map research role codes onto DB role codes."""
+    if not role_code:
+        return None
+    role_code = role_code.strip()
+    if role_code == 'owner_developer':
+        return 'developer'
+    return _normalise_enum(role_code, VALID_COMPANY_ROLES) or role_code
+
+
+def _relationship_notes(raw: dict) -> str | None:
+    """Build assignment notes from research relationship metadata."""
+    parts = []
+    relationship_type = raw.get('relationship_type')
+    if relationship_type:
+        parts.append(f"Relationship type: {relationship_type}")
+    counterparty_slug = raw.get('counterparty_company_slug')
+    if counterparty_slug:
+        parts.append(f"Counterparty: {counterparty_slug}")
+    notes = raw.get('notes')
+    if notes:
+        parts.append(str(notes))
+    sources = raw.get('sources') or []
+    if sources:
+        parts.append("Sources:\n" + "\n".join(str(url) for url in sources))
+    return "\n\n".join(parts) if parts else None
+
+
+def _apply_project_company_relationship(raw: dict, db_session, user_id: int):
+    """Create or update a project-scoped CompanyRoleAssignment."""
+    from app.models import Company, CompanyRole, CompanyRoleAssignment, Project
+
+    project_id = raw.get('project_db_id')
+    company_id = raw.get('company_db_id')
+    role_code = _normalise_role_code(raw.get('role'))
+    if not project_id or not company_id or not role_code:
+        raise ValueError(
+            'Project-company relationships require project_db_id, company_db_id, and role.'
+        )
+
+    project = db_session.get(Project, project_id)
+    company = db_session.get(Company, company_id)
+    if not project:
+        raise ValueError(f'Project {project_id} not found.')
+    if not company:
+        raise ValueError(f'Company {company_id} not found.')
+
+    role = db_session.query(CompanyRole).filter_by(role_code=role_code).first()
+    if not role:
+        role = CompanyRole(
+            role_code=role_code,
+            role_label=role_code.replace('_', ' ').title(),
+            description=f"Role for {role_code} relationships",
+            created_by=user_id,
+            modified_by=user_id,
+        )
+        db_session.add(role)
+        db_session.flush()
+
+    assignment = (
+        db_session.query(CompanyRoleAssignment)
+        .filter_by(
+            company_id=company.company_id,
+            role_id=role.role_id,
+            context_type='Project',
+            context_id=project.project_id,
+        )
+        .first()
+    )
+    now = datetime.utcnow()
+    notes = _relationship_notes(raw)
+    if assignment:
+        if notes and notes not in (assignment.notes or ''):
+            assignment.notes = (
+                f"{assignment.notes}\n\n{notes}" if assignment.notes else notes
+            )
+        assignment.is_confidential = bool(raw.get('is_confidential', assignment.is_confidential))
+        assignment.modified_date = now
+        assignment.modified_by = user_id
+        return assignment
+
+    assignment = CompanyRoleAssignment(
+        company_id=company.company_id,
+        role_id=role.role_id,
+        context_type='Project',
+        context_id=project.project_id,
+        is_primary=False,
+        is_confidential=bool(raw.get('is_confidential', False)),
+        notes=notes,
+        created_date=now,
+        modified_date=now,
+        created_by=user_id,
+        modified_by=user_id,
+    )
+    db_session.add(assignment)
+    return assignment
+
+
 def _match_company(raw: dict, db_session):
     from app.models import Company
     db_id = raw.get('db_id')
@@ -501,10 +650,10 @@ def _match_project(raw: dict, db_session):
     for p in projects:
         if p.project_name.strip().lower() == name_raw.lower():
             return p
-    # Pass 2: normalised match
+    # Pass 2: normalised match, including trailing deployment qualifiers like "Unit 1"
     norm = _normalise_name(name_raw)
     for p in projects:
-        if _normalise_name(p.project_name) == norm:
+        if _normalise_name(p.project_name) == norm or _project_names_equivalent(name_raw, p.project_name):
             return p
     # Pass 3: acronym match
     for p in projects:
@@ -537,7 +686,6 @@ def _project_snapshot(p) -> dict:
         'configuration': p.configuration,
         'project_schedule': p.project_schedule,
         'target_cod': _date_str(p.target_cod),
-        'cod': _date_str(p.cod),
         'project_health': p.project_health,
         'firm_involvement': p.firm_involvement,
         'notes': p.notes,

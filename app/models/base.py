@@ -28,7 +28,7 @@ class TimestampMixin:
 
     @declared_attr
     def modified_date(cls):
-        return Column(DateTime, onupdate=datetime.utcnow)
+        return Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
     @declared_attr
     def created_by(cls):

@@ -158,7 +158,7 @@ class Config:
     # Migration settings
     MIGRATIONS_DIR = str(MIGRATIONS_ROOT)
     APPLICATION_VERSION = '1.0.0'
-    REQUIRED_SCHEMA_VERSION = 19  # Add relationship_strength to external_personnel
+    REQUIRED_SCHEMA_VERSION = 20  # Add Engineer company role
 
     # Report settings
     COMPANY_NAME = 'MPR Associates'

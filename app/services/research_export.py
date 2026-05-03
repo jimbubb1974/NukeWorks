@@ -256,7 +256,6 @@ def _serialise_project(p, notes_confidential: bool) -> dict:
         'configuration': p.configuration,
         'project_schedule': p.project_schedule,
         'target_cod': _date_str(p.target_cod),
-        'cod': _date_str(p.cod),
         'project_health': p.project_health,
         'notes': p.notes if not notes_confidential else None,
     }

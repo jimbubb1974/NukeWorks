@@ -141,7 +141,6 @@ class ProjectSummaryReport:
             ('Configuration',      p.configuration),
             ('Project Schedule',   p.project_schedule),
             ('Target COD',         _fmt_date(p.target_cod)),
-            ('COD (Commercial Op)', _fmt_date(p.cod)),
         ]))
 
         # ── Geographic Coordinates ─────────────────────────────────────────────

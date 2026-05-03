@@ -143,7 +143,6 @@ def validate_date_field(value, field_name, allow_future=True, allow_past=True):
     Rules:
     - Must be valid date format (YYYY-MM-DD)
     - Check future/past constraints
-    - COD (Commercial Operation Date) can be in future
     - Contact dates typically in past or present
     """
     if value is None:
@@ -167,7 +166,7 @@ def validate_date_field(value, field_name, allow_future=True, allow_past=True):
 
 **Specific Date Field Rules:**
 
-- **cod (Commercial Operation Date):** Can be future date
+- **target_cod:** Can be future date
 - **last_contact_date:** Must be past or present
 - **next_planned_contact_date:** Can be future date
 - **created_date, modified_date:** System-managed, always valid
@@ -387,26 +386,6 @@ def check_duplicate_project_name(project_name, project_id=None):
         return f"Warning: A project named '{project_name}' already exists"
     
     return None
-```
-
-**Rule BL-PJ-002:** COD must be after today for non-operating projects
-```python
-def validate_cod_for_status(cod, project_status):
-    """
-    COD validation based on project status
-    """
-    if cod is None:
-        return  # COD is optional
-    
-    today = date.today()
-    
-    if project_status in ['Conceptual', 'Planning', 'Design', 'Licensing', 'Construction']:
-        if cod <= today:
-            raise ValidationError("Commercial Operation Date must be in the future for non-operating projects")
-    
-    elif project_status == 'Operating':
-        if cod > today:
-            raise ValidationError("Commercial Operation Date must be in the past for operating projects")
 ```
 
 ### 3.2 CRM-Specific Rules
@@ -1092,7 +1071,7 @@ def validate_snapshot_integrity(snapshot_path):
 
 ### Important Rules
 6. **Password Strength:** Minimum 8 characters, mixed case, digit required
-7. **Date Validation:** Contact dates in past, follow-ups in future, COD based on project status
+7. **Date Validation:** Contact dates in past, follow-ups in future
 8. **Status Transitions:** Project status changes must follow valid workflow
 9. **Roundtable Limits:** Keep only N most recent entries per entity
 10. **Transaction Atomicity:** Multi-step operations must be atomic

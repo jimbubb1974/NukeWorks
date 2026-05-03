@@ -30,6 +30,11 @@ ROLE_GROUP_ALIASES = {
     "owner-developer": "owner",
     "technology_vendor": "vendor",
     "technology-vendor": "vendor",
+    "architect_engineer": "engineer",
+    "architect-engineer": "engineer",
+    "owners_engineer": "engineer",
+    "owner_engineer": "engineer",
+    "owner's_engineer": "engineer",
 }
 
 

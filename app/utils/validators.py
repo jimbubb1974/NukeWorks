@@ -128,7 +128,7 @@ def validate_date_field(value, field_name, allow_future=True, allow_past=True):
         ValidationError: If validation fails
 
     Examples:
-        >>> validate_date_field("2025-12-31", "cod", allow_future=True)
+        >>> validate_date_field("2025-12-31", "target_cod", allow_future=True)
         date(2025, 12, 31)
         >>> validate_date_field("2030-01-01", "last_contact_date", allow_future=False)
         ValidationError: last_contact_date cannot be in the future
@@ -630,33 +630,6 @@ def check_duplicate_project_name(project_name, project_id=None):
         return f"Warning: A project named '{project_name}' already exists"
 
     return None
-
-
-def validate_cod_for_status(cod, project_status):
-    """
-    Validate COD (Commercial Operation Date) based on project status
-
-    Args:
-        cod: Commercial Operation Date
-        project_status: Current project status
-
-    Raises:
-        ValidationError: If COD doesn't match project status
-    """
-    if cod is None:
-        return  # COD is optional
-
-    today = date.today()
-
-    # Future projects should have future COD
-    if project_status in ['Conceptual', 'Planning', 'Design', 'Licensing', 'Construction']:
-        if cod <= today:
-            raise ValidationError("Commercial Operation Date must be in the future for non-operating projects")
-
-    # Operating projects should have past COD
-    elif project_status == 'Operating':
-        if cod > today:
-            raise ValidationError("Commercial Operation Date must be in the past for operating projects")
 
 
 def validate_contact_person(contact_person_id, contact_person_freetext):

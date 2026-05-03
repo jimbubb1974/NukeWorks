@@ -333,10 +333,6 @@ See `ENCRYPTION_IMPLEMENTATION_STATUS.md` for detailed status of upcoming phases
 - **Validation:** Cannot be in the future
 - **Rule:** `contact_date <= today()`
 
-**Commercial Operation Date (COD):**
-- **Validation:** Should be future date (if project not operational)
-- **Rule:** For non-operating projects: `cod >= today()`
-
 **Follow-up Date:**
 - **Validation:** Should be future date
 - **Rule:** `follow_up_date >= today()`

@@ -110,10 +110,10 @@ value = validate_numeric_field(
 ```python
 from app.utils.validators import validate_date_field
 
-# COD - allow future
-cod = validate_date_field(
+# Target COD - allow future
+target_cod = validate_date_field(
     value="2026-12-31",
-    field_name="cod",
+    field_name="target_cod",
     allow_future=True
 )
 
@@ -315,29 +315,6 @@ warning = check_duplicate_project_name("New Project")
 if warning:
     flash(warning, 'warning')  # Display warning to user
 ```
-
-#### COD Validation by Project Status
-
-```python
-from app.utils.validators import validate_cod_for_status
-
-# Future projects need future COD
-validate_cod_for_status(
-    cod=date(2026, 12, 31),
-    project_status="Planning"
-)  # Valid
-
-# Operating projects need past COD
-validate_cod_for_status(
-    cod=date(2030, 1, 1),
-    project_status="Operating"
-)  # Error: must be in past
-```
-
-**Rules:**
-- Conceptual/Planning/Design/Licensing/Construction: COD must be in future
-- Operating: COD must be in past
-- COD is optional (can be None)
 
 #### Contact Person Validation
 
@@ -698,9 +675,7 @@ cd /home/jim/Coding\ Project/NukeWorks
    - Unique username check
    - Delete last admin protection
 
-10. **Business Logic (4 tests)**
-    - COD past for Planning project
-    - COD future for Operating project
+10. **Business Logic (2 tests)**
     - Contact person both missing
     - Contact person ID provided
 
@@ -784,7 +759,6 @@ When adding new features, ensure validation for:
 - [x] Vendor names unique
 - [x] Product names unique per vendor
 - [x] Project names checked (warning if duplicate)
-- [x] COD matches project status
 - [x] Contact person specified
 - [x] No self-relationships
 - [x] Project status transitions valid
@@ -839,11 +813,11 @@ efficiency = validate_numeric_field(value, "efficiency", 0, 100)
 
 ```python
 # Good: Specific error messages
-validate_cod_for_status(cod, status)
-# Error: "Commercial Operation Date must be in the future for non-operating projects"
+validate_date_field("not-a-date", "target_cod")
+# Error: "target_cod must be in YYYY-MM-DD format"
 
 # Bad: Generic errors
-if cod <= today and status != 'Operating':
+if invalid_date:
     raise ValidationError("Invalid date")
 ```
 

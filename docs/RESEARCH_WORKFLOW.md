@@ -56,7 +56,7 @@ The following are **never included** in any export file:
 - Company: `db_id`, `slug`, `company_name`, `company_type`, `website`,
   `headquarters_country`, `roles` (role names only), `notes` (if not confidential)
 - Project: `db_id`, `slug`, `project_name`, `location`, `project_status`,
-  `licensing_approach`, `configuration`, `project_schedule`, `target_cod`, `cod`,
+  `licensing_approach`, `configuration`, `project_schedule`, `target_cod`,
   `project_health`, `firm_involvement`, `notes` (if not confidential)
 - Relationships: project-company links, company-company links (non-confidential only)
 

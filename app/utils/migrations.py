@@ -25,7 +25,7 @@ class ValidationError(Exception):
 
 # Application version and required schema version
 APPLICATION_VERSION = "1.0.0"
-APPLICATION_REQUIRED_SCHEMA_VERSION = 19  # Add relationship_strength to external_personnel
+APPLICATION_REQUIRED_SCHEMA_VERSION = 20  # Add Engineer company role
 
 
 def get_migrations_directory():

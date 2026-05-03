@@ -65,77 +65,6 @@ def _get_or_create_company_role(role_code: str) -> CompanyRole:
     return role
 
 
-def _process_relationship_assignments(project: Project, form_data, user_id: int):
-    """Process relationship assignments from the project form.
-
-    Handles vendor, owner, operator, constructor, and offtaker relationships
-    by creating CompanyRoleAssignment records.
-    """
-    # Mapping of form field names to role codes
-    relationship_mapping = {
-        'vendor': 'vendor',
-        'owner': 'developer',
-        'operator': 'operator',
-        'constructor': 'constructor',
-        'offtaker': 'offtaker'
-    }
-
-    # Get all role IDs upfront
-    roles = db_session.query(CompanyRole).all()
-    role_id_map = {role.role_code: role.role_id for role in roles}
-
-    # Delete existing relationships for this project
-    # NOTE: Using explicit loop instead of bulk .delete() to ensure audit logging captures each deletion
-    existing_relationships = db_session.query(CompanyRoleAssignment).filter_by(
-        context_type='Project',
-        context_id=project.project_id
-    ).all()
-    for rel in existing_relationships:
-        db_session.delete(rel)
-
-    # Commit to flush deletions so they're captured by audit listener before creating new ones
-    db_session.commit()
-
-    # Process each relationship type
-    for rel_type, role_code in relationship_mapping.items():
-        entity_ids = form_data.getlist(f'{rel_type}_entity_id[]')
-        confidential_flags = form_data.getlist(f'{rel_type}_confidential[]')
-        notes_list = form_data.getlist(f'{rel_type}_notes[]')
-
-        role_id = role_id_map.get(role_code)
-        if not role_id:
-            continue
-
-        # Process each relationship in the list
-        for idx, entity_id in enumerate(entity_ids):
-            if not entity_id or entity_id == '':
-                continue
-
-            try:
-                company_id = int(entity_id)
-            except (ValueError, TypeError):
-                continue
-
-            # Get confidential flag for this index
-            is_confidential = idx < len(confidential_flags)
-
-            # Get notes for this index
-            notes = notes_list[idx] if idx < len(notes_list) else None
-
-            # Create the assignment
-            assignment = CompanyRoleAssignment(
-                company_id=company_id,
-                role_id=role_id,
-                context_type='Project',
-                context_id=project.project_id,
-                is_confidential=is_confidential,
-                notes=notes or None,
-                created_by=user_id,
-                modified_by=user_id
-            )
-            db_session.add(assignment)
-
-
 @bp.route('/')
 @login_required
 def list_projects():
@@ -208,9 +137,6 @@ def create_project():
             db_session.add(project)
             db_session.flush()  # Flush to get project_id
 
-            # Process relationship assignments
-            _process_relationship_assignments(project, request.form, current_user.user_id)
-
             # Process per-field confidentiality flags for financial data
             financial_fields = ['capex', 'opex', 'fuel_cost', 'lcoe']
             for field in financial_fields:
@@ -248,6 +174,7 @@ def create_project():
         owner_assignments=[],
         operator_assignments=[],
         constructor_assignments=[],
+        engineer_assignments=[],
         offtaker_assignments=[]
     )
 
@@ -273,6 +200,7 @@ def view_project(project_id):
     # Group relationships by role type (only visible ones)
     vendor_relationships = [r for r in visible_company_relationships if r.role and r.role.role_code == 'vendor']
     constructor_relationships = [r for r in visible_company_relationships if r.role and r.role.role_code == 'constructor']
+    engineer_relationships = [r for r in visible_company_relationships if r.role and r.role.role_code == 'engineer']
     operator_relationships = [r for r in visible_company_relationships if r.role and r.role.role_code == 'operator']
     # Treat legacy 'owner' as alias of 'developer' for display
     owner_relationships = [
@@ -311,6 +239,7 @@ def view_project(project_id):
         project=project,
         vendor_relationships=vendor_relationships,
         constructor_relationships=constructor_relationships,
+        engineer_relationships=engineer_relationships,
         operator_relationships=operator_relationships,
         owner_relationships=owner_relationships,
         offtaker_relationships=offtaker_relationships,
@@ -364,9 +293,6 @@ def edit_project(project_id):
 
             project.modified_by = current_user.user_id
             project.modified_date = datetime.utcnow()
-
-            # Process relationship assignments
-            _process_relationship_assignments(project, request.form, current_user.user_id)
 
             # Process per-field confidentiality flags for financial data
             financial_fields = ['capex', 'opex', 'fuel_cost', 'lcoe']
@@ -429,6 +355,7 @@ def edit_project(project_id):
     owner_assignments = _by_role('developer')
     operator_assignments = _by_role('operator')
     constructor_assignments = _by_role('constructor')
+    engineer_assignments = _by_role('engineer')
     offtaker_assignments = _by_role('offtaker')
 
     # Query current confidentiality flags for financial fields
@@ -456,6 +383,7 @@ def edit_project(project_id):
         owner_assignments=owner_assignments,
         operator_assignments=operator_assignments,
         constructor_assignments=constructor_assignments,
+        engineer_assignments=engineer_assignments,
         offtaker_assignments=offtaker_assignments,
         can_view_confidential=bool(getattr(current_user, 'is_admin', False)),
         company_form=company_form,

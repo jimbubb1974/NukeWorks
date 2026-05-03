@@ -236,7 +236,16 @@ function toggleMprClient(companyId) {
             'X-CSRFToken': document.querySelector('meta[name=csrf-token]')?.getAttribute('content') || ''
         }
     })
-    .then(response => response.json())
+    .then(async response => {
+        const contentType = response.headers.get('content-type') || '';
+        const data = contentType.includes('application/json')
+            ? await response.json()
+            : { success: false, message: await response.text() };
+        if (!response.ok) {
+            throw new Error(data.message || `Request failed with status ${response.status}`);
+        }
+        return data;
+    })
     .then(data => {
         if (data.success) {
             // Update badge appearance
@@ -268,7 +277,7 @@ function toggleMprClient(companyId) {
         badge.classList.remove('bg-warning');
         badge.classList.add(badge.getAttribute('data-is-mpr') === 'true' ? 'bg-success' : 'bg-secondary');
         
-        showToast('Network error. Please try again.', 'error');
+        showToast(error.message || 'Network error. Please try again.', 'error');
     });
 }
 
