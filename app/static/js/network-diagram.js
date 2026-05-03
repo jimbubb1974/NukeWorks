@@ -890,9 +890,8 @@
         const SINGLE_X = 560 * horizontalScale;
         const SHARED_BASE_X = -560 * horizontalScale;
         const SHARED_LANE_X = 210 * horizontalScale;
-        // Compact rows still need enough pitch for circle labels to avoid collisions.
-        const SINGLE_Y_SPACING = this.projectSpineCompactRows ? 86 : 78;
-        const SHARED_Y_SPACING = this.projectSpineCompactRows ? 86 : 82;
+        const SINGLE_Y_SPACING = this.projectSpineCompactRows ? 68 : 78;
+        const SHARED_Y_SPACING = this.projectSpineCompactRows ? 72 : 82;
         const singleCompaniesByProject = new Map();
         const projectRightRows = new Map();
 
@@ -905,52 +904,30 @@
           projectRightRows.set(projectId, Math.max(1, singleCompanies.length));
         });
 
+        const totalRightRows = projectOrder.reduce(
+          (sum, id) => sum + projectRightRows.get(id),
+          0
+        );
+        const totalProjectSpan = Math.max(0, totalRightRows - 1) * SINGLE_Y_SPACING;
+        let yCursor = -totalProjectSpan / 2;
+
         const projectY = new Map();
         const singleCompanyY = new Map();
         const updates = [];
 
-        if (this.projectSpineCompactRows) {
-          const totalSingleCompanies = projectOrder.reduce(
-            (sum, id) => sum + (singleCompaniesByProject.get(id) || []).length,
-            0
-          );
-          const projectTopY = -((Math.max(projectOrder.length, 1) - 1) * SINGLE_Y_SPACING) / 2;
-          const singleTopY = -((Math.max(totalSingleCompanies, 1) - 1) * SINGLE_Y_SPACING) / 2;
-          let rightRow = 0;
-
-          projectOrder.forEach((id, index) => {
-            const y = projectTopY + index * SINGLE_Y_SPACING;
-            projectY.set(id, y);
-            updates.push({ id, x: PROJECT_X, y, fixed: false, level: undefined });
-
-            const singleCompanies = singleCompaniesByProject.get(id) || [];
-            singleCompanies.forEach((companyId) => {
-              singleCompanyY.set(companyId, singleTopY + rightRow * SINGLE_Y_SPACING);
-              rightRow += 1;
-            });
+        projectOrder.forEach((id) => {
+          const singleCompanies = singleCompaniesByProject.get(id) || [];
+          const rows = projectRightRows.get(id);
+          const firstY = yCursor;
+          const lastY = firstY + (rows - 1) * SINGLE_Y_SPACING;
+          const y = (firstY + lastY) / 2;
+          singleCompanies.forEach((companyId, index) => {
+            singleCompanyY.set(companyId, firstY + index * SINGLE_Y_SPACING);
           });
-        } else {
-          const totalRightRows = projectOrder.reduce(
-            (sum, id) => sum + projectRightRows.get(id),
-            0
-          );
-          const totalProjectSpan = Math.max(0, totalRightRows - 1) * SINGLE_Y_SPACING;
-          let yCursor = -totalProjectSpan / 2;
-
-          projectOrder.forEach((id) => {
-            const singleCompanies = singleCompaniesByProject.get(id) || [];
-            const rows = projectRightRows.get(id);
-            const firstY = yCursor;
-            const lastY = firstY + (rows - 1) * SINGLE_Y_SPACING;
-            const y = (firstY + lastY) / 2;
-            singleCompanies.forEach((companyId, index) => {
-              singleCompanyY.set(companyId, firstY + index * SINGLE_Y_SPACING);
-            });
-            projectY.set(id, y);
-            updates.push({ id, x: PROJECT_X, y, fixed: false, level: undefined });
-            yCursor = lastY + SINGLE_Y_SPACING;
-          });
-        }
+          projectY.set(id, y);
+          updates.push({ id, x: PROJECT_X, y, fixed: false, level: undefined });
+          yCursor = lastY + SINGLE_Y_SPACING;
+        });
 
         projectOrder.forEach((projectId) => {
           const singleCompanies = singleCompaniesByProject.get(projectId) || [];
