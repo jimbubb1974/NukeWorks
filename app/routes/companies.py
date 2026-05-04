@@ -175,7 +175,7 @@ def _get_company_or_404(company_id: int) -> Company:
 
 def _can_manage_companies(user) -> bool:
     """Check if user can manage companies"""
-    return bool(user and (user.is_admin or getattr(user, 'is_ned_team', False)) and user.can_edit())
+    return bool(user and user.can_edit())
 
 
 def _normalize_project_role_code(role_code: str | None) -> str | None:

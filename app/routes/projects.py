@@ -33,7 +33,7 @@ def _get_project_or_404(project_id: int) -> Project:
 
 
 def _can_manage_relationships(user) -> bool:
-    return bool(user and (user.is_admin or getattr(user, 'is_ned_team', False)) and user.can_edit())
+    return bool(user and user.can_edit())
 
 
 def _get_company_choices():
