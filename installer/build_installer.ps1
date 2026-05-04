@@ -146,6 +146,16 @@ try {
     $appExe = Join-Path $bundleDir "NukeWorks.exe"
     Invoke-CodeSign -TargetPath $appExe
 
+    # Ensure the databases/ folder exists in the bundle so recipients have a
+    # ready-made home for their .sqlite files next to NukeWorks.exe.
+    # A README.txt is placed inside so the empty folder survives ZIP compression.
+    $databasesDir = Join-Path $bundleDir "databases"
+    New-Item -ItemType Directory -Path $databasesDir -Force | Out-Null
+    $readmePath = Join-Path $databasesDir "README.txt"
+    if (-not (Test-Path $readmePath)) {
+        Set-Content -Path $readmePath -Value "Place your NukeWorks .sqlite database files in this folder.`n`nThey will appear automatically in the login screen dropdown."
+    }
+
     if ($SkipInstallerBuild) {
         Write-Host "Skipping Inno Setup installer build as requested."
         return
@@ -186,10 +196,24 @@ try {
 
     Invoke-CodeSign -TargetPath $installerPath
 
+    # ------------------------------------------------------------------
+    # Create a portable ZIP distribution alongside the installer.
+    # Users who don't want an installer can unzip this and run directly.
+    # ------------------------------------------------------------------
+    $portableName = "NukeWorks-$Version-Portable.zip"
+    $portablePath = Join-Path $outputDir $portableName
+
+    Write-Host "Creating portable ZIP: $portableName ..."
+    if (Test-Path $portablePath) {
+        Remove-Item $portablePath -Force
+    }
+    Compress-Archive -Path "$bundleDir\*" -DestinationPath $portablePath -CompressionLevel Optimal
+
     Write-Host ""
-    Write-Host "Installer build complete."
-    Write-Host " - Executable bundle: $bundleDir"
-    Write-Host " - Installer: $installerPath"
+    Write-Host "Build complete."
+    Write-Host " - Portable directory : $bundleDir"
+    Write-Host " - Portable ZIP       : $portablePath"
+    Write-Host " - Installer          : $installerPath"
 }
 finally {
     Pop-Location

@@ -65,14 +65,6 @@ def create_app(config_name=None):
         static_folder=str(static_dir),
     )
 
-    # Visible startup diagnostics for template resolution (stdout)
-    try:
-        login_rel_path = Path('auth') / 'login.html'
-        print(f"[Templates] template_dir={template_dir} exists={Path(template_dir).exists()} login_exists={(Path(template_dir)/login_rel_path).exists()}")
-        print(f"[Templates] static_dir={static_dir} exists={Path(static_dir).exists()}")
-    except Exception:
-        pass
-
     # Prepare template search paths; we'll attach them after blueprints register
     def _compute_template_paths():
         base = str(template_dir)
@@ -95,19 +87,6 @@ def create_app(config_name=None):
         try:
             paths = _compute_template_paths()
             app.jinja_env.loader = ChoiceLoader([app.jinja_env.loader, FileSystemLoader(paths)])
-            # Diagnostics
-            try:
-                loader = app.jinja_env.loader
-                searchpath = getattr(loader, 'searchpath', None)
-                print(f"[JinjaLoader] type={type(loader).__name__} searchpath={searchpath}")
-                with app.app_context():
-                    try:
-                        _ = app.jinja_env.get_template('auth/login.html')
-                        print("[JinjaCheck] auth/login.html resolved OK")
-                    except Exception as exc:
-                        print(f"[JinjaCheck] Failed to resolve auth/login.html: {exc}")
-            except Exception:
-                pass
         except Exception:
             pass
 
@@ -145,18 +124,7 @@ def create_app(config_name=None):
     try:
         persistent_loader = PersistentFileSystemLoader([str(template_dir)])
         app.jinja_env.loader = persistent_loader
-        print(f"[JinjaLoader] Using PersistentFileSystemLoader -> {template_dir}")
-
-        # Test template resolution in app context
-        with app.app_context():
-            try:
-                tmpl = app.jinja_env.get_template('auth/login.html')
-                print("[JinjaCheck] auth/login.html resolved OK")
-            except Exception as exc:
-                print(f"[JinjaCheck] Failed to resolve auth/login.html: {exc}")
-                raise  # Don't suppress - this is critical
     except Exception as exc:
-        print(f"[JinjaLoader] ERROR: Failed to set template loader: {exc}")
         import traceback
         traceback.print_exc()
         raise SystemExit("Template loader initialization failed - cannot continue")
@@ -256,31 +224,16 @@ def get_or_create_engine_session(db_path, app=None):
         # back to a mode that allows multiple machines to coexist.
         on_network = is_network_path(abs_path)
         if on_network:
-            print(f"[DB CONNECTION] Network drive detected — switching to DELETE journal mode")
-            result = cursor.execute("PRAGMA journal_mode=DELETE").fetchone()
+            cursor.execute("PRAGMA journal_mode=DELETE")
         else:
-            result = cursor.execute("PRAGMA journal_mode=WAL").fetchone()
-        print(f"[DB CONNECTION] Journal mode set to: {result[0] if result else 'unknown'}")
-        
+            cursor.execute("PRAGMA journal_mode=WAL")
+
         # Enable foreign keys
         cursor.execute("PRAGMA foreign_keys=ON")
-        
+
         # Set busy timeout
         cursor.execute(f"PRAGMA busy_timeout={timeout}")
-        
-        # Get database file path (for debugging)
-        db_file = cursor.execute("PRAGMA database_list").fetchall()
-        if db_file:
-            print(f"[DB CONNECTION] Connected to database:")
-            for row in db_file:
-                if row[1] == 'main':
-                    print(f"[DB CONNECTION]   File: {row[2]}")
-                    import os
-                    if os.path.exists(row[2]):
-                        stat = os.stat(row[2])
-                        print(f"[DB CONNECTION]   Size: {stat.st_size:,} bytes")
-                        print(f"[DB CONNECTION]   Modified: {stat.st_mtime}")
-        
+
         cursor.close()
 
     # Create scoped session
@@ -368,8 +321,6 @@ def init_db(app):
     # IMPORTANT: Do NOT create a default database connection at startup!
     # The user must select a database first via /select-db
     # This prevents creating local AppData databases that cause confusion
-    
-    print("[INIT] Skipping default database connection - user will select database")
     
     # Import models so they're registered (but don't create tables yet)
     from app import models
@@ -686,45 +637,38 @@ def register_db_selector_middleware(app):
         # Check if database is selected in session (no default fallback)
         selected_db_path = session.get('selected_db_path')
 
-        logger.info(f"[DEBUG MIDDLEWARE] Checking for selected_db_path in session")
-        logger.info(f"[DEBUG MIDDLEWARE] selected_db_path from session: {selected_db_path}")
-
         if not selected_db_path:
-            # No database selected - redirect to selector
-            logger.warning(f"[DEBUG MIDDLEWARE] No selected_db_path in session, redirecting to db_select.select_database")
-            return redirect(url_for('db_select.select_database'))
+            # No database selected.
+            # If the user is already authenticated (has a session user ID), send them
+            # to the standalone db selector so they can pick a database without
+            # re-entering their password.  Otherwise send them to the combined
+            # login+db-selection form.
+            if session.get('_user_id'):
+                return redirect(url_for('db_select.select_database'))
+            return redirect(url_for('auth.login'))
 
         # Database is selected - set up per-request session
         abs_path = os.path.abspath(selected_db_path)
-        logger.info(f"[DEBUG MIDDLEWARE] Absolute path: {abs_path}")
-        logger.info(f"[DEBUG MIDDLEWARE] Path exists: {os.path.exists(abs_path)}")
 
         # Get or create engine/session for this database
         try:
-            logger.info(f"[DEBUG MIDDLEWARE] Getting or creating engine/session for: {abs_path}")
             engine, db_sess = get_or_create_engine_session(abs_path, app)
             g.db_session = db_sess
             g.selected_db_path = abs_path
-            logger.info(f"[DEBUG MIDDLEWARE] Successfully set g.db_session and g.selected_db_path")
-            
+
             # Initialize audit logging for this database session (if not already done)
             from app.services.audit import init_audit_logging
             try:
                 init_audit_logging(db_sess)
-                logger.info(f"[DEBUG MIDDLEWARE] Initialized audit logging for this session")
             except Exception as audit_err:
-                logger.warning(f"[DEBUG MIDDLEWARE] Audit logging initialization warning: {audit_err}")
+                logger.warning(f"Audit logging initialization warning: {audit_err}")
 
             # Also set snapshot directory for this database
             from app.utils.db_helpers import get_snapshot_dir_for_db
             g.snapshot_dir = get_snapshot_dir_for_db(abs_path)
-            logger.info(f"[DEBUG MIDDLEWARE] Set snapshot_dir: {g.snapshot_dir}")
 
         except Exception as e:
-            logger.error(f"[DEBUG MIDDLEWARE] Failed to initialize database session: {e}")
-            logger.error(f"[DEBUG MIDDLEWARE] Exception type: {type(e).__name__}")
-            import traceback
-            logger.error(f"[DEBUG MIDDLEWARE] Traceback: {traceback.format_exc()}")
+            logger.error(f"Failed to initialize database session: {e}")
 
             # Clear invalid selection and redirect to selector
             session.pop('selected_db_path', None)

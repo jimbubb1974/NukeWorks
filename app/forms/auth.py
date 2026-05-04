@@ -2,13 +2,19 @@
 Authentication forms for login, logout, and password management
 """
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, BooleanField, SubmitField
+from wtforms import StringField, PasswordField, BooleanField, SubmitField, SelectField
 from wtforms.validators import DataRequired, Email, Length, EqualTo, ValidationError
 from app.models import User
 
 
 class LoginForm(FlaskForm):
-    """Login form for user authentication"""
+    """Login form with integrated database selection"""
+
+    db_path = SelectField(
+        'Database',
+        choices=[],
+        validators=[DataRequired(message='Please select a database')]
+    )
 
     username = StringField(
         'Username',
@@ -38,11 +44,8 @@ class ChangePasswordForm(FlaskForm):
 
     new_password = PasswordField(
         'New Password',
-        validators=[
-            DataRequired(),
-            Length(min=8, message='Password must be at least 8 characters long')
-        ],
-        render_kw={'placeholder': 'Enter new password (min 8 characters)'}
+        validators=[DataRequired()],
+        render_kw={'placeholder': 'Enter new password'}
     )
 
     confirm_password = PasswordField(

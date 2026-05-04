@@ -1,122 +1,197 @@
 """
 Authentication routes (login, logout, password management)
 """
-from flask import Blueprint, render_template, redirect, url_for, flash, request
+import os
+import sys
+from pathlib import Path
+from flask import Blueprint, render_template, redirect, url_for, flash, request, session as flask_session, g
 from flask_login import login_user, logout_user, login_required, current_user
 from app.models import User
 from app.forms.auth import LoginForm, ChangePasswordForm
 from app import db_session
-from datetime import datetime
 import logging
+
+
+def _app_root() -> Path:
+    """Return the application root directory.
+
+    In a PyInstaller bundle the root is the folder containing the executable
+    (i.e. the unzipped portable directory or the install location).
+    In development it is the repository root (two levels above this file).
+    """
+    if getattr(sys, 'frozen', False):
+        return Path(sys.executable).resolve().parent
+    return Path(__file__).resolve().parents[2]
 
 bp = Blueprint('auth', __name__, url_prefix='/auth')
 logger = logging.getLogger(__name__)
 
 
+def _build_db_choices():
+    """Return (choices, default_path) for the login database dropdown.
+
+    Only surfaces top-level databases — skips backups/ and snapshots/ subdirs.
+    Falls back to the filename stem when display names are missing or duplicated
+    across multiple files.
+    """
+    from pathlib import Path
+    from app.utils.db_helpers import get_db_display_name
+    from app.utils.db_selector_cache import get_recent_paths, get_global_default_path
+
+    SKIP_DIRS = {'backups', 'backup', 'snapshots', 'snapshot'}
+
+    def _excluded(path):
+        return any(p.lower() in SKIP_DIRS for p in Path(path).parts)
+
+    seen = set()
+    raw = []  # [(abs_path, raw_display_name)]
+
+    # Scan databases/ directory — top-level files + one level of named subdirs,
+    # skipping backup/snapshot folders entirely.
+    databases_dir = _app_root() / 'databases'
+    if databases_dir.exists():
+        for entry in sorted(databases_dir.iterdir()):
+            if entry.is_file() and entry.suffix.lower() == '.sqlite':
+                p = str(entry.resolve())
+                if p not in seen:
+                    seen.add(p)
+                    raw.append((p, get_db_display_name(p) or ''))
+            elif entry.is_dir() and entry.name.lower() not in SKIP_DIRS:
+                for f in sorted(entry.iterdir()):
+                    if f.is_file() and f.suffix.lower() == '.sqlite':
+                        p = str(f.resolve())
+                        if p not in seen:
+                            seen.add(p)
+                            raw.append((p, get_db_display_name(p) or ''))
+
+    # Include recently-used paths not already listed
+    for path in get_recent_paths():
+        p = os.path.abspath(path)
+        if p not in seen and os.path.exists(p) and not _excluded(p):
+            seen.add(p)
+            raw.append((p, get_db_display_name(p) or ''))
+
+    # Deduplicate display names — when a name appears more than once, append
+    # the filename stem so the user can tell entries apart.
+    name_freq: dict = {}
+    for _, name in raw:
+        key = name.strip().lower()
+        name_freq[key] = name_freq.get(key, 0) + 1
+
+    choices = []
+    for path, name in raw:
+        label = name.strip()
+        if not label or name_freq.get(label.lower(), 0) > 1:
+            stem = Path(path).stem
+            parent = Path(path).parent
+            if parent.resolve() != databases_dir.resolve():
+                label = f"{stem} ({parent.name})"
+            else:
+                label = stem
+        choices.append((path, label))
+
+    default = get_global_default_path()
+    if default:
+        default = os.path.abspath(default)
+    if not default and choices:
+        default = choices[0][0]
+    return choices, default
+
+
 @bp.route('/login', methods=['GET', 'POST'])
 def login():
-    """User login with security features"""
-    from flask import session as flask_session
-    import os
-
+    """Login with integrated database selection."""
     if current_user.is_authenticated:
-        # Already logged in - go to dashboard
         return redirect(url_for('dashboard.index'))
+
+    db_choices, default_db = _build_db_choices()
+
+    # Compute the app's databases directory to expose as a browser shortcut
+    databases_dir = str((_app_root() / 'databases').resolve())
+
+    def _render(**kwargs):
+        return render_template(
+            'auth/login.html',
+            form=form,
+            single_db=len(db_choices) == 1,
+            databases_dir=databases_dir,
+            **kwargs
+        )
 
     form = LoginForm()
 
+    # A manual path submitted from the file browser overrides the dropdown.
+    # Add it to choices before validation so WTForms accepts it.
+    manual_path = request.form.get('manual_db_path', '').strip()
+    if manual_path:
+        manual_abs = os.path.abspath(manual_path)
+        if not any(p == manual_abs for p, _ in db_choices):
+            db_choices = db_choices + [(manual_abs, os.path.basename(manual_abs))]
+        form.db_path.data = manual_abs
+
+    form.db_path.choices = db_choices
+
+    # Pre-select the default on GET
+    if request.method == 'GET' and default_db:
+        form.db_path.data = default_db
+
     if form.validate_on_submit():
+        db_path = os.path.abspath(form.db_path.data)
+
+        from app.utils.db_helpers import validate_database_file
+        from app.utils.migrations import get_required_schema_version
+        validation = validate_database_file(db_path)
+        if not validation['valid']:
+            flash(f'Database error: {validation["error"]}', 'danger')
+            return _render()
+
+        if validation['schema_version'] < get_required_schema_version():
+            flash('This database needs to be updated before it can be used. Contact your administrator.', 'danger')
+            return _render()
+
+        from app import get_or_create_engine_session
+        try:
+            _, db_sess = get_or_create_engine_session(db_path)
+            g.db_session = db_sess
+        except Exception as e:
+            logger.error(f'Failed to open database {db_path}: {e}')
+            flash('Could not open the selected database. Please try again.', 'danger')
+            return _render()
+
         username = form.username.data
-        password = form.password.data
-        remember = form.remember_me.data
-
-        # DEBUG: Log session and database context
-        selected_db = flask_session.get('selected_db_path')
-        logger.info(f"[DEBUG LOGIN] ========== LOGIN ATTEMPT ==========")
-        logger.info(f"[DEBUG LOGIN] Username: {username}")
-        logger.info(f"[DEBUG LOGIN] Session selected_db_path: {selected_db}")
-        logger.info(f"[DEBUG LOGIN] Flask session keys: {list(flask_session.keys())}")
-        
-        # Check database file
-        if not selected_db:
-            logger.error(f"[DEBUG LOGIN] CRITICAL: No database selected in session!")
-            flash('No database selected. Please select a database first.', 'danger')
-            return redirect(url_for('db_select.select_database'))
-        
-        if selected_db:
-            logger.info(f"[DEBUG LOGIN] DB exists: {os.path.exists(selected_db)}")
-            if os.path.exists(selected_db):
-                logger.info(f"[DEBUG LOGIN] DB size: {os.path.getsize(selected_db)} bytes")
-            else:
-                logger.error(f"[DEBUG LOGIN] CRITICAL: Selected database file does not exist!")
-                flash('Selected database file not found. Please select a different database.', 'danger')
-                return redirect(url_for('db_select.select_database'))
-
-        # Query user from currently selected database
-        logger.info(f"[DEBUG LOGIN] Querying User table for username='{username}'")
-        
         try:
             user = db_session.query(User).filter_by(username=username).first()
         except Exception as e:
-            logger.error(f"[DEBUG LOGIN] CRITICAL: Failed to query User table: {e}")
-            logger.error(f"[DEBUG LOGIN] Exception type: {type(e).__name__}")
-            import traceback
-            logger.error(f"[DEBUG LOGIN] Traceback: {traceback.format_exc()}")
-            flash('Database error. The selected database may be corrupted or missing required tables.', 'danger')
-            return redirect(url_for('db_select.select_database'))
+            logger.error(f'User query failed: {e}')
+            flash('Database error while authenticating. Please try again.', 'danger')
+            return _render()
 
-        if user is None:
-            logger.warning(f"[DEBUG LOGIN] User '{username}' not found in database")
-            # DEBUG: Check how many users exist in the database
-            try:
-                user_count = db_session.query(User).count()
-                logger.info(f"[DEBUG LOGIN] Total users in database: {user_count}")
-                
-                if user_count == 0:
-                    logger.error(f"[DEBUG LOGIN] CRITICAL: Database has NO users! Database needs initialization.")
-                    flash('This database has no users. Please initialize the database or select a different one.', 'danger')
-                    return redirect(url_for('db_select.select_database'))
-                
-                logger.info(f"[DEBUG LOGIN] Listing all available usernames:")
-                all_users = db_session.query(User).all()
-                for u in all_users:
-                    logger.info(f"[DEBUG LOGIN]   - Username: '{u.username}' | Active: {u.is_active} | Admin: {u.is_admin}")
-            except Exception as e:
-                logger.error(f"[DEBUG LOGIN] Error querying users: {e}")
-        else:
-            logger.info(f"[DEBUG LOGIN] User '{username}' found, checking password")
-            password_valid = user.check_password(password)
-            logger.info(f"[DEBUG LOGIN] Password valid: {password_valid}")
-
-        # Check credentials
-        if user is None or not user.check_password(password):
-            logger.warning(f'Failed login attempt for username: {username} from IP: {request.remote_addr}')
-            logger.warning(f"[DEBUG LOGIN] Auth failed - user_exists={user is not None}, password_correct={user.check_password(password) if user else 'N/A'}")
+        if user is None or not user.check_password(form.password.data):
+            logger.warning(f'Failed login for {username!r} from {request.remote_addr}')
             flash('Invalid username or password', 'danger')
-            return redirect(url_for('auth.login'))
+            return _render()
 
-        # Check if account is active
         if not user.is_active:
-            logger.warning(f'Login attempt for inactive account: {username}')
-            logger.warning(f"[DEBUG LOGIN] Account inactive for user: {username}")
             flash('Your account has been deactivated. Please contact an administrator.', 'danger')
-            return redirect(url_for('auth.login'))
+            return _render()
 
-        # Update last login timestamp
-        logger.info(f"[DEBUG LOGIN] Updating last_login for user: {username}")
+        flask_session['selected_db_path'] = db_path
+        flask_session.permanent = True
+
+        from app.utils.db_selector_cache import add_recent_path, set_global_default_path
+        add_recent_path(db_path)
+        set_global_default_path(db_path)
+
+        user.last_db_path = db_path
         user.update_last_login()
         db_session.commit()
 
-        # Log user in
-        login_user(user, remember=remember)
-        logger.info(f'User {username} logged in successfully from IP: {request.remote_addr}')
-        logger.info(f"[DEBUG LOGIN] Login successful, redirecting to dashboard")
+        login_user(user, remember=form.remember_me.data)
+        logger.info(f'User {username} logged in from {request.remote_addr}')
         flash(f'Welcome back, {user.full_name or user.username}!', 'success')
-
-        # After successful login, go to dashboard
         return redirect(url_for('dashboard.index'))
 
-    return render_template('auth/login.html', form=form)
+    return _render()
 
 
 @bp.route('/logout')

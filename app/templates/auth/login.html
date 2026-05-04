@@ -7,15 +7,42 @@
     <div class="col-md-5 col-lg-4">
         <div class="card shadow">
             <div class="card-body p-4">
-                <!-- Logo/Header -->
                 <div class="text-center mb-4">
                     <h2 class="mb-1">NukeWorks</h2>
                     <p class="text-muted">Nuclear Project Management System</p>
                 </div>
 
-                <!-- Login Form -->
-                <form method="POST" action="{{ url_for('auth.login') }}" novalidate>
+                <form method="POST" action="{{ url_for('auth.login') }}" novalidate id="loginForm">
                     {{ form.hidden_tag() }}
+                    <input type="hidden" name="manual_db_path" id="manual_db_path" value="">
+
+                    <!-- Database Field -->
+                    <div class="mb-3">
+                        {% if single_db %}
+                            <label class="form-label text-muted small">Database</label>
+                            <div class="form-control form-control-sm bg-light text-truncate"
+                                 title="{{ form.db_path.choices[0][1] if form.db_path.choices else '' }}">
+                                <i class="bi bi-database me-1"></i>{{ form.db_path.choices[0][1] if form.db_path.choices else '—' }}
+                            </div>
+                            <input type="hidden" name="db_path" value="{{ form.db_path.choices[0][0] if form.db_path.choices else '' }}">
+                        {% else %}
+                            {{ form.db_path.label(class="form-label") }}
+                            <div class="input-group">
+                                {{ form.db_path(class="form-select" + (" is-invalid" if form.db_path.errors else ""), id="db_path_select") }}
+                                <button class="btn btn-outline-secondary" type="button" id="browseBtn" title="Browse for file">
+                                    <i class="bi bi-folder2-open"></i>
+                                </button>
+                            </div>
+                            {% if form.db_path.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.db_path.errors %}{{ error }}{% endfor %}
+                                </div>
+                            {% endif %}
+                        {% endif %}
+                        <div id="browseChosen" class="form-text text-success d-none">
+                            <i class="bi bi-check-circle me-1"></i><span id="browseChosenName"></span>
+                        </div>
+                    </div>
 
                     <!-- Username Field -->
                     <div class="mb-3">
@@ -23,9 +50,7 @@
                         {{ form.username(class="form-control form-control-lg" + (" is-invalid" if form.username.errors else "")) }}
                         {% if form.username.errors %}
                             <div class="invalid-feedback">
-                                {% for error in form.username.errors %}
-                                    {{ error }}
-                                {% endfor %}
+                                {% for error in form.username.errors %}{{ error }}{% endfor %}
                             </div>
                         {% endif %}
                     </div>
@@ -36,62 +61,324 @@
                         {{ form.password(class="form-control form-control-lg" + (" is-invalid" if form.password.errors else "")) }}
                         {% if form.password.errors %}
                             <div class="invalid-feedback">
-                                {% for error in form.password.errors %}
-                                    {{ error }}
-                                {% endfor %}
+                                {% for error in form.password.errors %}{{ error }}{% endfor %}
                             </div>
                         {% endif %}
                     </div>
 
-                    <!-- Remember Me Checkbox -->
                     <div class="mb-3 form-check">
                         {{ form.remember_me(class="form-check-input") }}
                         {{ form.remember_me.label(class="form-check-label") }}
                     </div>
 
-                    <!-- Submit Button -->
                     <div class="d-grid">
                         {{ form.submit(class="btn btn-primary btn-lg") }}
                     </div>
                 </form>
 
-                <!-- Additional Links -->
                 <div class="mt-3 text-center">
-                    <small class="text-muted">
-                        First time? Contact your administrator to create an account.
-                    </small>
+                    <small class="text-muted">First time? Contact your administrator to create an account.</small>
                 </div>
             </div>
         </div>
 
-        <!-- Security Notice -->
         <div class="mt-3 text-center">
             <small class="text-muted">
-                <i class="bi bi-shield-lock me-1"></i>
-                Secure login with bcrypt password hashing
+                <i class="bi bi-shield-lock me-1"></i>Secure login with bcrypt password hashing
             </small>
         </div>
     </div>
 </div>
 
+<!-- File Browser Modal -->
+<div class="modal fade" id="fileBrowserModal" tabindex="-1" aria-labelledby="fileBrowserLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="fileBrowserLabel">
+                    <i class="bi bi-folder2-open me-2"></i>Browse for Database File
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" style="min-height:360px">
+                <!-- Address bar -->
+                <div class="input-group input-group-sm mb-3">
+                    <span class="input-group-text"><i class="bi bi-signpost-2"></i></span>
+                    <input type="text" id="fb-address" class="form-control font-monospace"
+                           placeholder="Paste a path and press Enter, e.g. C:\Users\…">
+                    <button class="btn btn-outline-secondary" type="button" id="fb-address-go">Go</button>
+                    <button class="btn btn-outline-primary" type="button" id="fb-shortcut-btn"
+                            title="Jump to databases folder">
+                        <i class="bi bi-bookmark-star me-1"></i>Databases folder
+                    </button>
+                </div>
+                <!-- Drive selector -->
+                <div id="fb-drives" class="mb-3">
+                    <label class="form-label fw-semibold small text-muted">DRIVE</label>
+                    <div id="fb-drive-list" class="d-flex flex-wrap gap-2">
+                        <span class="text-muted small">Loading drives…</span>
+                    </div>
+                </div>
+                <nav aria-label="path" class="mb-2">
+                    <ol class="breadcrumb mb-0 small" id="fb-breadcrumb"></ol>
+                </nav>
+                <div id="fb-listing" class="border rounded" style="max-height:240px;overflow-y:auto">
+                    <div class="text-center text-muted py-5" id="fb-placeholder">
+                        <i class="bi bi-hdd display-6 d-block mb-2"></i>
+                        Select a drive above or paste a path to start browsing
+                    </div>
+                    <ul class="list-group list-group-flush d-none" id="fb-list"></ul>
+                </div>
+                <div class="mt-2 text-muted small" id="fb-status"></div>
+            </div>
+            <div class="modal-footer">
+                <div class="me-auto small text-muted">Only <code>.sqlite</code> files can be selected</div>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="fb-select-btn" disabled>
+                    <i class="bi bi-check-circle me-1"></i>Select
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
 <style>
-    body {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        min-height: 100vh;
-    }
-
-    .card {
-        border: none;
-        border-radius: 1rem;
-    }
-
-    .form-control-lg {
-        border-radius: 0.5rem;
-    }
-
-    .btn-lg {
-        padding: 0.75rem;
-        border-radius: 0.5rem;
-    }
+    body { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; }
+    .card { border: none; border-radius: 1rem; }
+    .form-control-lg { border-radius: 0.5rem; }
+    .btn-lg { padding: 0.75rem; border-radius: 0.5rem; }
+    #fb-list .list-group-item { cursor: pointer; }
+    #fb-list .list-group-item:hover { background: #f8f9fa; }
+    #fb-list .list-group-item.table-active { background: #0d6efd; color: #fff; }
+    #fb-list .fb-sqlite { color: #0d6efd; font-weight: 500; }
+    #fb-list .fb-sqlite.table-active { color: #fff; }
+    #fb-list .fb-other { color: #adb5bd; cursor: default !important; }
 </style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+    'use strict';
+
+    const browseBtn      = document.getElementById('browseBtn');
+    if (!browseBtn) return;  // single_db mode — no button rendered
+
+    const manualField    = document.getElementById('manual_db_path');
+    const chosenDiv      = document.getElementById('browseChosen');
+    const chosenName     = document.getElementById('browseChosenName');
+    const selectBtn      = document.getElementById('fb-select-btn');
+    const fbList         = document.getElementById('fb-list');
+    const fbBreadcrumb   = document.getElementById('fb-breadcrumb');
+    const fbStatus       = document.getElementById('fb-status');
+    const fbPlaceholder  = document.getElementById('fb-placeholder');
+    const fbDriveList    = document.getElementById('fb-drive-list');
+    const fbAddress      = document.getElementById('fb-address');
+    const fbAddressGo    = document.getElementById('fb-address-go');
+    const fbShortcutBtn  = document.getElementById('fb-shortcut-btn');
+
+    // Path to the app's databases folder — injected by Flask
+    const DATABASES_DIR  = {{ databases_dir | tojson }};
+
+    let currentRoot = null;
+    let currentPath = '';
+    let selectedPath = null;
+
+    const modal = new bootstrap.Modal(document.getElementById('fileBrowserModal'));
+
+    browseBtn.addEventListener('click', function () {
+        selectedPath = null;
+        selectBtn.disabled = true;
+        fbList.classList.add('d-none');
+        fbPlaceholder.classList.remove('d-none');
+        fbBreadcrumb.innerHTML = '';
+        fbStatus.textContent = '';
+        fbAddress.value = '';
+        loadDrives();
+        modal.show();
+    });
+
+    // Address bar — navigate on Enter or Go button
+    function navigateTo(rawPath) {
+        const p = rawPath.trim();
+        if (!p) return;
+        // Extract drive root (e.g. "C:\") and relative part
+        const m = p.match(/^([A-Za-z]:[/\\])(.*)/);
+        if (m) {
+            const root = m[1].replace(/\//g, '\\');
+            const rel  = m[2].replace(/\//g, '\\').replace(/\\$/, '');
+            currentRoot = root;
+            // Highlight the matching drive button if visible
+            document.querySelectorAll('#fb-drive-list .btn').forEach(function(b) {
+                b.classList.toggle('active', b.textContent.trim().startsWith(root.replace('\\', '')));
+            });
+            loadDir(root, rel);
+        } else if (p.startsWith('\\\\')) {
+            // UNC path — treat the share as root
+            const parts = p.replace(/^\\\\/, '').split('\\');
+            const root = '\\\\' + parts.slice(0, 2).join('\\') + '\\';
+            const rel  = parts.slice(2).join('\\');
+            currentRoot = root;
+            loadDir(root, rel);
+        } else {
+            fbStatus.textContent = 'Enter an absolute path starting with a drive letter, e.g. C:\\';
+        }
+    }
+
+    fbAddressGo.addEventListener('click', function() { navigateTo(fbAddress.value); });
+    fbAddress.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') { e.preventDefault(); navigateTo(fbAddress.value); }
+    });
+
+    // Databases-folder shortcut
+    fbShortcutBtn.addEventListener('click', function() {
+        fbAddress.value = DATABASES_DIR;
+        navigateTo(DATABASES_DIR);
+    });
+
+    selectBtn.addEventListener('click', function () {
+        if (!selectedPath) return;
+        manualField.value = selectedPath;
+        chosenName.textContent = selectedPath.split(/[/\\]/).pop();
+        chosenDiv.classList.remove('d-none');
+        modal.hide();
+    });
+
+    function loadDrives() {
+        fbDriveList.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Loading…';
+        fetch('/api/mapped-drives')
+            .then(function(r) { return r.json(); })
+            .then(function(drives) {
+                fbDriveList.innerHTML = '';
+                drives.forEach(function (d) {
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'btn btn-sm btn-outline-secondary';
+                    btn.innerHTML = '<i class="bi bi-hdd me-1"></i>' + d.letter;
+                    btn.addEventListener('click', function () {
+                        document.querySelectorAll('#fb-drive-list .btn').forEach(function(b) { b.classList.remove('active'); });
+                        btn.classList.add('active');
+                        currentRoot = d.root;
+                        currentPath = '';
+                        loadDir(d.root, '');
+                    });
+                    fbDriveList.appendChild(btn);
+                });
+            })
+            .catch(function () {
+                fbDriveList.innerHTML = '<span class="text-danger small">Could not load drives</span>';
+            });
+    }
+
+    function loadDir(root, relPath) {
+        fbPlaceholder.classList.add('d-none');
+        fbList.classList.add('d-none');
+        fbStatus.textContent = 'Loading…';
+        selectedPath = null;
+        selectBtn.disabled = true;
+
+        const url = '/api/list-files?root=' + encodeURIComponent(root) + '&path=' + encodeURIComponent(relPath);
+        fetch(url)
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (data.error) { fbStatus.textContent = data.error; fbList.classList.remove('d-none'); return; }
+                currentPath = data.cwd || relPath;
+                renderBreadcrumb(root, currentPath);
+                renderEntries(root, data.entries || []);
+                fbStatus.textContent = data.entries.length + ' item(s)';
+            })
+            .catch(function () { fbStatus.textContent = 'Failed to load directory.'; });
+    }
+
+    function renderBreadcrumb(root, relPath) {
+        // Keep address bar in sync
+        fbAddress.value = relPath ? root + relPath : root;
+        fbBreadcrumb.innerHTML = '';
+        const rootLi = document.createElement('li');
+        rootLi.className = 'breadcrumb-item';
+        const rootA = document.createElement('a');
+        rootA.href = '#';
+        rootA.textContent = root.replace(/\\/g, '');
+        rootA.addEventListener('click', function(e) { e.preventDefault(); currentPath = ''; loadDir(root, ''); });
+        rootLi.appendChild(rootA);
+        fbBreadcrumb.appendChild(rootLi);
+
+        if (relPath) {
+            const parts = relPath.split(/[/\\]/).filter(Boolean);
+            parts.forEach(function(part, i) {
+                const li = document.createElement('li');
+                const isLast = i === parts.length - 1;
+                li.className = 'breadcrumb-item' + (isLast ? ' active' : '');
+                if (isLast) {
+                    li.textContent = part;
+                } else {
+                    const a = document.createElement('a');
+                    a.href = '#';
+                    a.textContent = part;
+                    const partPath = parts.slice(0, i + 1).join('\\');
+                    a.addEventListener('click', function(e) { e.preventDefault(); loadDir(root, partPath); });
+                    li.appendChild(a);
+                }
+                fbBreadcrumb.appendChild(li);
+            });
+        }
+    }
+
+    function renderEntries(root, entries) {
+        fbList.innerHTML = '';
+
+        // Up navigation
+        if (currentPath) {
+            const li = makeEntry('<i class="bi bi-arrow-up me-2"></i>..', 'fb-dir', function () {
+                const parts = currentPath.split(/[/\\]/).filter(Boolean);
+                parts.pop();
+                loadDir(root, parts.join('\\'));
+            });
+            fbList.appendChild(li);
+        }
+
+        entries.forEach(function(entry) {
+            if (entry.is_dir) {
+                fbList.appendChild(makeEntry(
+                    '<i class="bi bi-folder-fill me-2 text-warning"></i>' + entry.name,
+                    'fb-dir',
+                    function() { loadDir(root, entry.path); }
+                ));
+            } else if (entry.name.toLowerCase().endsWith('.sqlite')) {
+                const fullPath = root + entry.path;
+                const li = makeEntry(
+                    '<i class="bi bi-database me-2"></i>' + entry.name,
+                    'fb-sqlite',
+                    function() {
+                        document.querySelectorAll('#fb-list .table-active').forEach(function(el) { el.classList.remove('table-active'); });
+                        li.classList.add('table-active');
+                        selectedPath = fullPath;
+                        selectBtn.disabled = false;
+                    }
+                );
+                fbList.appendChild(li);
+            } else {
+                const li = makeEntry('<i class="bi bi-file me-2"></i>' + entry.name, 'fb-other', null);
+                fbList.appendChild(li);
+            }
+        });
+
+        fbList.classList.remove('d-none');
+    }
+
+    function makeEntry(html, cls, onClick) {
+        const li = document.createElement('li');
+        li.className = 'list-group-item list-group-item-action py-2 ' + cls;
+        li.innerHTML = html;
+        if (onClick) {
+            li.addEventListener('click', onClick);
+        } else {
+            li.style.cursor = 'default';
+        }
+        return li;
+    }
+}());
+</script>
 {% endblock %}

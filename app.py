@@ -36,7 +36,16 @@ if getattr(sys, 'frozen', False):
 from app import create_app
 
 # Create Flask application
-app = create_app()
+app = create_app('standalone' if getattr(sys, 'frozen', False) else None)
+
+# When running as a packaged executable, ensure the databases/ folder exists
+# next to NukeWorks.exe so users have a ready-made place to put .sqlite files
+# and the "Databases folder" shortcut in the login file browser works.
+if getattr(sys, 'frozen', False):
+    try:
+        (Path(sys.executable).resolve().parent / 'databases').mkdir(exist_ok=True)
+    except Exception:
+        pass
 
 
 def is_port_in_use(port):
@@ -132,18 +141,8 @@ if __name__ == '__main__':
     if getattr(sys, 'frozen', False):
         print(f"Bundle Root (_MEIPASS): {getattr(sys, '_MEIPASS', 'N/A')}")
     print()
-    print("⚠️  IMPORTANT: No default database connection")
-    print("   You MUST select a database at /select-db before using the app")
-    print("   This prevents accidental use of local cached databases")
-    print()
-    print("Database: [none selected yet — user will choose at /select-db]")
     print("Starting Flask server on http://127.0.0.1:5000/")
     print("=" * 60)
-    print("\n📋 FIRST TIME SETUP:")
-    print("   1. Browser will open to database selection page")
-    print("   2. Select or browse to a .sqlite database file")
-    print("   3. If database is empty, you'll need to initialize it")
-    print("   4. Default login: admin / admin123")
     print("\nPress CTRL+C to quit\n")
 
     # Start Flask server

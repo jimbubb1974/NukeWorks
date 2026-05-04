@@ -104,11 +104,42 @@ DEV_DB_TEMPLATE = _resource_path('dev_nukeworks.sqlite')
 MIGRATIONS_ROOT = _resource_path('migrations')
 
 
+def _get_or_create_secret_key() -> bytes:
+    """Return a persistent SECRET_KEY, generating and saving one if needed.
+
+    The key is stored in STORAGE_ROOT/secret_key so sessions survive restarts.
+    An env-var override always takes precedence.
+    """
+    env_key = os.environ.get('SECRET_KEY')
+    if env_key:
+        return env_key.encode() if isinstance(env_key, str) else env_key
+
+    key_file = STORAGE_ROOT / 'secret_key'
+    try:
+        if key_file.exists():
+            key = key_file.read_bytes()
+            if len(key) >= 32:
+                return key
+    except Exception:
+        pass
+
+    import secrets
+    key = secrets.token_bytes(32)
+    try:
+        STORAGE_ROOT.mkdir(parents=True, exist_ok=True)
+        key_file.write_bytes(key)
+        # Restrict permissions on non-Windows platforms
+        if not sys.platform.startswith('win'):
+            key_file.chmod(0o600)
+    except Exception:
+        pass
+    return key
+
+
 class Config:
     """Base configuration class with common settings"""
 
-    # Secret key for session management (MUST be changed in production)
-    SECRET_KEY = os.environ.get('SECRET_KEY') or os.urandom(32)
+    SECRET_KEY = _get_or_create_secret_key()
 
     # Database configuration
     STORAGE_ROOT = STORAGE_ROOT
@@ -171,14 +202,15 @@ class Config:
 
     # Flask-specific
     JSON_SORT_KEYS = False
-    SEND_FILE_MAX_AGE_DEFAULT = 0  # Disable caching for development
+    SEND_FILE_MAX_AGE_DEFAULT = 86400  # Cache static files for 1 day
 
 
 class DevelopmentConfig(Config):
     """Development environment configuration"""
     DEBUG = True
     TESTING = False
-    SQLALCHEMY_ECHO = False  # Set to True to see SQL queries
+    SQLALCHEMY_ECHO = False
+    SEND_FILE_MAX_AGE_DEFAULT = 0  # Disable static caching in dev
 
     # Override with local database for development
     DATABASE_FILENAME = 'dev_nukeworks.sqlite'
@@ -187,21 +219,24 @@ class DevelopmentConfig(Config):
     SQLALCHEMY_DATABASE_URI = f'sqlite:///{DATABASE_PATH}'
 
 
+class StandaloneConfig(Config):
+    """Configuration for the packaged desktop executable (PyInstaller bundle)."""
+    DEBUG = False
+    TESTING = False
+    SESSION_COOKIE_HTTPONLY = True
+    SESSION_COOKIE_SAMESITE = 'Lax'
+
+
 class ProductionConfig(Config):
     """Production environment configuration"""
     DEBUG = False
     TESTING = False
-
-    # Production should ALWAYS use environment variables for sensitive data
-    SECRET_KEY = os.environ.get('SECRET_KEY')
 
     # Production database path (typically on network drive)
     DATABASE_PATH = os.environ.get('NUKEWORKS_DB_PATH')
 
     def __init__(self):
         """Validate required production settings"""
-        if not self.SECRET_KEY:
-            raise ValueError("SECRET_KEY environment variable must be set for production!")
         if not self.DATABASE_PATH:
             raise ValueError("NUKEWORKS_DB_PATH environment variable must be set for production!")
 
@@ -233,6 +268,7 @@ class TestingConfig(Config):
 config = {
     'development': DevelopmentConfig,
     'production': ProductionConfig,
+    'standalone': StandaloneConfig,
     'testing': TestingConfig,
     'default': DevelopmentConfig
 }

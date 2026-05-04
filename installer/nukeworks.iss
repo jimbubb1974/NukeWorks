@@ -42,6 +42,7 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 Source: "..\dist\NukeWorks\*"; DestDir: "{app}"; Flags: recursesubdirs ignoreversion
 
 [Dirs]
+Name: "{app}\databases"; Flags: uninsneveruninstall
 Name: "{app}\logs"; Flags: uninsneveruninstall
 Name: "{app}\uploads"; Flags: uninsneveruninstall
 Name: "{app}\flask_sessions"; Flags: uninsneveruninstall

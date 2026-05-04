@@ -431,50 +431,9 @@ COMMON_PASSWORDS = {
 
 
 def validate_password_strength(password, username=None):
-    """
-    Validate password meets minimum security requirements
-
-    Args:
-        password: Password to validate
-        username: Optional username to check against
-
-    Raises:
-        ValidationError: If password doesn't meet requirements
-
-    Rules:
-        - Minimum 8 characters
-        - At least one uppercase letter
-        - At least one lowercase letter
-        - At least one digit
-        - Cannot be common password
-        - Cannot contain username (if provided)
-
-    Examples:
-        >>> validate_password_strength("SecurePass123")
-        True
-        >>> validate_password_strength("weak")
-        ValidationError: Password must be at least 8 characters long
-    """
-    if len(password) < 8:
-        raise ValidationError("Password must be at least 8 characters long")
-
-    if not re.search(r'[A-Z]', password):
-        raise ValidationError("Password must contain at least one uppercase letter")
-
-    if not re.search(r'[a-z]', password):
-        raise ValidationError("Password must contain at least one lowercase letter")
-
-    if not re.search(r'\d', password):
-        raise ValidationError("Password must contain at least one digit")
-
-    # Check against common passwords
-    if password.lower() in COMMON_PASSWORDS:
-        raise ValidationError("Password is too common. Please choose a stronger password")
-
-    # Check if password contains username
-    if username and username.lower() in password.lower():
-        raise ValidationError("Password cannot contain your username")
-
+    """Validate password. No complexity requirements — any non-empty value is accepted."""
+    if not password:
+        raise ValidationError("Password cannot be empty")
     return True
 
 
