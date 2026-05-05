@@ -3,12 +3,13 @@
 
 BEGIN TRANSACTION;
 
-INSERT INTO company_roles (role_code, role_label, description, is_active)
+INSERT INTO company_roles (role_code, role_label, description, is_active, created_date)
 SELECT
     'engineer',
     'Engineer',
     'Provides engineering, design, architect-engineer, or owner''s engineer services for projects',
-    1
+    1,
+    datetime('now')
 WHERE NOT EXISTS (
     SELECT 1 FROM company_roles WHERE role_code = 'engineer'
 );
