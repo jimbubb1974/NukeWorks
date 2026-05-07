@@ -55,6 +55,7 @@ databases/production/*_plain.*
 # IDE
 .vscode/
 .idea/
+.claude/settings.local.json
 *.swp
 *.swo
 *~
@@ -81,6 +82,10 @@ uploads/
 htmlcov/
 .pytest_cache/
 .tox/
+.playwright-mcp/
+
+# Generated screenshots/debug images
+/network-*.png
 
 # Documentation builds
 docs/_build/
