@@ -92,6 +92,12 @@
 
                 {% elif section == 'database' %}
                     <h6 class="text-uppercase text-muted">Database Identity</h6>
+                    {% if selected_db_path %}
+                    <div class="mb-3">
+                        <label class="form-label text-muted small">File Path</label>
+                        <div class="form-control bg-light text-muted small" style="word-break: break-all;">{{ selected_db_path }}</div>
+                    </div>
+                    {% endif %}
                     <div class="mb-3">
                         <label class="form-label">Database Name</label>
                         {{ form.db_display_name(class="form-control", placeholder="e.g. Client Projects 2026") }}

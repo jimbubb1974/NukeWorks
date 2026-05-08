@@ -876,7 +876,9 @@ def system_settings():
         flash(message, 'success')
         return redirect(url_for('admin.system_settings', section=section))
 
-    return render_template('admin/settings.html', section=section, form=form)
+    from flask import g
+    return render_template('admin/settings.html', section=section, form=form,
+                           selected_db_path=getattr(g, 'selected_db_path', None))
 
 
 @bp.route('/engines')
