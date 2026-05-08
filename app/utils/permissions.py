@@ -11,10 +11,10 @@ from app.models import ConfidentialFieldFlag
 
 def get_db_session():
     """Get db_session from current app context"""
-    from app import db_session as app_db_session
-    if app_db_session is not None:
-        return app_db_session
-    # Fallback to app context
+    from app import get_db_session as _get
+    session = _get()
+    if session is not None:
+        return session
     if current_app:
         return current_app.db_session
     raise RuntimeError("No database session available")

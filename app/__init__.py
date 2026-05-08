@@ -402,12 +402,15 @@ def init_login_manager(app):
         """Load user by ID for Flask-Login"""
         from app.models import User
         from sqlalchemy.exc import OperationalError
+        session = get_db_session()
+        if session is None:
+            return None
         try:
-            return db_session.query(User).get(int(user_id))
+            return session.query(User).get(int(user_id))
         except OperationalError:
             # Schema mismatch (e.g. pending migration) — treat as not logged in
             # so the migration prompt can be shown on next request
-            db_session.remove()
+            session.remove()
             return None
 
 
@@ -459,8 +462,9 @@ def register_error_handlers(app):
 
     @app.errorhandler(500)
     def internal_server_error(e):
-        if db_session is not None:
-            db_session.rollback()
+        session = get_db_session()
+        if session is not None:
+            session.rollback()
         return render_template('errors/500.html'), 500
 
 

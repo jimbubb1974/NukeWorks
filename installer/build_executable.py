@@ -52,6 +52,31 @@ def ensure_pyinstaller() -> None:
         ) from exc
 
 
+def stamp_build_info() -> None:
+    """Write app/build_info.py with the current timestamp and git commit."""
+    import datetime
+    import subprocess
+
+    timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    try:
+        git_commit = subprocess.check_output(
+            ["git", "rev-parse", "--short", "HEAD"],
+            cwd=PROJECT_ROOT,
+            text=True,
+            stderr=subprocess.DEVNULL,
+        ).strip()
+    except Exception:
+        git_commit = "unknown"
+
+    build_info_path = PROJECT_ROOT / "app" / "build_info.py"
+    build_info_path.write_text(
+        f'BUILD_TIMESTAMP = "{timestamp}"\n'
+        f'GIT_COMMIT = "{git_commit}"\n',
+        encoding="utf-8",
+    )
+    print(f"[BUILD] Stamped build info: {timestamp} ({git_commit})")
+
+
 def build_executable(
     clean: bool,
     build_dir: Path,
@@ -60,6 +85,8 @@ def build_executable(
     """Invoke PyInstaller with the desired arguments."""
     ensure_supported_python()
     ensure_pyinstaller()
+
+    stamp_build_info()
 
     if clean:
         print("[BUILD] Cleaning previous build artifacts...")

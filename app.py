@@ -133,6 +133,11 @@ if __name__ == '__main__':
     print("=" * 60)
     print("NukeWorks - Nuclear Project Management Database")
     print("=" * 60)
+    try:
+        from app.build_info import BUILD_TIMESTAMP, GIT_COMMIT
+        print(f"Build: {BUILD_TIMESTAMP}  commit: {GIT_COMMIT}")
+    except Exception:
+        pass
     print(f"Environment: {os.environ.get('FLASK_ENV', 'development')}")
     print(f"Python Version: {sys.version.split()[0]}")
     print(f"Working Directory: {os.getcwd()}")

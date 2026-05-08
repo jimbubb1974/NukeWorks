@@ -247,6 +247,11 @@ company.company_name }} - NukeWorks{% endblock %} {% block content %}
                     <option value="{{ s }}" {% if strength == s %}selected{% endif %}>{{ s }}</option>
                     {% endfor %}
                   </select>
+                  <a href="{{ url_for('personnel.edit_personnel', personnel_id=person.personnel_id, type='external') }}"
+                     class="btn btn-outline-secondary btn-sm"
+                     title="Edit {{ person.full_name or 'person' }}">
+                    <i class="bi bi-pencil"></i>
+                  </a>
                 </div>
               </div>
             </div>
