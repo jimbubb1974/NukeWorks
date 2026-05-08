@@ -6,7 +6,7 @@ from flask_login import login_required, current_user
 
 from app import db_session
 from app.forms.auth import CreateUserForm, EditUserForm, AdminChangePasswordForm
-from app.forms.system_settings import CompanySettingsForm, BackupSettingsForm, CrmSettingsForm
+from app.forms.system_settings import CompanySettingsForm, BackupSettingsForm, CrmSettingsForm, DatabaseSettingsForm
 from app.forms.snapshots import ManualSnapshotForm, SnapshotActionForm
 from app.forms.relationships import ConfirmActionForm
 from app.models import (
@@ -852,6 +852,19 @@ def system_settings():
         if form.validate_on_submit():
             set_system_setting('roundtable_history_limit', form.roundtable_history_limit.data, 'integer', current_user.user_id)
             message = 'CRM settings saved.'
+    elif section == 'database':
+        from flask import g
+        from app.utils.db_helpers import get_db_display_name, set_db_display_name
+        form = DatabaseSettingsForm()
+        db_path = getattr(g, 'selected_db_path', None)
+        if request.method == 'GET':
+            form.db_display_name.data = get_db_display_name(db_path) if db_path else ''
+        if form.validate_on_submit():
+            if db_path:
+                set_db_display_name(db_path, form.db_display_name.data)
+                message = 'Database name updated.'
+            else:
+                flash('No database selected.', 'danger')
     else:
         section = 'company'
         form = CompanySettingsForm()

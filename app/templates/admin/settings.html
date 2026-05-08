@@ -24,6 +24,9 @@
         <li class="nav-item">
             <a class="nav-link {% if section == 'crm' %}active{% endif %}" href="{{ url_for('admin.system_settings', section='crm') }}">CRM</a>
         </li>
+        <li class="nav-item">
+            <a class="nav-link {% if section == 'database' %}active{% endif %}" href="{{ url_for('admin.system_settings', section='database') }}">Database</a>
+        </li>
     </ul>
 
     <div class="card">
@@ -85,6 +88,15 @@
                         {{ form.roundtable_history_limit(class="form-control", min="1") }}
                         {% for error in form.roundtable_history_limit.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
                         <div class="form-text">Keep this many roundtable entries per entity. Older entries are removed automatically.</div>
+                    </div>
+
+                {% elif section == 'database' %}
+                    <h6 class="text-uppercase text-muted">Database Identity</h6>
+                    <div class="mb-3">
+                        <label class="form-label">Database Name</label>
+                        {{ form.db_display_name(class="form-control", placeholder="e.g. Client Projects 2026") }}
+                        {% for error in form.db_display_name.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+                        <div class="form-text">This name is stored inside the database file and shown in the database selector and title bar.</div>
                     </div>
                 {% endif %}
 

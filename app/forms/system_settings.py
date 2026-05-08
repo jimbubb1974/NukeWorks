@@ -37,3 +37,11 @@ class CrmSettingsForm(FlaskForm):
         validators=[DataRequired(message='History limit required'), NumberRange(min=1, max=50)]
     )
     submit = SubmitField('Save CRM Settings')
+
+
+class DatabaseSettingsForm(FlaskForm):
+    db_display_name = StringField(
+        'Database Name',
+        validators=[DataRequired(message='Database name is required')]
+    )
+    submit = SubmitField('Save Database Name')
