@@ -76,9 +76,9 @@ def create_company():
                 from app.models import ClientProfile
                 client_profile = ClientProfile(
                     company_id=company.company_id,
-                    client_priority=form.client_priority.data or None,
-                    client_tier=form.client_tier.data or None,
-                    relationship_notes=form.relationship_notes.data or None,
+                    client_priority=form.client_priority.data or None if current_user.is_ned_team else None,
+                    client_tier=form.client_tier.data or None if current_user.is_ned_team else None,
+                    relationship_notes=form.relationship_notes.data or None if current_user.is_ned_team else None,
                     created_by=current_user.user_id,
                     modified_by=current_user.user_id,
                     created_date=datetime.utcnow(),
@@ -320,10 +320,16 @@ def edit_company(company_id):
                     client_profile = ClientProfile(company_id=company.company_id)
                     db_session.add(client_profile)
                 
-                # Update CRM fields
-                client_profile.client_priority = form.client_priority.data or None
-                client_profile.client_tier = form.client_tier.data or None
-                client_profile.relationship_notes = form.relationship_notes.data or None
+                # Update CRM fields — NED Team encrypted fields are only
+                # written back when the user has NED Team access. Without
+                # this guard, a non-NED user editing any company field would
+                # silently clear priority/tier/notes because the redacted
+                # placeholder ('[NED Team Only]') doesn't match any SelectField
+                # choice, so the form submits '' which resolves to None.
+                if current_user.is_ned_team:
+                    client_profile.client_priority = form.client_priority.data or None
+                    client_profile.client_tier = form.client_tier.data or None
+                    client_profile.relationship_notes = form.relationship_notes.data or None
                 client_profile.modified_by = current_user.user_id
                 client_profile.modified_date = datetime.utcnow()
             else:
