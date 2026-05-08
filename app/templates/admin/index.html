@@ -77,4 +77,18 @@
         </div>
     </div>
 </div>
+
+<div class="row mt-3">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5>System Settings</h5>
+            </div>
+            <div class="card-body">
+                <p>Configure company branding, backups, CRM preferences, and database name.</p>
+                <a href="{{ url_for('admin.system_settings') }}" class="btn btn-primary">Open Settings</a>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
