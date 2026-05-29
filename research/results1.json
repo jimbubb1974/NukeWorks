@@ -1,0 +1,1086 @@
+{
+  "metadata": {
+    "generated_at": "2026-04-27T20:00:00Z",
+    "researcher": "GPT-5.2 Thinking",
+    "notes": "Public-source research through April 2026 using the uploaded existing_data plus current official sources. Existing entities are included only where material corrections or updates were found. Corrected relationship rows are included where public sources clearly support them; stale or unsupported prior rows that could not be safely re-stated were omitted."
+  },
+  "entities": {
+    "companies": [
+      {
+        "db_id": 44,
+        "slug": "amazon-aws",
+        "company_name": "Amazon Web Services, Inc.",
+        "company_type": "Offtaker",
+        "website": "https://aws.amazon.com/",
+        "headquarters_country": "USA",
+        "roles": ["offtaker"],
+        "notes": "AWS is now a major nuclear offtaker. Amazon announced advanced nuclear agreements in October 2024 involving X-energy and Energy Northwest, and Talen and Amazon expanded their Susquehanna arrangement into a long-term PPA in June 2025.",
+        "sources": [
+          "https://www.aboutamazon.com/news/sustainability/amazon-nuclear-small-modular-reactor-net-carbon-zero",
+          "https://ir.talenenergy.com/news-releases/news-release-details/talen-energy-expands-nuclear-energy-relationship-amazon/"
+        ]
+      },
+      {
+        "db_id": 39,
+        "slug": "bechtel-corporation",
+        "company_name": "Bechtel Corporation",
+        "company_type": "Constructor",
+        "website": "https://www.bechtel.com/",
+        "headquarters_country": "USA",
+        "roles": ["constructor"],
+        "notes": "Bechtel is TerraPower's EPC partner on Natrium and is supporting TVA's Clinch River BWRX-300 programme as part of the project-delivery team.",
+        "sources": [
+          "https://www.bechtel.com/press-releases/bechtel-and-terrapower-begin-construction-at-natrium-kemmerer-unit-1/",
+          "https://www.bechtel.com/press-releases/tva-bechtel-sargent-lundy-and-ge-hitachi-plan-initial-construction-and-design-for-potential-clinch-river-smr/"
+        ]
+      },
+      {
+        "db_id": 16,
+        "slug": "constellation-energy",
+        "company_name": "Constellation Energy Corporation",
+        "company_type": "IPP",
+        "website": "https://www.constellationenergy.com/",
+        "headquarters_country": "USA",
+        "roles": ["owner_developer", "operator"],
+        "notes": "Constellation is advancing the restart of Three Mile Island Unit 1 as the Crane Clean Energy Center under a 20-year Microsoft PPA, and signed a separate 20-year PPA with Meta in 2025 for the output of the Clinton Clean Energy Center starting in 2027.",
+        "sources": [
+          "https://www.constellationenergy.com/news/2024/Constellation-to-Launch-Crane-Clean-Energy-Center-Restoring-Jobs-and-Carbon-Free-Power-to-The-Grid.html",
+          "https://www.constellationenergy.com/news/2025/constellation-meta-sign-20-year-deal-for-clean-reliable-nuclear-energy-in-illinois.html"
+        ]
+      },
+      {
+        "db_id": 35,
+        "slug": "dow-inc",
+        "company_name": "Dow Inc.",
+        "company_type": "Other",
+        "website": "https://corporate.dow.com/",
+        "headquarters_country": "USA",
+        "roles": ["owner_developer", "offtaker"],
+        "notes": "Dow's wholly owned subsidiary Long Mott Energy LLC is developing the Seadrift Xe-100 project with X-energy to replace end-of-life power and steam assets at Dow's UCC Seadrift Operations site.",
+        "sources": [
+          "https://x-energy.com/news/dow-and-x-energy-submit-construction-permit-application-to-the-us-nuclear-regulatory-commission-for-proposed-advanced-nuclear-project-in-texas/"
+        ]
+      },
+      {
+        "db_id": 49,
+        "slug": "fermi-america",
+        "company_name": "Fermi America",
+        "company_type": "Developer",
+        "website": "https://fermiamerica.com/",
+        "headquarters_country": "USA",
+        "roles": ["owner_developer"],
+        "notes": "Fermi America is developing a private power and data campus in the Texas Panhandle and, with Westinghouse, is pursuing licensing support for four AP1000 units for the Amarillo campus.",
+        "sources": [
+          "https://fermiamerica.com/",
+          "https://info.westinghousenuclear.com/news/fermi-america-partners-with-westinghouse-to-support-licensing-for-four-ap1000-units"
+        ]
+      },
+      {
+        "db_id": 3,
+        "slug": "ge-hitachi-nuclear-energy",
+        "company_name": "GE Hitachi Nuclear Energy",
+        "company_type": "Vendor",
+        "website": "https://www.gevernova.com/nuclear",
+        "headquarters_country": "USA",
+        "roles": ["vendor"],
+        "notes": "GE Hitachi is advancing near-term BWRX-300 deployment in North America, including Darlington and TVA's Clinch River project.",
+        "sources": [
+          "https://www.nrc.gov/reactors/new-reactors/advanced/who-were-working-with/applicant-projects/clinch-river",
+          "https://www.gevernova.com/news/press-releases/ge-hitachi-awards-contract-bwrx-300-reactor-pressure-vessel-bwxt"
+        ]
+      },
+      {
+        "db_id": 45,
+        "slug": "google",
+        "company_name": "Google LLC",
+        "company_type": "Offtaker",
+        "website": "https://about.google/",
+        "headquarters_country": "USA",
+        "roles": ["offtaker"],
+        "notes": "Google signed a Master Plant Development Agreement with Kairos Power in October 2024 covering a U.S. advanced reactor fleet totaling 500 MW by 2035. In August 2025 Google, Kairos and TVA announced that Hermes 2 output will be sold into the TVA grid to support Google data centers in Tennessee and Alabama.",
+        "sources": [
+          "https://www.kairospower.com/updates/google-and-kairos-power-partner-to-deploy-500-mw-of-clean-electricity-generation",
+          "https://www.kairospower.com/updates/google-kairos-power-tva-collaborate-to-meet-americas-growing-energy-needs"
+        ]
+      },
+      {
+        "db_id": 6,
+        "slug": "holtec-international",
+        "company_name": "Holtec International",
+        "company_type": "Vendor",
+        "website": "https://holtecinternational.com/",
+        "headquarters_country": "USA",
+        "roles": ["vendor", "owner_developer"],
+        "notes": "Holtec is advancing the Palisades restart and the co-located SMR-300 project. NRC received the first part of the Palisades SMR construction permit package in January 2026, while Holtec continues to target first SMR operation around 2030 under Mission 2030.",
+        "sources": [
+          "https://holtecinternational.com/hh-40-05/",
+          "https://www.nrc.gov/sites/default/files/cdn/doc-collection-news/2026/26-008.pdf"
+        ]
+      },
+      {
+        "db_id": 7,
+        "slug": "kairos-power-llc",
+        "company_name": "Kairos Power, LLC",
+        "company_type": "Vendor",
+        "website": "https://www.kairospower.com/",
+        "headquarters_country": "USA",
+        "roles": ["vendor", "owner_developer", "operator"],
+        "notes": "Kairos broke ground on the Hermes 2 Demonstration Plant in April 2026. The company is the owner and operator of the Hermes demonstration series and is Google's advanced reactor development partner.",
+        "sources": [
+          "https://www.kairospower.com/updates/kairos-power-breaks-ground-on-hermes-2-demonstration-plant",
+          "https://www.kairospower.com/locations/tennessee"
+        ]
+      },
+      {
+        "db_id": 46,
+        "slug": "meta-platforms-facebook",
+        "company_name": "Meta Platforms, Inc.",
+        "company_type": "Offtaker",
+        "website": "https://about.meta.com/",
+        "headquarters_country": "USA",
+        "roles": ["offtaker"],
+        "notes": "Meta's nuclear procurement expanded materially in 2025-2026. It signed a 20-year PPA for Clinton with Constellation in June 2025 and in January 2026 announced additional nuclear agreements with Vistra, TerraPower and Oklo.",
+        "sources": [
+          "https://about.fb.com/news/2025/06/meta-constellation-partner-clean-energy-project/",
+          "https://about.fb.com/news/2026/01/meta-nuclear-energy-projects-power-american-ai-leadership/"
+        ]
+      },
+      {
+        "db_id": 47,
+        "slug": "microsoft",
+        "company_name": "Microsoft Corporation",
+        "company_type": "Offtaker",
+        "website": "https://www.microsoft.com/",
+        "headquarters_country": "USA",
+        "roles": ["offtaker"],
+        "notes": "Microsoft's September 2024 deal with Constellation supports the restart of Three Mile Island Unit 1 as the Crane Clean Energy Center. Microsoft later described it as its first large-scale nuclear energy PPA.",
+        "sources": [
+          "https://www.microsoft.com/en-us/microsoft-cloud/blog/2024/09/20/accelerating-the-addition-of-carbon-free-energy-an-update-on-progress/",
+          "https://cdn-dynmedia-1.microsoft.com/is/content/microsoftcorp/microsoft/msc/documents/presentations/CSR/2025-Microsoft-Environmental-Sustainability-Report.pdf"
+        ]
+      },
+      {
+        "db_id": 18,
+        "slug": "ontario-power-generation-opg",
+        "company_name": "Ontario Power Generation",
+        "company_type": "Public Power",
+        "website": "https://www.opg.com/",
+        "headquarters_country": "Canada",
+        "roles": ["owner_developer", "operator"],
+        "notes": "OPG received a CNSC licence to construct the first Darlington BWRX-300 in April 2025 and is executing Unit 1 with the site planned for up to four SMRs.",
+        "sources": [
+          "https://www.opg.com/projects-services/projects/nuclear/smr/darlington-smr/",
+          "https://files.opg.com/docs/eb-2025-0297-d2-04-06-darlington-new-nuclear-program-schedule-pdf/"
+        ]
+      },
+      {
+        "db_id": 48,
+        "slug": "sante-cooper",
+        "company_name": "Santee Cooper",
+        "company_type": "Public Power",
+        "website": "https://www.santeecooper.com/",
+        "headquarters_country": "USA",
+        "roles": ["owner_developer"],
+        "notes": "Santee Cooper launched an RFP in January 2025 for the unfinished V.C. Summer units and by late 2025 had moved into exclusive negotiations on a potential acquisition and completion path with Brookfield Asset Management.",
+        "sources": [
+          "https://www.santeecooper.com/global-news/2025/01222025-Santee-Cooper-seeking-proposals-to-acquire-and-finish-VC-Summer-Nuclear-Station-expansion.aspx",
+          "https://www.santeecooper.com/global-news/2025/102425-Santee-Cooper-Selects-Brookfield-Asset-Management-to-Proceed-with-Nuclear-Project.aspx"
+        ]
+      },
+      {
+        "db_id": 36,
+        "slug": "talen-energy",
+        "company_name": "Talen Energy Corporation",
+        "company_type": "IPP",
+        "website": "https://www.talenenergy.com/",
+        "headquarters_country": "USA",
+        "roles": ["owner_developer", "operator"],
+        "notes": "Talen owns and operates the Susquehanna nuclear facility and expanded its Amazon relationship in June 2025 into a long-term PPA for up to 1,920 MW through 2042. Existing database records that attribute Susquehanna operations to Constellation are inconsistent with current public disclosures.",
+        "sources": [
+          "https://ir.talenenergy.com/news-releases/news-release-details/talen-energy-expands-nuclear-energy-relationship-amazon/",
+          "https://www.talenenergy.com/plant/susquehanna-steam-electric-station/"
+        ]
+      },
+      {
+        "db_id": 17,
+        "slug": "tennessee-valley-authority-tva",
+        "company_name": "Tennessee Valley Authority",
+        "company_type": "Public Power",
+        "website": "https://www.tva.com/",
+        "headquarters_country": "USA",
+        "roles": ["owner_developer", "operator"],
+        "notes": "TVA's Clinch River BWRX-300 construction permit application is under NRC review. TVA also announced an August 2025 collaboration with Google and Kairos for Hermes 2 power sales into the TVA grid.",
+        "sources": [
+          "https://www.nrc.gov/reactors/new-reactors/advanced/who-were-working-with/applicant-projects/clinch-river",
+          "https://tva.com/energy/our-power-system/nuclear/clinch-river-small-modular-reactor",
+          "https://www.kairospower.com/updates/google-kairos-power-tva-collaborate-to-meet-americas-growing-energy-needs"
+        ]
+      },
+      {
+        "db_id": 2,
+        "slug": "terrapower-llc",
+        "company_name": "TerraPower, LLC",
+        "company_type": "Vendor",
+        "website": "https://www.terrapower.com/",
+        "headquarters_country": "USA",
+        "roles": ["vendor", "owner_developer"],
+        "notes": "Construction execution at Natrium Kemmerer Unit 1 began in April 2026. TerraPower also announced a January 2026 agreement with Meta covering early development for two new Natrium units plus rights for up to six additional units.",
+        "sources": [
+          "https://www.bechtel.com/press-releases/bechtel-and-terrapower-begin-construction-at-natrium-kemmerer-unit-1/",
+          "https://www.terrapower.com/terrapower-announces-deal-with-meta"
+        ]
+      },
+      {
+        "db_id": 5,
+        "slug": "westinghouse-electric-company",
+        "company_name": "Westinghouse Electric Company",
+        "company_type": "Vendor",
+        "website": "https://www.westinghousenuclear.com/",
+        "headquarters_country": "USA",
+        "roles": ["vendor"],
+        "notes": "Westinghouse is supporting prospective AP1000 fleet deployment in the U.S., including licensing work with Fermi America and continued U.S. interest in AP1000 restart and new-build opportunities.",
+        "sources": [
+          "https://info.westinghousenuclear.com/news/fermi-america-partners-with-westinghouse-to-support-licensing-for-four-ap1000-units",
+          "https://www.westinghousenuclear.com/"
+        ]
+      },
+      {
+        "db_id": 4,
+        "slug": "x-energy-reactor-company-llc",
+        "company_name": "X-energy Reactor Company, LLC",
+        "company_type": "Vendor",
+        "website": "https://x-energy.com/",
+        "headquarters_country": "USA",
+        "roles": ["vendor"],
+        "notes": "X-energy submitted the Long Mott construction permit application with Dow in March 2025 and continues to advance the Energy Northwest project. Amazon also announced a major financing commitment tied to X-energy's commercialization.",
+        "sources": [
+          "https://x-energy.com/news/dow-and-x-energy-submit-construction-permit-application-to-the-us-nuclear-regulatory-commission-for-proposed-advanced-nuclear-project-in-texas/",
+          "https://x-energy.com/media/news-releases/energy-northwest-x-energy-joint-development-agreement-xe-100",
+          "https://www.aboutamazon.com/news/sustainability/amazon-nuclear-small-modular-reactor-net-carbon-zero"
+        ]
+      },
+      {
+        "db_id": 40,
+        "slug": "atkinsralis-snc-lavalin-group",
+        "company_name": "AtkinsRéalis",
+        "company_type": "Constructor",
+        "website": "https://www.atkinsrealis.com/",
+        "headquarters_country": "Canada",
+        "roles": ["constructor"],
+        "notes": "Candu Energy, an AtkinsRéalis company, holds the Unit 1 execution contract for Darlington's first BWRX-300 and remains a key delivery partner on the project.",
+        "sources": [
+          "https://www.atkinsrealis.com/en/media/press-releases/2025/2025-05-28"
+        ]
+      },
+      {
+        "db_id": null,
+        "slug": "sizewell-c-limited",
+        "company_name": "Sizewell C Limited",
+        "company_type": "Developer",
+        "website": "https://www.sizewellc.com/",
+        "headquarters_country": "United Kingdom",
+        "roles": ["owner_developer"],
+        "notes": "Sizewell C Limited reached final investment decision in July 2025 and is the UK company responsible for developing, constructing, owning, operating and decommissioning the Sizewell C project.",
+        "sources": [
+          "https://www.sizewellc.com/news-views/final-investment-decision-reached-for-sizewell-c-the-biggest-british-clean-energy-project-in-a-generation/",
+          "https://www.sizewellc.com/terms-conditions/"
+        ]
+      },
+      {
+        "db_id": null,
+        "slug": "vistra-corp",
+        "company_name": "Vistra Corp.",
+        "company_type": "IPP",
+        "website": "https://www.vistracorp.com/",
+        "headquarters_country": "USA",
+        "roles": ["owner_developer", "operator"],
+        "notes": "Vistra announced January 2026 PPAs with Meta covering more than 2,600 MW from the Perry, Davis-Besse and Beaver Valley nuclear plants, including support for output increases at those stations.",
+        "sources": [
+          "https://investor.vistracorp.com/2026-01-09-Vistra-and-Meta-Announce-Agreements-to-Support-Nuclear-Plants-in-PJM-and-Add-New-Nuclear-Generation-to-the-Grid",
+          "https://about.fb.com/news/2026/01/meta-nuclear-energy-projects-power-american-ai-leadership/"
+        ]
+      }
+    ],
+    "projects": [
+      {
+        "db_id": 2,
+        "slug": "natrium-demonstration-plant",
+        "project_name": "Natrium Demonstration Plant",
+        "location": "Kemmerer, Wyoming, USA",
+        "project_status": "Construction",
+        "licensing_approach": "Part 50",
+        "configuration": "1x Natrium sodium fast reactor with integrated molten salt energy storage",
+        "project_schedule": "Major site and enabling works began in 2024; Bechtel and TerraPower announced transition into field execution at Kemmerer Unit 1 on April 23, 2026.",
+        "target_cod": null,
+        "cod": null,
+        "project_health": "On Track",
+        "firm_involvement": null,
+        "notes": "DOE ARDP demonstration in partnership with TerraPower and Bechtel.",
+        "sources": [
+          "https://www.bechtel.com/press-releases/bechtel-and-terrapower-begin-construction-at-natrium-kemmerer-unit-1/"
+        ]
+      },
+      {
+        "db_id": 3,
+        "slug": "long-mott-generating-station-xe-100-demonstration",
+        "project_name": "Long Mott Generating Station Xe-100 Demonstration",
+        "location": "Seadrift, Texas, USA",
+        "project_status": "Licensing",
+        "licensing_approach": "Part 50",
+        "configuration": "4x Xe-100",
+        "project_schedule": "Dow and X-energy submitted a construction permit application to the NRC on March 31, 2025 for Dow's Seadrift site.",
+        "target_cod": null,
+        "cod": null,
+        "project_health": "On Track",
+        "firm_involvement": null,
+        "notes": "Project is being developed by Dow subsidiary Long Mott Energy LLC to replace existing power and steam assets at Seadrift.",
+        "sources": [
+          "https://x-energy.com/news/dow-and-x-energy-submit-construction-permit-application-to-the-us-nuclear-regulatory-commission-for-proposed-advanced-nuclear-project-in-texas/"
+        ]
+      },
+      {
+        "db_id": 4,
+        "slug": "energy-northwest-advanced-smr-project",
+        "project_name": "Energy Northwest Advanced SMR Project",
+        "location": "Richland, Washington, USA",
+        "project_status": "Planning",
+        "licensing_approach": "NRC Pre-application",
+        "configuration": "4x Xe-100 initial phase; site potential for up to 12 units",
+        "project_schedule": "Joint development remains active; Amazon announced support for the initial four-unit phase in October 2024.",
+        "target_cod": null,
+        "cod": null,
+        "project_health": "On Track",
+        "firm_involvement": null,
+        "notes": "Project remains in development near Columbia Generating Station with an initial phase of four Xe-100 units and the potential to expand further.",
+        "sources": [
+          "https://x-energy.com/media/news-releases/energy-northwest-x-energy-joint-development-agreement-xe-100",
+          "https://www.aboutamazon.com/news/sustainability/amazon-nuclear-small-modular-reactor-net-carbon-zero"
+        ]
+      },
+      {
+        "db_id": 5,
+        "slug": "kairos-hermes-2-demonstration-plant",
+        "project_name": "Hermes 2 Demonstration Plant",
+        "location": "Oak Ridge, Tennessee, USA",
+        "project_status": "Construction",
+        "licensing_approach": "Part 50",
+        "configuration": "2x KP-FHR units for up to 50 MW to the TVA grid",
+        "project_schedule": "NRC issued the construction permit in 2024 and Kairos broke ground on Hermes 2 on April 17, 2026.",
+        "target_cod": null,
+        "cod": null,
+        "project_health": "On Track",
+        "firm_involvement": null,
+        "notes": "First commercial-scale Kairos project and first power-producing Gen IV reactor to receive an NRC construction permit.",
+        "sources": [
+          "https://www.kairospower.com/updates/kairos-power-breaks-ground-on-hermes-2-demonstration-plant",
+          "https://www.kairospower.com/updates/google-kairos-power-tva-collaborate-to-meet-americas-growing-energy-needs"
+        ]
+      },
+      {
+        "db_id": 7,
+        "slug": "susquehanna-nuclear-ppa-data-center-campus",
+        "project_name": "Susquehanna Nuclear PPA Data Center Campus",
+        "location": "Salem Township, Pennsylvania, USA",
+        "project_status": "Operating",
+        "licensing_approach": "Other",
+        "configuration": "Co-located data center campus and phased PPA backed by the operating Susquehanna nuclear station",
+        "project_schedule": "Talen and Amazon expanded the original data center arrangement into a long-term PPA in June 2025, ramping to 1,920 MW by 2032.",
+        "target_cod": null,
+        "cod": null,
+        "project_health": "On Track",
+        "firm_involvement": null,
+        "notes": "Current public record supports Talen, not Constellation, as the plant owner/operator.",
+        "sources": [
+          "https://ir.talenenergy.com/news-releases/news-release-details/talen-energy-expands-nuclear-energy-relationship-amazon/",
+          "https://www.talenenergy.com/plant/susquehanna-steam-electric-station/"
+        ]
+      },
+      {
+        "db_id": 8,
+        "slug": "palisades-smr-300",
+        "project_name": "Palisades SMR-300",
+        "location": "Covert Township, Michigan, USA",
+        "project_status": "Licensing",
+        "licensing_approach": "Part 50",
+        "configuration": "2x SMR-300",
+        "project_schedule": "Holtec launched Mission 2030 in February 2025; NRC received the first part of the Palisades SMR construction permit package in January 2026 and the Pioneer 1 and 2 limited work authorization application is under review.",
+        "target_cod": "2030",
+        "cod": null,
+        "project_health": "On Track",
+        "firm_involvement": null,
+        "notes": "Project is co-located with the Palisades restart programme.",
+        "sources": [
+          "https://holtecinternational.com/hh-40-05/",
+          "https://www.nrc.gov/reactors/new-reactors/advanced/who-were-working-with/applicant-projects/pioneer"
+        ]
+      },
+      {
+        "db_id": 9,
+        "slug": "vc-summer-restart",
+        "project_name": "V.C. Summer Restart",
+        "location": "Jenkinsville, South Carolina, USA",
+        "project_status": "Planning",
+        "licensing_approach": "Part 52",
+        "configuration": "2x AP1000 units 2 and 3",
+        "project_schedule": "Santee Cooper launched an RFP in January 2025 and selected Brookfield Asset Management for exclusive negotiations in October 2025, with feasibility work continuing into 2026.",
+        "target_cod": null,
+        "cod": null,
+        "project_health": "At Risk",
+        "firm_involvement": null,
+        "notes": "The project is no longer credibly described as a The Nuclear Company development in current public materials.",
+        "sources": [
+          "https://www.santeecooper.com/global-news/2025/01222025-Santee-Cooper-seeking-proposals-to-acquire-and-finish-VC-Summer-Nuclear-Station-expansion.aspx",
+          "https://www.santeecooper.com/global-news/2025/102425-Santee-Cooper-Selects-Brookfield-Asset-Management-to-Proceed-with-Nuclear-Project.aspx"
+        ]
+      },
+      {
+        "db_id": 11,
+        "slug": "fermi-america-project-1",
+        "project_name": "Fermi America Project 1",
+        "location": "Amarillo, Texas, USA",
+        "project_status": "Planning",
+        "licensing_approach": "Part 52",
+        "configuration": "4x AP1000",
+        "project_schedule": "Fermi America and Westinghouse announced in August 2025 that they are collaborating to finalize a COLA for four AP1000 units at the Amarillo hyperscale campus.",
+        "target_cod": null,
+        "cod": null,
+        "project_health": null,
+        "firm_involvement": null,
+        "notes": "Project sits within Fermi America's broader HyperGrid campus strategy.",
+        "sources": [
+          "https://info.westinghousenuclear.com/news/fermi-america-partners-with-westinghouse-to-support-licensing-for-four-ap1000-units",
+          "https://fermiamerica.com/"
+        ]
+      },
+      {
+        "db_id": null,
+        "slug": "darlington-new-nuclear",
+        "project_name": "Darlington New Nuclear Project",
+        "location": "Clarington, Ontario, Canada",
+        "project_status": "Construction",
+        "licensing_approach": "CNSC",
+        "configuration": "1x BWRX-300 in execution for Unit 1; site planned for up to 4 units total",
+        "project_schedule": "CNSC issued the licence to construct on April 4, 2025; OPG's later programme schedule set a high-confidence in-service date in October 2030.",
+        "target_cod": "2030",
+        "cod": null,
+        "project_health": "On Track",
+        "firm_involvement": null,
+        "notes": "First Darlington SMR unit is now in execution with contracts awarded to key delivery partners.",
+        "sources": [
+          "https://www.opg.com/projects-services/projects/nuclear/smr/darlington-smr/",
+          "https://files.opg.com/docs/eb-2025-0297-d2-04-06-darlington-new-nuclear-program-schedule-pdf/"
+        ]
+      },
+      {
+        "db_id": null,
+        "slug": "clinch-river-smr",
+        "project_name": "Clinch River SMR",
+        "location": "Oak Ridge, Tennessee, USA",
+        "project_status": "Licensing",
+        "licensing_approach": "Part 50",
+        "configuration": "1x BWRX-300",
+        "project_schedule": "TVA's construction permit application was docketed in April 2025 and remained under NRC review in 2026; validation and project-planning work with GE Hitachi, Bechtel and Sargent & Lundy is ongoing.",
+        "target_cod": null,
+        "cod": null,
+        "project_health": "On Track",
+        "firm_involvement": null,
+        "notes": "Leading U.S. utility-led commercial SMR licensing project.",
+        "sources": [
+          "https://www.nrc.gov/reactors/new-reactors/advanced/who-were-working-with/applicant-projects/clinch-river",
+          "https://www.bechtel.com/press-releases/tva-bechtel-sargent-lundy-and-ge-hitachi-plan-initial-construction-and-design-for-potential-clinch-river-smr/"
+        ]
+      },
+      {
+        "db_id": null,
+        "slug": "crane-clean-energy-center",
+        "project_name": "Crane Clean Energy Center",
+        "location": "Londonderry Township, Pennsylvania, USA",
+        "project_status": "Licensing",
+        "licensing_approach": "Other",
+        "configuration": "1x 835 MWe PWR restart",
+        "project_schedule": "Constellation announced the restart plan in September 2024 and continued to report progress in 2026; the target return to service remains 2028, subject to regulatory approvals.",
+        "target_cod": "2028",
+        "cod": null,
+        "project_health": "On Track",
+        "firm_involvement": null,
+        "notes": "Restart of former Three Mile Island Unit 1 supported by a 20-year Microsoft PPA.",
+        "sources": [
+          "https://www.constellationenergy.com/news/2024/Constellation-to-Launch-Crane-Clean-Energy-Center-Restoring-Jobs-and-Carbon-Free-Power-to-The-Grid.html",
+          "https://investors.constellationenergy.com/static-files/8d46f4dc-04f9-4916-aa5d-e12bd5c45aa7"
+        ]
+      },
+      {
+        "db_id": null,
+        "slug": "sizewell-c",
+        "project_name": "Sizewell C",
+        "location": "Leiston, Suffolk, England, United Kingdom",
+        "project_status": "Construction",
+        "licensing_approach": "Other",
+        "configuration": "2x EPR",
+        "project_schedule": "The UK government signed final investment decision in July 2025 and Sizewell C Limited moved into fully funded project execution. Government business-case materials describe first generation in the mid-to-late 2030s.",
+        "target_cod": null,
+        "cod": null,
+        "project_health": "On Track",
+        "firm_involvement": null,
+        "notes": "Major UK new-build project with the UK government as largest shareholder.",
+        "sources": [
+          "https://www.gov.uk/government/news/sizewell-c-gets-green-light-with-final-investment-decision",
+          "https://www.sizewellc.com/news-views/final-investment-decision-reached-for-sizewell-c-the-biggest-british-clean-energy-project-in-a-generation/"
+        ]
+      }
+    ]
+  },
+  "relationships": {
+    "project_company": [
+      {
+        "relationship_key": "natrium-demonstration-plant-vendor-terrapower-llc",
+        "project_db_id": 2,
+        "project_slug": "natrium-demonstration-plant",
+        "company_db_id": 2,
+        "company_slug": "terrapower-llc",
+        "role": "vendor",
+        "is_confidential": false,
+        "notes": "Natrium technology provider.",
+        "sources": [
+          "https://www.bechtel.com/press-releases/bechtel-and-terrapower-begin-construction-at-natrium-kemmerer-unit-1/"
+        ]
+      },
+      {
+        "relationship_key": "natrium-demonstration-plant-owner_developer-terrapower-llc",
+        "project_db_id": 2,
+        "project_slug": "natrium-demonstration-plant",
+        "company_db_id": 2,
+        "company_slug": "terrapower-llc",
+        "role": "owner_developer",
+        "is_confidential": false,
+        "notes": "Project developer and NRC applicant.",
+        "sources": [
+          "https://www.bechtel.com/press-releases/bechtel-and-terrapower-begin-construction-at-natrium-kemmerer-unit-1/"
+        ]
+      },
+      {
+        "relationship_key": "natrium-demonstration-plant-constructor-bechtel-corporation",
+        "project_db_id": 2,
+        "project_slug": "natrium-demonstration-plant",
+        "company_db_id": 39,
+        "company_slug": "bechtel-corporation",
+        "role": "constructor",
+        "is_confidential": false,
+        "notes": "EPC and field-execution partner.",
+        "sources": [
+          "https://www.bechtel.com/press-releases/bechtel-and-terrapower-begin-construction-at-natrium-kemmerer-unit-1/"
+        ]
+      },
+      {
+        "relationship_key": "long-mott-generating-station-xe-100-demonstration-owner_developer-dow-inc",
+        "project_db_id": 3,
+        "project_slug": "long-mott-generating-station-xe-100-demonstration",
+        "company_db_id": 35,
+        "company_slug": "dow-inc",
+        "role": "owner_developer",
+        "is_confidential": false,
+        "notes": "Project is being developed by Dow subsidiary Long Mott Energy LLC.",
+        "sources": [
+          "https://x-energy.com/news/dow-and-x-energy-submit-construction-permit-application-to-the-us-nuclear-regulatory-commission-for-proposed-advanced-nuclear-project-in-texas/"
+        ]
+      },
+      {
+        "relationship_key": "long-mott-generating-station-xe-100-demonstration-offtaker-dow-inc",
+        "project_db_id": 3,
+        "project_slug": "long-mott-generating-station-xe-100-demonstration",
+        "company_db_id": 35,
+        "company_slug": "dow-inc",
+        "role": "offtaker",
+        "is_confidential": false,
+        "notes": "Project is intended to supply Dow's Seadrift manufacturing site with power and steam.",
+        "sources": [
+          "https://x-energy.com/news/dow-and-x-energy-submit-construction-permit-application-to-the-us-nuclear-regulatory-commission-for-proposed-advanced-nuclear-project-in-texas/"
+        ]
+      },
+      {
+        "relationship_key": "long-mott-generating-station-xe-100-demonstration-vendor-x-energy-reactor-company-llc",
+        "project_db_id": 3,
+        "project_slug": "long-mott-generating-station-xe-100-demonstration",
+        "company_db_id": 4,
+        "company_slug": "x-energy-reactor-company-llc",
+        "role": "vendor",
+        "is_confidential": false,
+        "notes": "Xe-100 technology provider.",
+        "sources": [
+          "https://x-energy.com/news/dow-and-x-energy-submit-construction-permit-application-to-the-us-nuclear-regulatory-commission-for-proposed-advanced-nuclear-project-in-texas/"
+        ]
+      },
+      {
+        "relationship_key": "energy-northwest-advanced-smr-project-owner_developer-energy-northwest",
+        "project_db_id": 4,
+        "project_slug": "energy-northwest-advanced-smr-project",
+        "company_db_id": 15,
+        "company_slug": "energy-northwest",
+        "role": "owner_developer",
+        "is_confidential": false,
+        "notes": "Joint development lead at the Washington site.",
+        "sources": [
+          "https://x-energy.com/media/news-releases/energy-northwest-x-energy-joint-development-agreement-xe-100"
+        ]
+      },
+      {
+        "relationship_key": "energy-northwest-advanced-smr-project-vendor-x-energy-reactor-company-llc",
+        "project_db_id": 4,
+        "project_slug": "energy-northwest-advanced-smr-project",
+        "company_db_id": 4,
+        "company_slug": "x-energy-reactor-company-llc",
+        "role": "vendor",
+        "is_confidential": false,
+        "notes": "Xe-100 technology provider.",
+        "sources": [
+          "https://x-energy.com/media/news-releases/energy-northwest-x-energy-joint-development-agreement-xe-100"
+        ]
+      },
+      {
+        "relationship_key": "kairos-hermes-2-demonstration-plant-owner_developer-kairos-power-llc",
+        "project_db_id": 5,
+        "project_slug": "kairos-hermes-2-demonstration-plant",
+        "company_db_id": 7,
+        "company_slug": "kairos-power-llc",
+        "role": "owner_developer",
+        "is_confidential": false,
+        "notes": "Kairos is the owner and developer of Hermes 2.",
+        "sources": [
+          "https://www.kairospower.com/locations/tennessee"
+        ]
+      },
+      {
+        "relationship_key": "kairos-hermes-2-demonstration-plant-vendor-kairos-power-llc",
+        "project_db_id": 5,
+        "project_slug": "kairos-hermes-2-demonstration-plant",
+        "company_db_id": 7,
+        "company_slug": "kairos-power-llc",
+        "role": "vendor",
+        "is_confidential": false,
+        "notes": "KP-FHR technology provider.",
+        "sources": [
+          "https://www.kairospower.com/updates/kairos-power-breaks-ground-on-hermes-2-demonstration-plant"
+        ]
+      },
+      {
+        "relationship_key": "kairos-hermes-2-demonstration-plant-offtaker-google",
+        "project_db_id": 5,
+        "project_slug": "kairos-hermes-2-demonstration-plant",
+        "company_db_id": 45,
+        "company_slug": "google",
+        "role": "offtaker",
+        "is_confidential": false,
+        "notes": "Hermes 2 output is being structured to support Google data centers through the TVA grid.",
+        "sources": [
+          "https://www.kairospower.com/updates/google-kairos-power-tva-collaborate-to-meet-americas-growing-energy-needs"
+        ]
+      },
+      {
+        "relationship_key": "susquehanna-nuclear-ppa-data-center-campus-owner_developer-talen-energy",
+        "project_db_id": 7,
+        "project_slug": "susquehanna-nuclear-ppa-data-center-campus",
+        "company_db_id": 36,
+        "company_slug": "talen-energy",
+        "role": "owner_developer",
+        "is_confidential": false,
+        "notes": "Talen is the owner behind the nuclear-backed power arrangement.",
+        "sources": [
+          "https://ir.talenenergy.com/news-releases/news-release-details/talen-energy-expands-nuclear-energy-relationship-amazon/",
+          "https://www.sec.gov/Archives/edgar/data/1622536/000162253626000017/tln-20251231.htm"
+        ]
+      },
+      {
+        "relationship_key": "susquehanna-nuclear-ppa-data-center-campus-operator-talen-energy",
+        "project_db_id": 7,
+        "project_slug": "susquehanna-nuclear-ppa-data-center-campus",
+        "company_db_id": 36,
+        "company_slug": "talen-energy",
+        "role": "operator",
+        "is_confidential": false,
+        "notes": "Talen public disclosures state that it owns and operates Susquehanna.",
+        "sources": [
+          "https://www.talenenergy.com/plant/susquehanna-steam-electric-station/"
+        ]
+      },
+      {
+        "relationship_key": "susquehanna-nuclear-ppa-data-center-campus-offtaker-amazon-aws",
+        "project_db_id": 7,
+        "project_slug": "susquehanna-nuclear-ppa-data-center-campus",
+        "company_db_id": 44,
+        "company_slug": "amazon-aws",
+        "role": "offtaker",
+        "is_confidential": false,
+        "notes": "Long-term PPA expands to 1,920 MW at full quantity.",
+        "sources": [
+          "https://ir.talenenergy.com/news-releases/news-release-details/talen-energy-expands-nuclear-energy-relationship-amazon/"
+        ]
+      },
+      {
+        "relationship_key": "palisades-smr-300-owner_developer-holtec-international",
+        "project_db_id": 8,
+        "project_slug": "palisades-smr-300",
+        "company_db_id": 6,
+        "company_slug": "holtec-international",
+        "role": "owner_developer",
+        "is_confidential": false,
+        "notes": "Mission 2030 project sponsor.",
+        "sources": [
+          "https://holtecinternational.com/hh-40-05/"
+        ]
+      },
+      {
+        "relationship_key": "palisades-smr-300-vendor-holtec-international",
+        "project_db_id": 8,
+        "project_slug": "palisades-smr-300",
+        "company_db_id": 6,
+        "company_slug": "holtec-international",
+        "role": "vendor",
+        "is_confidential": false,
+        "notes": "SMR-300 technology provider.",
+        "sources": [
+          "https://holtecinternational.com/hh-40-05/"
+        ]
+      },
+      {
+        "relationship_key": "vc-summer-restart-owner_developer-sante-cooper",
+        "project_db_id": 9,
+        "project_slug": "vc-summer-restart",
+        "company_db_id": 48,
+        "company_slug": "sante-cooper",
+        "role": "owner_developer",
+        "is_confidential": false,
+        "notes": "Asset owner running the restart/repurposing process.",
+        "sources": [
+          "https://www.santeecooper.com/global-news/2025/01222025-Santee-Cooper-seeking-proposals-to-acquire-and-finish-VC-Summer-Nuclear-Station-expansion.aspx"
+        ]
+      },
+      {
+        "relationship_key": "vc-summer-restart-vendor-westinghouse-electric-company",
+        "project_db_id": 9,
+        "project_slug": "vc-summer-restart",
+        "company_db_id": 5,
+        "company_slug": "westinghouse-electric-company",
+        "role": "vendor",
+        "is_confidential": false,
+        "notes": "AP1000 original technology provider.",
+        "sources": [
+          "https://www.westinghousenuclear.com/"
+        ]
+      },
+      {
+        "relationship_key": "fermi-america-project-1-owner_developer-fermi-america",
+        "project_db_id": 11,
+        "project_slug": "fermi-america-project-1",
+        "company_db_id": 49,
+        "company_slug": "fermi-america",
+        "role": "owner_developer",
+        "is_confidential": false,
+        "notes": "Campus developer and project sponsor.",
+        "sources": [
+          "https://fermiamerica.com/"
+        ]
+      },
+      {
+        "relationship_key": "fermi-america-project-1-vendor-westinghouse-electric-company",
+        "project_db_id": 11,
+        "project_slug": "fermi-america-project-1",
+        "company_db_id": 5,
+        "company_slug": "westinghouse-electric-company",
+        "role": "vendor",
+        "is_confidential": false,
+        "notes": "Westinghouse is supporting licensing for four AP1000 units.",
+        "sources": [
+          "https://info.westinghousenuclear.com/news/fermi-america-partners-with-westinghouse-to-support-licensing-for-four-ap1000-units"
+        ]
+      },
+      {
+        "relationship_key": "darlington-new-nuclear-owner_developer-ontario-power-generation-opg",
+        "project_db_id": null,
+        "project_slug": "darlington-new-nuclear",
+        "company_db_id": 18,
+        "company_slug": "ontario-power-generation-opg",
+        "role": "owner_developer",
+        "is_confidential": false,
+        "notes": null,
+        "sources": [
+          "https://www.opg.com/projects-services/projects/nuclear/smr/darlington-smr/"
+        ]
+      },
+      {
+        "relationship_key": "darlington-new-nuclear-operator-ontario-power-generation-opg",
+        "project_db_id": null,
+        "project_slug": "darlington-new-nuclear",
+        "company_db_id": 18,
+        "company_slug": "ontario-power-generation-opg",
+        "role": "operator",
+        "is_confidential": false,
+        "notes": "OPG will own and operate the Darlington SMR fleet.",
+        "sources": [
+          "https://www.opg.com/projects-services/projects/nuclear/smr/darlington-smr/"
+        ]
+      },
+      {
+        "relationship_key": "darlington-new-nuclear-vendor-ge-hitachi-nuclear-energy",
+        "project_db_id": null,
+        "project_slug": "darlington-new-nuclear",
+        "company_db_id": 3,
+        "company_slug": "ge-hitachi-nuclear-energy",
+        "role": "vendor",
+        "is_confidential": false,
+        "notes": "BWRX-300 technology provider.",
+        "sources": [
+          "https://www.opg.com/projects-services/projects/nuclear/smr/darlington-smr/"
+        ]
+      },
+      {
+        "relationship_key": "darlington-new-nuclear-constructor-atkinsralis-snc-lavalin-group",
+        "project_db_id": null,
+        "project_slug": "darlington-new-nuclear",
+        "company_db_id": 40,
+        "company_slug": "atkinsralis-snc-lavalin-group",
+        "role": "constructor",
+        "is_confidential": false,
+        "notes": "Unit 1 execution contract awarded in May 2025.",
+        "sources": [
+          "https://www.atkinsrealis.com/en/media/press-releases/2025/2025-05-28"
+        ]
+      },
+      {
+        "relationship_key": "clinch-river-smr-owner_developer-tennessee-valley-authority-tva",
+        "project_db_id": null,
+        "project_slug": "clinch-river-smr",
+        "company_db_id": 17,
+        "company_slug": "tennessee-valley-authority-tva",
+        "role": "owner_developer",
+        "is_confidential": false,
+        "notes": "TVA is the applicant and project sponsor.",
+        "sources": [
+          "https://www.nrc.gov/reactors/new-reactors/advanced/who-were-working-with/applicant-projects/clinch-river"
+        ]
+      },
+      {
+        "relationship_key": "clinch-river-smr-vendor-ge-hitachi-nuclear-energy",
+        "project_db_id": null,
+        "project_slug": "clinch-river-smr",
+        "company_db_id": 3,
+        "company_slug": "ge-hitachi-nuclear-energy",
+        "role": "vendor",
+        "is_confidential": false,
+        "notes": "BWRX-300 technology provider.",
+        "sources": [
+          "https://www.nrc.gov/reactors/new-reactors/advanced/who-were-working-with/applicant-projects/clinch-river"
+        ]
+      },
+      {
+        "relationship_key": "clinch-river-smr-constructor-bechtel-corporation",
+        "project_db_id": null,
+        "project_slug": "clinch-river-smr",
+        "company_db_id": 39,
+        "company_slug": "bechtel-corporation",
+        "role": "constructor",
+        "is_confidential": false,
+        "notes": "Initial construction and design support.",
+        "sources": [
+          "https://www.bechtel.com/press-releases/tva-bechtel-sargent-lundy-and-ge-hitachi-plan-initial-construction-and-design-for-potential-clinch-river-smr/"
+        ]
+      },
+      {
+        "relationship_key": "crane-clean-energy-center-owner_developer-constellation-energy",
+        "project_db_id": null,
+        "project_slug": "crane-clean-energy-center",
+        "company_db_id": 16,
+        "company_slug": "constellation-energy",
+        "role": "owner_developer",
+        "is_confidential": false,
+        "notes": "Restart sponsor and plant owner.",
+        "sources": [
+          "https://www.constellationenergy.com/news/2024/Constellation-to-Launch-Crane-Clean-Energy-Center-Restoring-Jobs-and-Carbon-Free-Power-to-The-Grid.html"
+        ]
+      },
+      {
+        "relationship_key": "crane-clean-energy-center-operator-constellation-energy",
+        "project_db_id": null,
+        "project_slug": "crane-clean-energy-center",
+        "company_db_id": 16,
+        "company_slug": "constellation-energy",
+        "role": "operator",
+        "is_confidential": false,
+        "notes": "Restart sponsor and future plant operator.",
+        "sources": [
+          "https://www.constellationenergy.com/news/2024/Constellation-to-Launch-Crane-Clean-Energy-Center-Restoring-Jobs-and-Carbon-Free-Power-to-The-Grid.html"
+        ]
+      },
+      {
+        "relationship_key": "crane-clean-energy-center-offtaker-microsoft",
+        "project_db_id": null,
+        "project_slug": "crane-clean-energy-center",
+        "company_db_id": 47,
+        "company_slug": "microsoft",
+        "role": "offtaker",
+        "is_confidential": false,
+        "notes": "20-year PPA supports the restart.",
+        "sources": [
+          "https://www.microsoft.com/en-us/microsoft-cloud/blog/2024/09/20/accelerating-the-addition-of-carbon-free-energy-an-update-on-progress/"
+        ]
+      },
+      {
+        "relationship_key": "sizewell-c-owner_developer-sizewell-c-limited",
+        "project_db_id": null,
+        "project_slug": "sizewell-c",
+        "company_db_id": null,
+        "company_slug": "sizewell-c-limited",
+        "role": "owner_developer",
+        "is_confidential": false,
+        "notes": null,
+        "sources": [
+          "https://www.sizewellc.com/terms-conditions/"
+        ]
+      }
+    ],
+    "company_company": [
+      {
+        "relationship_key": "amazon-aws-equity_investment-x-energy-reactor-company-llc",
+        "company_a_db_id": 44,
+        "company_a_slug": "amazon-aws",
+        "company_b_db_id": 4,
+        "company_b_slug": "x-energy-reactor-company-llc",
+        "relationship_type": "Equity_Investment",
+        "is_confidential": false,
+        "notes": "Amazon announced a major financing commitment tied to X-energy's commercialization programme.",
+        "sources": [
+          "https://www.aboutamazon.com/news/sustainability/amazon-nuclear-small-modular-reactor-net-carbon-zero"
+        ]
+      },
+      {
+        "relationship_key": "amazon-aws-supply_agreement-talen-energy",
+        "company_a_db_id": 44,
+        "company_a_slug": "amazon-aws",
+        "company_b_db_id": 36,
+        "company_b_slug": "talen-energy",
+        "relationship_type": "Supply_Agreement",
+        "is_confidential": false,
+        "notes": "June 2025 long-term PPA for Susquehanna-backed power deliveries that ramp to 1,920 MW.",
+        "sources": [
+          "https://ir.talenenergy.com/news-releases/news-release-details/talen-energy-expands-nuclear-energy-relationship-amazon/"
+        ]
+      },
+      {
+        "relationship_key": "google-development_agreement-kairos-power-llc",
+        "company_a_db_id": 45,
+        "company_a_slug": "google",
+        "company_b_db_id": 7,
+        "company_b_slug": "kairos-power-llc",
+        "relationship_type": "Development_Agreement",
+        "is_confidential": false,
+        "notes": "Master Plant Development Agreement covering a planned 500 MW advanced nuclear fleet by 2035.",
+        "sources": [
+          "https://www.kairospower.com/updates/google-and-kairos-power-partner-to-deploy-500-mw-of-clean-electricity-generation"
+        ]
+      },
+      {
+        "relationship_key": "microsoft-supply_agreement-constellation-energy",
+        "company_a_db_id": 47,
+        "company_a_slug": "microsoft",
+        "company_b_db_id": 16,
+        "company_b_slug": "constellation-energy",
+        "relationship_type": "Supply_Agreement",
+        "is_confidential": false,
+        "notes": "20-year PPA supporting restart of the Crane Clean Energy Center.",
+        "sources": [
+          "https://www.microsoft.com/en-us/microsoft-cloud/blog/2024/09/20/accelerating-the-addition-of-carbon-free-energy-an-update-on-progress/"
+        ]
+      },
+      {
+        "relationship_key": "meta-platforms-facebook-supply_agreement-constellation-energy",
+        "company_a_db_id": 46,
+        "company_a_slug": "meta-platforms-facebook",
+        "company_b_db_id": 16,
+        "company_b_slug": "constellation-energy",
+        "relationship_type": "Supply_Agreement",
+        "is_confidential": false,
+        "notes": "20-year PPA for the output of the Clinton Clean Energy Center starting in 2027.",
+        "sources": [
+          "https://about.fb.com/news/2025/06/meta-constellation-partner-clean-energy-project/"
+        ]
+      },
+      {
+        "relationship_key": "meta-platforms-facebook-supply_agreement-vistra-corp",
+        "company_a_db_id": 46,
+        "company_a_slug": "meta-platforms-facebook",
+        "company_b_db_id": null,
+        "company_b_slug": "vistra-corp",
+        "relationship_type": "Supply_Agreement",
+        "is_confidential": false,
+        "notes": "January 2026 PPAs covering Perry, Davis-Besse and Beaver Valley and associated output increases.",
+        "sources": [
+          "https://investor.vistracorp.com/2026-01-09-Vistra-and-Meta-Announce-Agreements-to-Support-Nuclear-Plants-in-PJM-and-Add-New-Nuclear-Generation-to-the-Grid"
+        ]
+      },
+      {
+        "relationship_key": "meta-platforms-facebook-development_agreement-terrapower-llc",
+        "company_a_db_id": 46,
+        "company_a_slug": "meta-platforms-facebook",
+        "company_b_db_id": 2,
+        "company_b_slug": "terrapower-llc",
+        "relationship_type": "Development_Agreement",
+        "is_confidential": false,
+        "notes": "January 2026 agreement supporting early development of two new Natrium units with rights for up to six additional units.",
+        "sources": [
+          "https://www.terrapower.com/terrapower-announces-deal-with-meta"
+        ]
+      },
+      {
+        "relationship_key": "dow-inc-development_agreement-x-energy-reactor-company-llc",
+        "company_a_db_id": 35,
+        "company_a_slug": "dow-inc",
+        "company_b_db_id": 4,
+        "company_b_slug": "x-energy-reactor-company-llc",
+        "relationship_type": "Development_Agreement",
+        "is_confidential": false,
+        "notes": "Joint development of the Long Mott Xe-100 project at Dow's Seadrift site.",
+        "sources": [
+          "https://x-energy.com/news/dow-and-x-energy-submit-construction-permit-application-to-the-us-nuclear-regulatory-commission-for-proposed-advanced-nuclear-project-in-texas/"
+        ]
+      },
+      {
+        "relationship_key": "ontario-power-generation-opg-delivery_contract-ge-hitachi-nuclear-energy",
+        "company_a_db_id": 18,
+        "company_a_slug": "ontario-power-generation-opg",
+        "company_b_db_id": 3,
+        "company_b_slug": "ge-hitachi-nuclear-energy",
+        "relationship_type": "Delivery_Contract",
+        "is_confidential": false,
+        "notes": "BWRX-300 technology and delivery relationship for the Darlington New Nuclear Project.",
+        "sources": [
+          "https://www.opg.com/projects-services/projects/nuclear/smr/darlington-smr/"
+        ]
+      },
+      {
+        "relationship_key": "ontario-power-generation-opg-delivery_contract-atkinsralis-snc-lavalin-group",
+        "company_a_db_id": 18,
+        "company_a_slug": "ontario-power-generation-opg",
+        "company_b_db_id": 40,
+        "company_b_slug": "atkinsralis-snc-lavalin-group",
+        "relationship_type": "Delivery_Contract",
+        "is_confidential": false,
+        "notes": "Unit 1 execution contract awarded to Candu Energy, an AtkinsRéalis company, in May 2025.",
+        "sources": [
+          "https://www.atkinsrealis.com/en/media/press-releases/2025/2025-05-28"
+        ]
+      },
+      {
+        "relationship_key": "fermi-america-development_agreement-westinghouse-electric-company",
+        "company_a_db_id": 49,
+        "company_a_slug": "fermi-america",
+        "company_b_db_id": 5,
+        "company_b_slug": "westinghouse-electric-company",
+        "relationship_type": "Development_Agreement",
+        "is_confidential": false,
+        "notes": "Westinghouse is supporting licensing for four AP1000 units at Fermi America's Amarillo campus.",
+        "sources": [
+          "https://info.westinghousenuclear.com/news/fermi-america-partners-with-westinghouse-to-support-licensing-for-four-ap1000-units"
+        ]
+      }
+    ]
+  }
+}
