@@ -7,10 +7,12 @@ from pathlib import Path
 import pytest
 from sqlalchemy.pool import StaticPool
 
+# Tests should not depend on developer-local .env files or AppData state.
+os.environ.setdefault('CONFIDENTIAL_DATA_KEY', 'ljDoOzaiZ5_1n3EiKoCbyL7TDEqHc6Js_hqwK_R4UEA=')
+os.environ.setdefault('NED_TEAM_KEY', 'lCRatlKRIlEE4-04Pjp1q_OIyYnkdrQRiU_6swEVJHw=')
+
 import app as app_module
 from app.models import Base
-import test_permissions  # type: ignore
-import test_validators  # type: ignore
 
 
 @pytest.fixture(scope='session')
@@ -52,18 +54,26 @@ def db_session(app):
     return app.db_session
 
 
-@pytest.fixture(autouse=True, scope='session')
+@pytest.fixture(scope='session')
 def _wire_test_modules(app):
     """Point test helper modules at the active database session."""
-    test_permissions.db_session = app.db_session
-    test_validators.db_session = app.db_session
+    try:
+        from tests import test_permissions  # type: ignore
+        test_permissions.db_session = app.db_session
+    except ImportError:
+        pass
+    try:
+        from tests import test_validators  # type: ignore
+        test_validators.db_session = app.db_session
+    except ImportError:
+        pass
     yield
 
 
 @pytest.fixture(scope='function')
 def permission_dataset(app, db_session):
     """Set up users, project, and relationships used across permission tests."""
-    from test_permissions import (
+    from tests.test_permissions import (
         setup_test_users,
         setup_test_data,
         cleanup_test_data,

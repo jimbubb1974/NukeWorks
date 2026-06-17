@@ -2,15 +2,12 @@
 Key Management for NukeWorks Field-Level Encryption
 
 Handles loading and access control for master encryption keys.
-Keys are read from environment variables if present; otherwise they are
-loaded from (or auto-generated into) STORAGE_ROOT/encryption_keys.json so
-the application works without any manual setup.
+Keys are read from environment variables only. The application intentionally
+fails loudly when keys are missing so shared databases are never written with
+machine-local auto-generated keys.
 """
 
-import json
 import os
-import sys
-from pathlib import Path
 from typing import Dict, Optional
 from cryptography.fernet import Fernet
 from app.exceptions import EncryptionKeyError
@@ -20,7 +17,7 @@ class KeyManager:
     """
     Manages master encryption keys and permission-based access
 
-    Master keys are stored in environment variables:
+    Master keys must be configured in environment variables:
     - CONFIDENTIAL_DATA_KEY: Encrypts financial and competitive data
     - NED_TEAM_KEY: Encrypts internal team notes and relationship data
     """
@@ -32,18 +29,11 @@ class KeyManager:
     _keys: Optional[Dict[str, bytes]] = None
 
     @classmethod
-    def _keys_file(cls) -> Path:
-        from config import STORAGE_ROOT
-        return Path(STORAGE_ROOT) / 'encryption_keys.json'
-
-    @classmethod
     def _load_keys(cls) -> Dict[str, bytes]:
-        """Load encryption keys, generating and persisting them on first use.
+        """Load encryption keys from environment variables.
 
-        Priority:
-        1. Environment variables (production/CI override)
-        2. STORAGE_ROOT/encryption_keys.json (persisted across restarts)
-        3. Auto-generate new Fernet keys and save them
+        Missing keys are a configuration error. Do not auto-generate keys:
+        a shared database must be encrypted with one shared team keypair.
         """
         if cls._keys is not None:
             return cls._keys
@@ -51,38 +41,20 @@ class KeyManager:
         confidential_key = os.environ.get('CONFIDENTIAL_DATA_KEY')
         ned_team_key = os.environ.get('NED_TEAM_KEY')
 
-        # Try the persistent key file if either key is missing
-        if not confidential_key or not ned_team_key:
-            keys_file = cls._keys_file()
-            stored: dict = {}
-            try:
-                if keys_file.exists():
-                    stored = json.loads(keys_file.read_text())
-            except Exception:
-                pass
-
-            confidential_key = confidential_key or stored.get('CONFIDENTIAL_DATA_KEY')
-            ned_team_key = ned_team_key or stored.get('NED_TEAM_KEY')
-
-            # Generate any keys that are still missing
-            changed = False
-            if not confidential_key:
-                confidential_key = Fernet.generate_key().decode()
-                stored['CONFIDENTIAL_DATA_KEY'] = confidential_key
-                changed = True
-            if not ned_team_key:
-                ned_team_key = Fernet.generate_key().decode()
-                stored['NED_TEAM_KEY'] = ned_team_key
-                changed = True
-
-            if changed:
-                try:
-                    keys_file.parent.mkdir(parents=True, exist_ok=True)
-                    keys_file.write_text(json.dumps(stored))
-                    if not sys.platform.startswith('win'):
-                        keys_file.chmod(0o600)
-                except Exception:
-                    pass
+        missing = []
+        if not confidential_key:
+            missing.append('CONFIDENTIAL_DATA_KEY')
+        if not ned_team_key:
+            missing.append('NED_TEAM_KEY')
+        if missing:
+            raise EncryptionKeyError(
+                "Missing required encryption key(s): "
+                f"{', '.join(missing)}. "
+                "Set these environment variables or provide them in a local "
+                ".env file before opening or editing encrypted data. The app "
+                "does not auto-generate keys because shared databases require "
+                "the same keys on every authorized machine."
+            )
 
         cls._keys = {
             cls.CONFIDENTIAL: confidential_key.encode() if isinstance(confidential_key, str) else confidential_key,

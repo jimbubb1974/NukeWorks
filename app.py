@@ -12,8 +12,24 @@ import webbrowser
 from threading import Timer
 from dotenv import load_dotenv
 
+
+def load_runtime_environment():
+    """Load .env from the predictable runtime location.
+
+    Source runs use python-dotenv's normal discovery. Bundled executable runs
+    load .env from the folder containing NukeWorks.exe, so installed users can
+    place configuration next to the executable without depending on launch cwd.
+    Existing OS environment variables still take precedence.
+    """
+    if getattr(sys, 'frozen', False):
+        env_path = Path(sys.executable).resolve().parent / '.env'
+        load_dotenv(dotenv_path=env_path, override=False)
+    else:
+        load_dotenv(override=False)
+
+
 # Load environment variables
-load_dotenv()
+load_runtime_environment()
 
 # Windows cmd/PowerShell default to cp1252; reconfigure to UTF-8 so emoji in
 # print() calls don't raise UnicodeEncodeError.

@@ -50,6 +50,23 @@ def test_key_validation():
     assert result is True
 
 
+def test_missing_keys_fail_loudly(monkeypatch):
+    """Missing shared keys must not create machine-local replacement keys."""
+    original_confidential_key = os.environ['CONFIDENTIAL_DATA_KEY']
+    original_ned_team_key = os.environ['NED_TEAM_KEY']
+
+    monkeypatch.delenv('CONFIDENTIAL_DATA_KEY', raising=False)
+    monkeypatch.delenv('NED_TEAM_KEY', raising=False)
+    KeyManager._keys = None
+
+    with pytest.raises(EncryptionKeyError, match='Missing required encryption key'):
+        KeyManager.get_key('confidential')
+
+    monkeypatch.setenv('CONFIDENTIAL_DATA_KEY', original_confidential_key)
+    monkeypatch.setenv('NED_TEAM_KEY', original_ned_team_key)
+    KeyManager.reload_keys()
+
+
 def test_invalid_key_type():
     """Test that invalid key type raises error"""
     with pytest.raises(EncryptionKeyError):

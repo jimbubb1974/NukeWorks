@@ -119,6 +119,11 @@ Key variables:
 | `CONFIDENTIAL_DATA_KEY` | Fernet key for Tier 1 encrypted fields |
 | `NED_TEAM_KEY` | Fernet key for Tier 2 (NED Team) encrypted fields |
 
+Encryption keys are required. The app does not auto-generate replacement keys
+because all authorized users of a shared database must use the same
+`CONFIDENTIAL_DATA_KEY` and `NED_TEAM_KEY`. Store shared keys outside Git, such
+as in a password manager or user-level environment variables.
+
 ### 4. Initialize a Database
 
 ```bash
