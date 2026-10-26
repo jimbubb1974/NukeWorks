@@ -186,6 +186,11 @@ def get_or_create_engine_session(db_path, app=None):
             init_audit_logging(scoped_sess)
         except Exception as exc:
             logger.warning(f"Failed to initialize audit logging for cached DB {abs_path}: {exc}")
+        try:
+            from app.utils.instance_lock import refresh_lock
+            refresh_lock(abs_path)
+        except Exception as exc:
+            logger.warning(f"Failed to refresh instance lock for {abs_path}: {exc}")
         return engine, scoped_sess
 
     # Get config from app or use defaults
@@ -251,6 +256,16 @@ def get_or_create_engine_session(db_path, app=None):
     except Exception as exc:
         logger.warning(f"Failed to initialize audit logging for {abs_path}: {exc}")
 
+    # Record an advisory "this process has this database open" marker so
+    # other users/processes can get a helpful warning instead of a bare
+    # "database is locked" error. This never blocks SQLite itself — it's
+    # purely informational.
+    try:
+        from app.utils.instance_lock import acquire_lock
+        acquire_lock(abs_path)
+    except Exception as exc:
+        logger.warning(f"Failed to record instance lock for {abs_path}: {exc}")
+
     logger.info(f"Created new engine for database: {abs_path}")
 
     return engine, scoped_sess
@@ -276,6 +291,11 @@ def dispose_engine(db_path):
         scoped_sess.remove()
         engine.dispose()
         del _engine_cache[abs_path]
+        try:
+            from app.utils.instance_lock import release_lock
+            release_lock(abs_path)
+        except Exception as exc:
+            logger.warning(f"Failed to release instance lock for {abs_path}: {exc}")
         logger.info(f"Disposed engine for database: {abs_path}")
         return True
 

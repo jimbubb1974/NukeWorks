@@ -7,6 +7,7 @@ import os
 import sys
 import socket
 import subprocess
+import atexit
 from pathlib import Path
 import webbrowser
 from threading import Timer
@@ -53,6 +54,18 @@ from app import create_app
 
 # Create Flask application
 app = create_app('standalone' if getattr(sys, 'frozen', False) else None)
+
+# Best-effort cleanup of this process's advisory database locks on exit, so
+# other users/processes don't see a stale "database in use" warning after a
+# clean shutdown. Crashes are still handled gracefully by the PID-liveness
+# check in app.utils.instance_lock.check_lock().
+@atexit.register
+def _release_instance_locks():
+    try:
+        from app.utils.instance_lock import release_all_locks_for_this_process
+        release_all_locks_for_this_process()
+    except Exception:
+        pass
 
 # When running as a packaged executable, ensure the databases/ folder exists
 # next to NukeWorks.exe so users have a ready-made place to put .sqlite files

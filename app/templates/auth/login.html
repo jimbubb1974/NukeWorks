@@ -16,6 +16,30 @@
                     {{ form.hidden_tag() }}
                     <input type="hidden" name="manual_db_path" id="manual_db_path" value="">
 
+                    {% if locked_db_path %}
+                    <div class="alert alert-warning">
+                        <i class="bi bi-lock-fill me-1"></i>
+                        <strong>Database is locked.</strong>
+                        {% if lock_owner %}
+                            <div class="small mt-1">{{ lock_owner }}</div>
+                        {% else %}
+                            <div class="small mt-1">
+                                Another connection is holding this database open. This can happen if NukeWorks
+                                didn't shut down cleanly, or if it's open elsewhere.
+                            </div>
+                        {% endif %}
+                        <div class="small mt-1 text-muted">
+                            If you're sure no one else is actively using this database, you can clear this app's
+                            connection and try again.
+                        </div>
+                        <div class="mt-2">
+                            <button type="submit" name="force_unlock" value="1" class="btn btn-sm btn-warning">
+                                <i class="bi bi-unlock-fill me-1"></i>Force Unlock &amp; Retry
+                            </button>
+                        </div>
+                    </div>
+                    {% endif %}
+
                     <!-- Database Field -->
                     <div class="mb-3">
                         {% if single_db %}
