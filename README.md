@@ -124,6 +124,8 @@ because all authorized users of a shared database must use the same
 `CONFIDENTIAL_DATA_KEY` and `NED_TEAM_KEY`. Store shared keys outside Git, such
 as in a password manager or user-level environment variables.
 
+Full setup, key-matching and recovery instructions: [docs/ENCRYPTION_KEYS.md](docs/ENCRYPTION_KEYS.md).
+
 ### 4. Initialize a Database
 
 ```bash
@@ -251,6 +253,7 @@ Packaging scripts in `installer/` produce a PyInstaller bundle wrapped with an I
 | Schema version mismatch | Apply pending migrations via `flask apply-migrations` or the in-app migration prompt |
 | `UnicodeEncodeError` on Windows | `app.py` reconfigures stdout/stderr to UTF-8 on startup; ensure you are running via the venv `python` binary |
 | Login fails | Check the user's `is_active` flag in the Admin panel |
+| Red "Encryption key problem" banner, saving blocked, or `[Decryption Error]` | This machine's keys differ from the keys the database was written with. See [docs/ENCRYPTION_KEYS.md](docs/ENCRYPTION_KEYS.md) |
 
 ## License
 
