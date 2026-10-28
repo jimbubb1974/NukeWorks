@@ -168,10 +168,13 @@ def list_personnel():
 @login_required
 @edit_required
 def create_personnel():
-    """Create a new external personnel record."""
+    """Create a new personnel record (internal when ?personnel_type=Internal, else external)."""
     from app.models import Company
-    from app.forms.personnel import ExternalPersonnelForm
-    
+    from app.forms.personnel import ExternalPersonnelForm, InternalPersonnelForm
+
+    if request.args.get('personnel_type', '').lower() == 'internal':
+        return _create_internal_personnel(InternalPersonnelForm)
+
     # Get company choices
     companies = db_session.query(Company).order_by(Company.company_name).all()
     company_choices = [(company.company_id, company.company_name) for company in companies]
@@ -501,3 +504,31 @@ def delete_personnel(personnel_id: int):
         flash(f'Unable to delete personnel record: {exc}', 'error')
 
     return redirect(url_for('personnel.list_personnel'))
+
+
+def _create_internal_personnel(form_class):
+    """Create a new internal (MPR) personnel record."""
+    form = form_class()
+
+    if form.validate_on_submit():
+        try:
+            person = InternalPersonnel(
+                full_name=form.full_name.data,
+                email=form.email.data or None,
+                phone=form.phone.data or None,
+                role=form.role.data or None,
+                department=form.department.data or None,
+                is_active=bool(form.is_active.data),
+                notes=form.notes.data or None,
+                created_by=current_user.user_id,
+                modified_by=current_user.user_id,
+            )
+            db_session.add(person)
+            db_session.commit()
+            flash('Internal personnel record created successfully.', 'success')
+            return redirect(url_for('personnel.list_personnel'))
+        except Exception as exc:
+            db_session.rollback()
+            flash(f'Error creating personnel record: {exc}', 'danger')
+
+    return render_template('personnel/create.html', form=form, is_internal=True)
