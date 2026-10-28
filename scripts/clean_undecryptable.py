@@ -32,7 +32,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from dotenv import load_dotenv
 from cryptography.fernet import Fernet, InvalidToken
 
-from check_decryption import TABLES, fingerprint
+from check_decryption import TABLES, fingerprint, expected_key
 
 load_dotenv(override=False)
 
@@ -43,15 +43,14 @@ def combined_fingerprint(keys):
     return f"conf:{fingerprint(keys['confidential'])};ned:{fingerprint(keys['ned_team'])}"
 
 
-def decrypts(ciphers, value):
+def decrypts(cipher, value):
+    """True if value decrypts with the key the app uses for that column."""
     data = value if isinstance(value, bytes) else str(value).encode()
-    for cipher in ciphers.values():
-        try:
-            cipher.decrypt(data)
-            return True
-        except InvalidToken:
-            continue
-    return False
+    try:
+        cipher.decrypt(data)
+        return True
+    except InvalidToken:
+        return False
 
 
 def scan(conn, ciphers):
@@ -71,7 +70,7 @@ def scan(conn, ciphers):
             for col, value in zip(cols, values):
                 if value is None or value == b'':
                     continue
-                (ok if decrypts(ciphers, value) else failing).append(col)
+                (ok if decrypts(ciphers[expected_key(table)], value) else failing).append(col)
             if failing:
                 problems.setdefault(table, []).append((rid, failing, ok))
     return problems

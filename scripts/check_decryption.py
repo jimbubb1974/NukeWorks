@@ -46,6 +46,11 @@ def fingerprint(key: str) -> str:
     return hashlib.sha256(key.encode()).hexdigest()[:8]
 
 
+def expected_key(table: str) -> str:
+    """Key the application uses for a table's encrypted columns."""
+    return 'confidential' if table == 'projects' else 'ned_team'
+
+
 def main():
     args = [a for a in sys.argv[1:] if not a.startswith('--')]
     if not args:
@@ -109,19 +114,25 @@ def main():
                 if value is None or value == b'':
                     continue
                 data = value if isinstance(value, bytes) else str(value).encode()
+                want = expected_key(table)
                 result = None
-                for name, cipher in ciphers.items():
+                for name in (want, *[n for n in ciphers if n != want]):
                     try:
-                        cipher.decrypt(data)
+                        ciphers[name].decrypt(data)
                         result = name
                         break
                     except InvalidToken:
                         pass
-                if result:
+                if result == want:
                     totals['ok'] += 1
                 else:
                     totals['fail'] += 1
-                    kind = 'looks like plaintext' if not data.startswith(b'gAAAA') else 'Fernet token, wrong key'
+                    if result:
+                        kind = f'decrypts only with the {result} key; the app uses the {want} key for this column'
+                    elif data.startswith(b'gAAAA'):
+                        kind = 'Fernet token, wrong key'
+                    else:
+                        kind = 'looks like plaintext'
                     print(f'  FAIL  {id_col}={rid}  {col}  ({kind})')
 
     print(f"\nSummary: {totals['ok']} decrypted OK, {totals['fail']} failed.")

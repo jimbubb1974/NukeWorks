@@ -84,7 +84,7 @@ def _read_stored(session):
 def _all_values_decrypt(session, keys) -> bool:
     """True if every non-empty encrypted value decrypts with one of this machine's keys."""
     from sqlalchemy import text
-    ciphers = [Fernet(k) for k in keys.values()]
+    ciphers = {name: Fernet(k) for name, k in keys.items()}
     existing = {r[0] for r in session.execute(text("SELECT name FROM sqlite_master WHERE type='table'"))}
     for table, (_, cols) in ENCRYPTED_COLUMNS.items():
         if table not in existing:
@@ -93,18 +93,16 @@ def _all_values_decrypt(session, keys) -> bool:
         cols = [c for c in cols if c in have]
         if not cols:
             continue
+        # The app uses one specific key per table: a value readable only with the other key still fails
+        cipher = ciphers['confidential' if table == 'projects' else 'ned_team']
         for row in session.execute(text(f'SELECT {", ".join(cols)} FROM {table}')):
             for value in row:
                 if value is None or value == b'':
                     continue
                 data = value if isinstance(value, bytes) else str(value).encode()
-                for cipher in ciphers:
-                    try:
-                        cipher.decrypt(data)
-                        break
-                    except InvalidToken:
-                        continue
-                else:
+                try:
+                    cipher.decrypt(data)
+                except InvalidToken:
                     return False
     return True
 
