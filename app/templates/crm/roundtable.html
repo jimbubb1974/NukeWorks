@@ -5,10 +5,11 @@
   {% set latest = latest_roundtables.get(company.company_id) %}
   {% if latest %}
   {% set days = (today - latest.created_timestamp.date()).days %}
-  <span class="badge rounded-pill ms-1 {{ 'bg-success' if days < 30 else ('bg-warning text-dark' if days < 60 else 'bg-danger') }}"
+  <span class="badge rounded-pill fw-normal ms-1 border {{ 'bg-success-subtle text-success-emphasis border-success-subtle' if days < 30 else ('bg-warning-subtle text-warning-emphasis border-warning-subtle' if days < 60 else 'bg-danger-subtle text-danger-emphasis border-danger-subtle') }}"
+        style="font-size: 0.65rem; padding: 0.15em 0.5em"
         title="Last roundtable entry: {{ latest.created_timestamp.strftime('%Y-%m-%d') }}">{{ days }}d</span>
   {% else %}
-  <span class="badge rounded-pill bg-secondary ms-1" title="No roundtable entry yet">—</span>
+  <span class="badge rounded-pill fw-normal ms-1 border bg-secondary-subtle text-secondary-emphasis border-secondary-subtle" style="font-size: 0.65rem; padding: 0.15em 0.5em" title="No roundtable entry yet">—</span>
   {% endif %}
 {% endmacro %}
 <div class="container-fluid">
