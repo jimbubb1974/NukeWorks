@@ -26,6 +26,14 @@ from app.exceptions import DecryptionError, InsufficientPermissionsError
 
 logger = logging.getLogger(__name__)
 
+# Text shown in place of a value the viewer cannot see or the app cannot decrypt.
+# These must never be written back to the database as if they were real content.
+PLACEHOLDER_VALUES = frozenset({'[Decryption Error]', '[Confidential]', '[NED Team Only]'})
+
+
+def is_placeholder(value) -> bool:
+    return isinstance(value, str) and value.strip() in PLACEHOLDER_VALUES
+
 
 # =============================================================================
 # CORE ENCRYPTION FUNCTIONS
@@ -415,6 +423,13 @@ class EncryptedField:
 
     def __set__(self, obj, value):
         """Set value (automatically encrypts)"""
+        if is_placeholder(value):
+            # A redaction/error placeholder shown in a form must never be saved back as real data
+            logger.warning(
+                'Refused to store placeholder text %r in %s; keeping the existing value',
+                value, self.encrypted_column_name,
+            )
+            return
         if value is None:
             setattr(obj, self.encrypted_column_name, None)
         else:

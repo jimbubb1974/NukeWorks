@@ -32,7 +32,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from dotenv import load_dotenv
 from cryptography.fernet import Fernet, InvalidToken
 
-from check_decryption import TABLES, fingerprint, expected_key
+from check_decryption import TABLES, PLACEHOLDERS, fingerprint, expected_key
 
 load_dotenv(override=False)
 
@@ -47,10 +47,11 @@ def decrypts(cipher, value):
     """True if value decrypts with the key the app uses for that column."""
     data = value if isinstance(value, bytes) else str(value).encode()
     try:
-        cipher.decrypt(data)
-        return True
+        plain = cipher.decrypt(data).decode('utf-8', 'replace').strip()
     except InvalidToken:
         return False
+    # A saved placeholder such as "[Decryption Error]" decrypts fine but is not real content
+    return plain not in PLACEHOLDERS
 
 
 def scan(conn, ciphers):
@@ -141,7 +142,7 @@ def main():
         for rid, failing, ok in rows:
             if table == 'roundtable_history' and not ok:
                 plan.append(('delete', table, id_col, rid, failing))
-                print(f'  DELETE row {id_col}={rid} (all {len(failing)} encrypted fields unreadable){describe(conn, table, rid)}')
+                print(f'  DELETE row {id_col}={rid} (all {len(failing)} encrypted fields unreadable or placeholder text){describe(conn, table, rid)}')
             else:
                 plan.append(('null', table, id_col, rid, failing))
                 print(f'  CLEAR  row {id_col}={rid}: {", ".join(failing)}{describe(conn, table, rid)}')

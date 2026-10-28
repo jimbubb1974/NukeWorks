@@ -18,6 +18,7 @@ from app.models import (
 from app.forms.roundtable import RoundtableHistoryForm
 from app import db_session
 from app.utils.permissions import ned_team_required, edit_required
+from app.utils.encryption import is_placeholder
 from app.routes.documents import visible_documents
 
 bp = Blueprint('crm', __name__, url_prefix='/crm')
@@ -98,6 +99,17 @@ def add_roundtable_entry(company_id):
     form = RoundtableHistoryForm()
 
     if form.validate_on_submit():
+        placeholder_fields = [
+            f for f in (form.next_steps, form.client_near_term_focus, form.mpr_work_targets, form.discussion)
+            if is_placeholder(f.data)
+        ]
+        if placeholder_fields:
+            flash(
+                'Not saved: a field contains placeholder text such as "[Decryption Error]" instead of '
+                'real content. Clear it and enter the actual notes.',
+                'danger'
+            )
+            return redirect(url_for('crm.add_roundtable_entry', company_id=company.company_id))
         try:
             # Create new roundtable entry (timestamp automatically set)
             entry = RoundtableHistory(
@@ -134,10 +146,14 @@ def add_roundtable_entry(company_id):
 
     # Pre-fill form with most recent entry data (if exists and form not submitted)
     if not form.is_submitted() and most_recent_entry:
-        form.next_steps.data = most_recent_entry.next_steps
-        form.client_near_term_focus.data = most_recent_entry.client_near_term_focus
-        form.mpr_work_targets.data = most_recent_entry.mpr_work_targets
-        form.discussion.data = most_recent_entry.discussion
+        # Never pre-fill a placeholder ("[Decryption Error]", "[NED Team Only]") as if it were content
+        def _prefill(value):
+            return '' if is_placeholder(value) else value
+
+        form.next_steps.data = _prefill(most_recent_entry.next_steps)
+        form.client_near_term_focus.data = _prefill(most_recent_entry.client_near_term_focus)
+        form.mpr_work_targets.data = _prefill(most_recent_entry.mpr_work_targets)
+        form.discussion.data = _prefill(most_recent_entry.discussion)
 
     # Get external personnel for this company with their MPR relationships
     from app.models import ExternalPersonnel, PersonnelRelationship, InternalPersonnel

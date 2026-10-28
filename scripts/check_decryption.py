@@ -46,6 +46,10 @@ def fingerprint(key: str) -> str:
     return hashlib.sha256(key.encode()).hexdigest()[:8]
 
 
+# Text the app shows in place of unreadable/hidden values. Saved by mistake, it looks like valid data.
+PLACEHOLDERS = {'[Decryption Error]', '[Confidential]', '[NED Team Only]'}
+
+
 def expected_key(table: str) -> str:
     """Key the application uses for a table's encrypted columns."""
     return 'confidential' if table == 'projects' else 'ned_team'
@@ -123,7 +127,10 @@ def main():
                         break
                     except InvalidToken:
                         pass
-                if result == want:
+                if result == want and ciphers[want].decrypt(data).decode('utf-8', 'replace').strip() in PLACEHOLDERS:
+                    totals['fail'] += 1
+                    print(f'  FAIL  {id_col}={rid}  {col}  (decrypts fine, but the stored text is a placeholder like "[Decryption Error]", not real content)')
+                elif result == want:
                     totals['ok'] += 1
                 else:
                     totals['fail'] += 1
