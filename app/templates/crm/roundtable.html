@@ -1,6 +1,16 @@
 {% extends "base.html" %}
 {% block title %}Roundtable Meeting - NukeWorks{% endblock %}
 {% block content %}
+{% macro age_chip(company, latest_roundtables, today) %}
+  {% set latest = latest_roundtables.get(company.company_id) %}
+  {% if latest %}
+  {% set days = (today - latest.created_timestamp.date()).days %}
+  <span class="badge rounded-pill ms-1 {{ 'bg-success' if days < 30 else ('bg-warning text-dark' if days < 60 else 'bg-danger') }}"
+        title="Last roundtable entry: {{ latest.created_timestamp.strftime('%Y-%m-%d') }}">{{ days }}d</span>
+  {% else %}
+  <span class="badge rounded-pill bg-secondary ms-1" title="No roundtable entry yet">—</span>
+  {% endif %}
+{% endmacro %}
 <div class="container-fluid">
 
   <!-- Header -->
@@ -64,6 +74,7 @@
                      class="text-decoration-none fw-semibold">
                     {{ company.company_name }}
                   </a>
+                  {{ age_chip(company, latest_roundtables, today) }}
                 </li>
                 {% endfor %}
               </ul>
@@ -81,6 +92,7 @@
                      class="text-decoration-none fw-semibold text-secondary">
                     {{ company.company_name }}
                   </a>
+                  {{ age_chip(company, latest_roundtables, today) }}
                 </li>
                 {% endfor %}
               </ul>
@@ -109,6 +121,7 @@
                      class="text-decoration-none fw-semibold text-secondary">
                     {{ company.company_name }}
                   </a>
+                  {{ age_chip(company, latest_roundtables, today) }}
                 </li>
                 {% endfor %}
               </ul>
@@ -126,6 +139,7 @@
                      class="text-decoration-none fw-semibold text-secondary">
                     {{ company.company_name }}
                   </a>
+                  {{ age_chip(company, latest_roundtables, today) }}
                 </li>
                 {% endfor %}
               </ul>
