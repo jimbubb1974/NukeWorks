@@ -130,9 +130,48 @@
               {% for rel in relationships %}
               <tr>
                 <td>{{ rel.internal_personnel.full_name }}</td>
-                <td>{{ rel.relationship_type or '—' }}</td>
-                <td>{{ rel.notes or '—' }}</td>
-                <td class="text-end">
+                <td>
+                  <form
+                    id="rel-form-{{ rel.relationship_id }}"
+                    method="post"
+                    action="{{ url_for('personnel.update_personnel_relationship', personnel_id=person.personnel_id, relationship_id=rel.relationship_id) }}"
+                  >
+                    {{ relationship_form.hidden_tag() }}
+                    <select
+                      name="relationship_type"
+                      class="form-select form-select-sm"
+                    >
+                      {% set known_types = relationship_form.relationship_type.choices|map(attribute=0)|list %}
+                      {% if rel.relationship_type and rel.relationship_type not in known_types %}
+                      <option value="{{ rel.relationship_type }}" selected disabled>{{ rel.relationship_type }}</option>
+                      {% elif not rel.relationship_type %}
+                      <option value="" selected disabled>—</option>
+                      {% endif %}
+                      {% for value, label in relationship_form.relationship_type.choices %}
+                      <option value="{{ value }}" {% if rel.relationship_type == value %}selected{% endif %}>{{ label }}</option>
+                      {% endfor %}
+                    </select>
+                  </form>
+                </td>
+                <td>
+                  <input
+                    type="text"
+                    name="notes"
+                    form="rel-form-{{ rel.relationship_id }}"
+                    value="{{ rel.notes or '' }}"
+                    maxlength="1000"
+                    class="form-control form-control-sm"
+                  />
+                </td>
+                <td class="text-end text-nowrap">
+                  <button
+                    type="submit"
+                    form="rel-form-{{ rel.relationship_id }}"
+                    class="btn btn-sm btn-outline-primary"
+                    title="Save changes"
+                  >
+                    <i class="bi bi-check-lg"></i>
+                  </button>
                   <form
                     method="post"
                     action="{{ url_for('personnel.delete_personnel_relationship', personnel_id=person.personnel_id, relationship_id=rel.relationship_id) }}"

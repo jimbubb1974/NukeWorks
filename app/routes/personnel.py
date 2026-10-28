@@ -372,6 +372,39 @@ def delete_personnel_relationship(personnel_id: int, relationship_id: int):
         return redirect(url_for('personnel.edit_personnel', personnel_id=personnel_id, type='external'))
 
 
+@bp.route('/<int:personnel_id>/relationships/<int:relationship_id>/update', methods=['POST'])
+@login_required
+@edit_required
+def update_personnel_relationship(personnel_id: int, relationship_id: int):
+    """Update the relationship type and notes of an existing internal/external personnel relationship."""
+    from app.forms.personnel import PersonnelRelationshipForm
+
+    redirect_url = url_for('personnel.edit_personnel', personnel_id=personnel_id, type='external')
+    relationship = db_session.get(PersonnelRelationship, relationship_id)
+    if not relationship or relationship.external_personnel_id != personnel_id:
+        flash('Relationship not found.', 'error')
+        return redirect(redirect_url)
+
+    # A missing type (e.g. a legacy value shown as a disabled option) keeps the current one
+    new_type = request.form.get('relationship_type')
+    if new_type is not None:
+        valid_types = {value for value, _ in PersonnelRelationshipForm().relationship_type.choices}
+        if new_type not in valid_types:
+            flash('Invalid relationship type.', 'danger')
+            return redirect(redirect_url)
+
+    try:
+        if new_type is not None:
+            relationship.relationship_type = new_type
+        relationship.notes = (request.form.get('notes') or '').strip()[:1000] or None
+        db_session.commit()
+        flash('Relationship updated.', 'success')
+    except Exception as exc:
+        db_session.rollback()
+        flash(f'Error updating relationship: {exc}', 'danger')
+    return redirect(redirect_url)
+
+
 # Client management routes removed - use company management instead
 # Companies with client role can be managed through the companies module
 
