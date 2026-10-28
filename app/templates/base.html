@@ -153,6 +153,15 @@
       </div>
     </nav>
 
+    {% if key_guard_banner %}
+    <div class="container mt-3">
+      <div class="alert alert-danger mb-0" role="alert">
+        <i class="bi bi-key-fill"></i> <strong>Encryption key problem.</strong>
+        {{ key_guard_banner }}
+      </div>
+    </div>
+    {% endif %}
+
     <!-- Flash Messages -->
     {% with messages = get_flashed_messages(with_categories=true) %} {% if
     messages %}

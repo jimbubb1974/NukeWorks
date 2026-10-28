@@ -141,6 +141,10 @@ def create_app(config_name=None):
     # Register before_request handler for database selection
     register_db_selector_middleware(app)
 
+    # Block writes when this machine's encryption keys do not match the database
+    from app.utils.key_guard import register_key_guard
+    register_key_guard(app)
+
     # Note: Automated snapshot scheduler is DISABLED for per-DB selection feature
     # Only manual snapshots are supported
 
