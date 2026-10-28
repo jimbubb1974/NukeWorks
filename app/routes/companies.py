@@ -15,6 +15,7 @@ from app.models import (
 from app.forms.companies import CompanyForm
 from app.forms.relationships import ConfirmActionForm, ProjectCompanyRelationshipForm
 from app.utils.permissions import edit_required, filter_relationships
+from app.routes.documents import visible_documents
 
 bp = Blueprint('companies', __name__, url_prefix='/companies')
 
@@ -274,7 +275,9 @@ def view_company(company_id):
         personnel_with_connections=personnel_with_connections,
         all_personnel=all_personnel,
         can_manage=can_manage,
-        delete_form=delete_form
+        delete_form=delete_form,
+        documents=visible_documents(current_user, company_id),
+        next_url=url_for('companies.view_company', company_id=company_id)
     )
 
 

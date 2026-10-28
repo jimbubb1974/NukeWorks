@@ -1,0 +1,98 @@
+{# Expects: company, documents, next_url #}
+{% set cat_icons = {'Org Chart': 'bi-diagram-3', 'Presentation': 'bi-easel', 'Contract': 'bi-file-earmark-text', 'Report': 'bi-file-earmark-bar-graph'} %}
+<div class="card mb-3">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <h6 class="mb-0"><i class="bi bi-paperclip"></i> Documents ({{ documents|length }})</h6>
+    {% if current_user.can_edit() %}
+    <button class="btn btn-outline-primary btn-sm" type="button"
+            data-bs-toggle="collapse" data-bs-target="#docUploadForm-{{ company.company_id }}">
+      <i class="bi bi-upload"></i> Upload
+    </button>
+    {% endif %}
+  </div>
+  <div class="card-body p-2">
+    {% if current_user.can_edit() %}
+    <div class="collapse mb-2" id="docUploadForm-{{ company.company_id }}">
+      <form method="post" enctype="multipart/form-data"
+            action="{{ url_for('documents.upload_document', company_id=company.company_id) }}"
+            class="border rounded p-2 bg-light">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="next" value="{{ next_url }}">
+        <div class="mb-2">
+          <input type="file" name="file" class="form-control form-control-sm" required
+                 accept=".jpg,.jpeg,.png,.gif,.pdf,.txt,.csv,.ppt,.pptx,.doc,.docx,.xls,.xlsx">
+        </div>
+        <div class="mb-2">
+          <input type="text" name="title" class="form-control form-control-sm" maxlength="200"
+                 placeholder="Title (defaults to file name)">
+        </div>
+        <div class="row g-2 mb-2">
+          <div class="col">
+            <select name="category" class="form-select form-select-sm">
+              <option value="">Category…</option>
+              {% for c in ['Org Chart', 'Presentation', 'Contract', 'Report', 'Other'] %}
+              <option value="{{ c }}">{{ c }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col">
+            <select name="access_level" class="form-select form-select-sm" title="Who can open this file">
+              <option value="standard">Everyone</option>
+              {% if current_user.is_admin or current_user.has_confidential_access %}
+              <option value="confidential">Confidential</option>
+              {% endif %}
+              {% if current_user.is_admin or current_user.is_ned_team %}
+              <option value="ned">NED Team only</option>
+              {% endif %}
+            </select>
+          </div>
+        </div>
+        <textarea name="description" class="form-control form-control-sm mb-2" rows="2"
+                  placeholder="Description (optional)"></textarea>
+        <button type="submit" class="btn btn-primary btn-sm">Upload</button>
+        <small class="text-muted ms-2">Max 16 MB</small>
+      </form>
+    </div>
+    {% endif %}
+
+    {% if documents %}
+    {% for doc in documents %}
+    <div class="d-flex justify-content-between align-items-start gap-2 {% if not loop.last %}border-bottom pb-2 mb-2{% endif %}">
+      <div class="d-flex gap-2 min-w-0">
+        {% if doc.is_image %}
+        <a href="{{ url_for('documents.view_document', company_id=company.company_id, document_id=doc.document_id) }}" target="_blank">
+          <img src="{{ url_for('documents.view_document', company_id=company.company_id, document_id=doc.document_id) }}"
+               alt="" style="width: 48px; height: 48px; object-fit: cover" class="rounded border">
+        </a>
+        {% else %}
+        <i class="bi {{ 'bi-file-earmark-pdf' if doc.is_pdf else cat_icons.get(doc.category, 'bi-file-earmark') }} fs-3 text-secondary"></i>
+        {% endif %}
+        <div>
+          <a href="{{ url_for('documents.view_document', company_id=company.company_id, document_id=doc.document_id) }}"
+             {% if doc.is_inline %}target="_blank"{% endif %} class="fw-semibold">{{ doc.title }}</a>
+          {% if doc.access_level == 'confidential' %}<span class="badge bg-warning text-dark ms-1">Confidential</span>{% endif %}
+          {% if doc.access_level == 'ned' %}<span class="badge bg-danger ms-1">NED</span>{% endif %}
+          <br>
+          <small class="text-muted">
+            {% if doc.category %}{{ doc.category }} · {% endif %}{{ doc.original_filename }}
+            · {{ (doc.size_bytes / 1024)|round|int }} KB · {{ doc.uploaded_at.strftime('%Y-%m-%d') }}
+          </small>
+          {% if doc.description %}<br><small>{{ doc.description }}</small>{% endif %}
+        </div>
+      </div>
+      {% if current_user.can_edit() %}
+      <form method="post" class="flex-shrink-0"
+            action="{{ url_for('documents.delete_document', company_id=company.company_id, document_id=doc.document_id) }}"
+            onsubmit="return confirm('Remove this document?');">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="next" value="{{ next_url }}">
+        <button class="btn btn-outline-danger btn-sm" title="Remove"><i class="bi bi-trash"></i></button>
+      </form>
+      {% endif %}
+    </div>
+    {% endfor %}
+    {% else %}
+    <p class="text-muted mb-0 p-2"><i class="bi bi-info-circle"></i> No documents attached</p>
+    {% endif %}
+  </div>
+</div>

@@ -25,7 +25,7 @@ class ValidationError(Exception):
 
 # Application version and required schema version
 APPLICATION_VERSION = "1.0.0"
-APPLICATION_REQUIRED_SCHEMA_VERSION = 20  # Add Engineer company role
+APPLICATION_REQUIRED_SCHEMA_VERSION = 21  # Add company_documents table
 
 
 def get_migrations_directory():

@@ -18,6 +18,7 @@ from app.models import (
 from app.forms.roundtable import RoundtableHistoryForm
 from app import db_session
 from app.utils.permissions import ned_team_required, edit_required
+from app.routes.documents import visible_documents
 
 bp = Blueprint('crm', __name__, url_prefix='/crm')
 
@@ -170,7 +171,9 @@ def add_roundtable_entry(company_id):
         most_recent_entry=most_recent_entry,
         external_personnel=external_personnel,
         personnel_mpr_map=personnel_mpr_map,
-        client_profile=company.client_profile
+        client_profile=company.client_profile,
+        documents=visible_documents(current_user, company.company_id),
+        next_url=url_for('crm.add_roundtable_entry', company_id=company.company_id)
     )
 
 

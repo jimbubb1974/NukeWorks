@@ -441,7 +441,7 @@ def register_blueprints(app):
     Args:
         app: Flask application
     """
-    from app.routes import auth, dashboard, projects, companies, crm, reports, admin, contact_log, network, personnel, db_select, research
+    from app.routes import auth, dashboard, projects, companies, crm, reports, admin, contact_log, network, personnel, db_select, research, documents
 
     app.register_blueprint(db_select.bp)
     app.register_blueprint(auth.bp)
@@ -455,6 +455,7 @@ def register_blueprints(app):
     app.register_blueprint(network.bp)
     app.register_blueprint(personnel.bp)
     app.register_blueprint(research.bp)
+    app.register_blueprint(documents.bp)
 
     # Legacy blueprints removed in Phase 4 cleanup (2025-10-10):
     # - operators, constructors, offtakers, technologies (use /companies?role=X instead)

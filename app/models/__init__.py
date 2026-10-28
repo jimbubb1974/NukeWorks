@@ -24,6 +24,7 @@ from .audit import AuditLog
 from .snapshot import DatabaseSnapshot
 from .system import SystemSetting, SchemaVersion
 from .research import ResearchImportRun, ResearchQueueItem
+from .document import CompanyDocument
 
 # Legacy imports removed in Phase 4 cleanup (2025-10-10):
 # - TechnologyVendor, Product (from vendor.py)
@@ -56,4 +57,5 @@ __all__ = [
     'SchemaVersion',
     'ResearchImportRun',
     'ResearchQueueItem',
+    'CompanyDocument',
 ]

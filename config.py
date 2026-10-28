@@ -169,6 +169,17 @@ class Config:
     MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB max upload
     UPLOAD_FOLDER = str(STORAGE_ROOT / 'uploads')
     ALLOWED_EXTENSIONS = {'xlsx', 'xls', 'csv', 'pdf', 'png', 'jpg', 'jpeg'}
+    # Company document attachments (SVG/HTML deliberately excluded: they can run script when served)
+    ALLOWED_DOCUMENT_EXTENSIONS = {
+        'jpg': 'image/jpeg', 'jpeg': 'image/jpeg', 'png': 'image/png', 'gif': 'image/gif',
+        'pdf': 'application/pdf', 'txt': 'text/plain', 'csv': 'text/csv',
+        'ppt': 'application/vnd.ms-powerpoint',
+        'pptx': 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+        'doc': 'application/msword',
+        'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'xls': 'application/vnd.ms-excel',
+        'xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    }
 
     # Security settings
     WTF_CSRF_ENABLED = True
@@ -189,7 +200,7 @@ class Config:
     # Migration settings
     MIGRATIONS_DIR = str(MIGRATIONS_ROOT)
     APPLICATION_VERSION = '1.0.0'
-    REQUIRED_SCHEMA_VERSION = 20  # Add Engineer company role
+    REQUIRED_SCHEMA_VERSION = 21  # Add company_documents table
 
     # Report settings
     COMPANY_NAME = 'MPR Associates'
