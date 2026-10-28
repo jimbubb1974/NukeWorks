@@ -179,6 +179,12 @@ def create_personnel():
     form = ExternalPersonnelForm()
     form.company_id.choices = company_choices
 
+    # Optional preselected company and return target (e.g. from the CRM roundtable page)
+    preselect_company_id = request.args.get('company_id', type=int)
+    return_to_roundtable = request.args.get('return_to') == 'roundtable'
+    if request.method == 'GET' and preselect_company_id in {c[0] for c in company_choices}:
+        form.company_id.data = preselect_company_id
+
     if form.validate_on_submit():
         try:
             person = ExternalPersonnel(
@@ -197,6 +203,8 @@ def create_personnel():
             db_session.add(person)
             db_session.commit()
             flash('External personnel record created successfully.', 'success')
+            if return_to_roundtable:
+                return redirect(url_for('crm.add_roundtable_entry', company_id=person.company_id))
             return redirect(url_for('personnel.list_personnel'))
         except Exception as exc:
             db_session.rollback()
