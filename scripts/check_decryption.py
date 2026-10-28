@@ -67,7 +67,20 @@ def main():
         sys.exit(2)
     ciphers = {name: Fernet(key.encode()) for name, key in keys.items()}
 
-    conn = sqlite3.connect(f'file:{db_path}?mode=ro', uri=True)
+    if os.path.isdir(db_path):
+        files = sorted(p.name for p in Path(db_path).iterdir() if p.suffix.lower() in ('.sqlite', '.db', '.sqlite3'))
+        print(f'\nThat path is a folder, not a database file: {db_path}')
+        if files:
+            print('Database files in it:')
+            for name in files:
+                print(f'  {name}')
+        sys.exit(1)
+    if not os.path.isfile(db_path):
+        print(f'\nDatabase file not found: {db_path}')
+        sys.exit(1)
+
+    # Path.as_uri() percent-encodes spaces etc. and handles Windows drive letters
+    conn = sqlite3.connect(f'{Path(db_path).as_uri()}?mode=ro', uri=True)
     existing = {r[0] for r in conn.execute("SELECT name FROM sqlite_master WHERE type='table'")}
 
     totals = {'ok': 0, 'fail': 0}
