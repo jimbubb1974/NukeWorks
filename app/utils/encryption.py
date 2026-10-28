@@ -17,11 +17,14 @@ Usage:
     value = decrypt_for_user(encrypted_data, 'confidential', current_user)
 """
 
+import logging
 from typing import Optional, Any
 from sqlalchemy import LargeBinary, TypeDecorator
 from cryptography.fernet import Fernet, InvalidToken
 from app.utils.key_management import KeyManager
 from app.exceptions import DecryptionError, InsufficientPermissionsError
+
+logger = logging.getLogger(__name__)
 
 
 # =============================================================================
@@ -378,9 +381,8 @@ class EncryptedField:
                     cipher = KeyManager.get_cipher(self.key_type)
                     decrypted_bytes = cipher.decrypt(encrypted_data)
                     return decrypted_bytes.decode('utf-8')
-                except DecryptionError:
-                    return "[Decryption Error]"
-                except InvalidToken:
+                except (DecryptionError, InvalidToken):
+                    self._log_failure(obj, table_name, record_id)
                     return "[Decryption Error]"
         except Exception as e:
             # If permission check fails, fall back to key-based permission
@@ -388,12 +390,28 @@ class EncryptedField:
             pass
 
         # Fall back to key-based permission check for backward compatibility
-        return decrypt_for_user(
+        result = decrypt_for_user(
             encrypted_data,
             self.key_type,
             current_user,
             self.redaction_message
         )
+        if result == "[Decryption Error]":
+            self._log_failure(obj, getattr(obj, '__tablename__', None), None)
+        return result
+
+    def _log_failure(self, obj, table_name, record_id):
+        """Say in the server log exactly what failed to decrypt, and with which key."""
+        try:
+            from flask import g
+            from app.utils.key_guard import local_fingerprint
+            logger.warning(
+                'Decryption failed: table=%s id=%s column=%s key_type=%s local_key_fingerprint=%s database=%s',
+                table_name, record_id, self.encrypted_column_name, self.key_type,
+                local_fingerprint(), getattr(g, 'selected_db_path', None),
+            )
+        except Exception:
+            pass
 
     def __set__(self, obj, value):
         """Set value (automatically encrypts)"""
