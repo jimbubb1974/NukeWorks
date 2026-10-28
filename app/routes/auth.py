@@ -186,7 +186,7 @@ def login():
             return _render()
 
         if validation['schema_version'] < get_required_schema_version():
-            flash('This database needs to be updated before it can be used. Contact your administrator.', 'danger')
+            flash('This database needs to be updated before it can be used. An administrator can update it from "Database settings" below.', 'danger')
             return _render()
 
         # Single-instance guard: if another live process on *this* machine
